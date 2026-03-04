@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,8 +26,9 @@ public class RoomEntity {
     @JoinColumn(name = "room_class_id", nullable = false)
     private RoomClassEntity roomClassEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private RoomStatus status;
 
     @Lob
     @Column(name = "description")

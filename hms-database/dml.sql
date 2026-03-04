@@ -1,5 +1,5 @@
 -- MySQL 8 DML seed data (snake_case) for hms_db
--- Updated for allocation/occupant structure + is_active columns
+-- Fixed: reservation_room_allocation.status + align statuses/types with UC enums
 
 USE `hms_db`;
 
@@ -60,7 +60,7 @@ VALUES (1, 'admin@hotel.local', '$2y$10$dummyhashadmin', 'ADMIN', 'local', NULL,
 
 INSERT INTO `staff`
 (`id`, `user_id`, `department`, `full_name`, `phone_number`, `status`, `is_active`)
-VALUES (1, 2, 'Front Office', 'Nguy��n Lễ', '0901000001', 'ACTIVE', 1),
+VALUES (1, 2, 'Front Office', 'Nguyễn Lễ', '0901000001', 'ACTIVE', 1),
        (2, 3, 'Housekeeping', 'Trần My', '0901000002', 'ACTIVE', 1),
        (3, 1, 'Management', 'Phạm Admin', '0901000003', 'ACTIVE', 1);
 
@@ -76,16 +76,17 @@ VALUES (1, 'John Nguyen', '0902000001', '012345678901', 'john.customer@gmail.com
 INSERT INTO `reservation`
 (`id`, `code`, `customer_id`, `expected_check_in`, `expected_check_out`, `status`,
  `total_deposit`, `number_of_members`, `note`, `created_at`, `is_active`)
-VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00', 'BOOKED',
+VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00', 'PENDING_DEPOSIT',
         500000.00, 3, 'Gia đình đi du lịch', '2026-03-01 10:00:00', 1),
-       (2, 'RSV-20260301-0002', 2, '2026-03-15 14:00:00', '2026-03-16 12:00:00', 'BOOKED',
+       (2, 'RSV-20260301-0002', 2, '2026-03-15 14:00:00', '2026-03-16 12:00:00', 'PENDING_DEPOSIT',
         0.00, 1, NULL, '2026-03-01 11:00:00', 1);
 
--- 6. RESERVATION ROOM ALLOCATION
+-- 6. RESERVATION ROOM ALLOCATION (has status now)
 INSERT INTO `reservation_room_allocation`
-(`id`, `reservation_id`, `room_class_id`, `room_id`, `quantity`, `price_at_booking`, `actual_check_out`, `is_active`)
-VALUES (1, 1, 2, 3, 1, 1200000.00, NULL, 1),
-       (2, 2, 1, 1, 1, 800000.00, NULL, 1);
+(`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `quantity`, `price_at_booking`, `actual_check_out`,
+ `is_active`)
+VALUES (1, 1, 2, 3, 'ASSIGNED', 1, 1200000.00, NULL, 1),
+       (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, NULL, 1);
 
 -- 7. ROOM OCCUPANT
 INSERT INTO `room_occupant`
@@ -104,9 +105,9 @@ VALUES (1, 'Breakfast Buffet', 'F&B', 200000.00, 1),
 -- 9. SERVICE BOOKING
 INSERT INTO `service_booking`
 (`id`, `reservation_id`, `service_id`, `quantity`, `status`, `price_at_booking`, `is_active`)
-VALUES (1, 1, 1, 3, 'CONFIRMED', 200000.00, 1),
-       (2, 1, 3, 1, 'CONFIRMED', 700000.00, 1),
-       (3, 2, 2, 2, 'CONFIRMED', 50000.00, 1);
+VALUES (1, 1, 1, 3, 'PENDING', 200000.00, 1),
+       (2, 1, 3, 1, 'PENDING', 700000.00, 1),
+       (3, 2, 2, 2, 'PENDING', 50000.00, 1);
 
 -- 10. FOLIO
 INSERT INTO `folio`
@@ -117,11 +118,11 @@ VALUES (1, 1, 0.00, 0.00, 0.00, 'OPEN', 1),
 -- 11. FOLIO ITEM
 INSERT INTO `folio_item`
 (`id`, `folio_id`, `type`, `service_booking_id`, `description`, `quantity`, `total_price`, `status`, `is_active`)
-VALUES (1, 1, 'ROOM', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'POSTED', 1),
-       (2, 1, 'SERVICE', 1, 'Breakfast Buffet', 3, 600000.00, 'POSTED', 1),
-       (3, 1, 'SERVICE', 2, 'Aroma Massage 60min', 1, 700000.00, 'POSTED', 1),
-       (4, 2, 'ROOM', NULL, 'Room charge (Standard) - 1 night', 1, 800000.00, 'POSTED', 1),
-       (5, 2, 'SERVICE', 3, 'Minibar - Soft Drink', 2, 100000.00, 'POSTED', 1);
+VALUES (1, 1, 'ROOM_CHARGE', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'UNPAID', 1),
+       (2, 1, 'SERVICE_CHARGE', 1, 'Breakfast Buffet', 3, 600000.00, 'UNPAID', 1),
+       (3, 1, 'SERVICE_CHARGE', 2, 'Aroma Massage 60min', 1, 700000.00, 'UNPAID', 1),
+       (4, 2, 'ROOM_CHARGE', NULL, 'Room charge (Standard) - 1 night', 1, 800000.00, 'UNPAID', 1),
+       (5, 2, 'SERVICE_CHARGE', 3, 'Minibar - Soft Drink', 2, 100000.00, 'UNPAID', 1);
 
 UPDATE `folio`
 SET `total_charges` = (SELECT IFNULL(SUM(`total_price`), 0) FROM `folio_item` WHERE `folio_id` = `folio`.`id`),
@@ -144,6 +145,13 @@ VALUES (1, 1, 1, 500000.00, 1),
        (2, 2, 1, 1900000.00, 1),
        (3, 2, 2, 600000.00, 1),
        (4, 2, 3, 700000.00, 1);
+
+-- Mark paid items (simple demo): set PAID if fully covered by allocations
+UPDATE `folio_item` fi
+    JOIN (SELECT `folio_item_id`, SUM(`amount_applied`) AS applied
+          FROM `payment_allocation`
+          GROUP BY `folio_item_id`) x ON x.`folio_item_id` = fi.`id`
+SET fi.`status` = CASE WHEN x.applied >= fi.`total_price` THEN 'PAID' ELSE fi.`status` END;
 
 UPDATE `folio` f
     JOIN (SELECT pt.`folio_id` AS folio_id, SUM(pa.`amount_applied`) AS paid

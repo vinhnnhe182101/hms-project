@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.RoomAssetStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,9 +32,8 @@ public class RoomAssetEntity {
     private Integer quantity;
 
     @ColumnDefault("'Good'")
-    @Lob
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column(name = "status", nullable = false, length = 20)
+    private RoomAssetStatus status;
 
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)

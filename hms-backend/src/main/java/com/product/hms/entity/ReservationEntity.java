@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,8 +34,9 @@ public class ReservationEntity {
     @Column(name = "expected_check_out", nullable = false)
     private Timestamp expectedCheckOut;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private ReservationStatus status;
 
     @ColumnDefault("0.00")
     @Column(name = "total_deposit", nullable = false, precision = 12, scale = 2)

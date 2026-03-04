@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ServiceBookingStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,8 +36,9 @@ public class ServiceBookingEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private ServiceBookingStatus status;
 
     @ColumnDefault("0.00")
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
