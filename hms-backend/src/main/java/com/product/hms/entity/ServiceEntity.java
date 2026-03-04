@@ -33,5 +33,9 @@ public class ServiceEntity {
     @OneToMany(mappedBy = "serviceEntity")
     private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }

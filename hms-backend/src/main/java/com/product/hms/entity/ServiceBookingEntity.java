@@ -30,6 +30,7 @@ public class ServiceBookingEntity {
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity serviceEntity;
 
+
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -43,6 +44,10 @@ public class ServiceBookingEntity {
 
     @OneToMany(mappedBy = "serviceBookingEntity")
     private List<FolioItemEntity> folioItemEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

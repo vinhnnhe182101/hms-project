@@ -33,5 +33,9 @@ public class AssetHandoverEntity {
     @Column(name = "handover_date", nullable = false)
     private Timestamp handoverDate;
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }

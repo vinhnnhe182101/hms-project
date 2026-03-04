@@ -40,6 +40,7 @@ public class ReservationEntity {
     @Column(name = "total_deposit", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalDeposit;
 
+
     @ColumnDefault("1")
     @Column(name = "number_of_members", nullable = false)
     private Integer numberOfMembers;
@@ -69,6 +70,10 @@ public class ReservationEntity {
 
     @OneToMany(mappedBy = "reservationEntity")
     private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

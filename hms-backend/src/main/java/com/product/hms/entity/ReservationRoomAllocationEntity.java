@@ -36,6 +36,7 @@ public class ReservationRoomAllocationEntity {
     @JoinColumn(name = "room_id")
     private RoomEntity Entityroom;
 
+
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -49,6 +50,10 @@ public class ReservationRoomAllocationEntity {
 
     @OneToMany(mappedBy = "allocationEntity")
     private Set<RoomOccupantEntity> roomOccupantEntities = new LinkedHashSet<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

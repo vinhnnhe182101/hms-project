@@ -35,5 +35,9 @@ public class RoomAssetEntity {
     @Column(name = "status", nullable = false)
     private String status;
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }

@@ -1,9 +1,5 @@
--- MySQL 8 schema (snake_case)
--- Notes:
--- - InnoDB + utf8mb4
--- - BIGINT UNSIGNED AUTO_INCREMENT for ids
--- - DECIMAL for money
--- - snake_case for ALL identifiers
+-- MySQL 8 schema (snake_case) for hms_db
+-- Added: is_active TINYINT(1) NOT NULL DEFAULT 1 for every table
 
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';
@@ -20,6 +16,7 @@ CREATE TABLE `room_class`
     `standard_capacity` INT             NOT NULL DEFAULT 1,
     `max_capacity`      INT             NOT NULL DEFAULT 1,
     `extra_person_fee`  DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -31,6 +28,7 @@ CREATE TABLE `room`
     `room_class_id` BIGINT UNSIGNED NOT NULL,
     `status`        VARCHAR(50)     NOT NULL,
     `description`   TEXT            NULL,
+    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_room_room_number` (`room_number`),
     KEY `idx_room_room_class_id` (`room_class_id`),
@@ -50,6 +48,7 @@ CREATE TABLE `customer`
     `type`          VARCHAR(50)     NULL,
     `guardian_id`   BIGINT UNSIGNED NULL,
     `user_id`       BIGINT UNSIGNED NULL,
+    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_customer_guardian_id` (`guardian_id`),
     KEY `idx_customer_user_id` (`user_id`),
@@ -71,6 +70,7 @@ CREATE TABLE `reservation`
     `number_of_members`  INT             NOT NULL DEFAULT 1,
     `note`               TEXT            NULL,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_active`          TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_reservation_code` (`code`),
     KEY `idx_reservation_customer_id` (`customer_id`),
@@ -89,6 +89,7 @@ CREATE TABLE `reservation_room_allocation`
     `quantity`         INT             NOT NULL DEFAULT 1,
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `actual_check_out` DATETIME        NULL,
+    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_reservation_detail_reservation_id` (`reservation_id`),
     KEY `idx_reservation_detail_room_class_id` (`room_class_id`),
@@ -111,6 +112,7 @@ CREATE TABLE `room_occupant`
     `allocation_id` BIGINT UNSIGNED NOT NULL, -- Nối trực tiếp với Allocation
     `customer_id`   BIGINT UNSIGNED NOT NULL,
     `role`          VARCHAR(50)     NOT NULL, -- Ví dụ: 'Primary', 'Guest'
+    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_room_occupant_allocation_id` (`allocation_id`),
     KEY `idx_room_occupant_customer_id` (`customer_id`),
@@ -129,6 +131,7 @@ CREATE TABLE `service`
     `name`             VARCHAR(255)                 NOT NULL,
     `service_category` ENUM ('Spa','Minibar','F&B') NOT NULL,
     `price`            DECIMAL(12, 2)               NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1)                   NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -141,6 +144,7 @@ CREATE TABLE `service_booking`
     `quantity`         INT             NOT NULL DEFAULT 1,
     `status`           VARCHAR(50)     NOT NULL,
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_service_booking_reservation_id` (`reservation_id`),
     KEY `idx_service_booking_service_id` (`service_id`),
@@ -161,6 +165,7 @@ CREATE TABLE `user`
     `role`        VARCHAR(50)             NOT NULL,
     `provider`    ENUM ('local','google') NOT NULL DEFAULT 'local',
     `provider_id` VARCHAR(255)            NULL,
+    `is_active`   TINYINT(1)              NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_email` (`email`)
 ) ENGINE = InnoDB
@@ -179,6 +184,7 @@ CREATE TABLE `staff`
     `full_name`    VARCHAR(255)    NOT NULL,
     `phone_number` VARCHAR(30)     NULL,
     `status`       VARCHAR(50)     NOT NULL,
+    `is_active`    TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_staff_user_id` (`user_id`),
     CONSTRAINT `fk_staff_user`
@@ -193,6 +199,7 @@ CREATE TABLE `shift`
     `shift_name` VARCHAR(100)    NOT NULL,
     `start_time` TIME            NOT NULL,
     `end_time`   TIME            NOT NULL,
+    `is_active`  TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -204,6 +211,7 @@ CREATE TABLE `work_schedule`
     `shift_id`  BIGINT UNSIGNED                           NOT NULL,
     `work_date` DATE                                      NOT NULL,
     `status`    ENUM ('SCHEDULED','ON_LEAVE','COMPLETED') NOT NULL DEFAULT 'SCHEDULED',
+    `is_active` TINYINT(1)                                NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_work_schedule_staff_id` (`staff_id`),
     KEY `idx_work_schedule_shift_id` (`shift_id`),
@@ -224,6 +232,7 @@ CREATE TABLE `folio`
     `total_paid`     DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `balance`        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `status`         VARCHAR(50)     NOT NULL,
+    `is_active`      TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_folio_reservation_id` (`reservation_id`),
     CONSTRAINT `fk_folio_reservation`
@@ -242,6 +251,7 @@ CREATE TABLE `folio_item`
     `quantity`           INT             NOT NULL DEFAULT 1,
     `total_price`        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `status`             VARCHAR(50)     NOT NULL,
+    `is_active`          TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_folio_item_folio_id` (`folio_id`),
     KEY `idx_folio_item_service_booking_id` (`service_booking_id`),
@@ -266,6 +276,7 @@ CREATE TABLE `payment_transaction`
     `status`                VARCHAR(50)     NOT NULL,
     `created_at`            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `handled_by`            BIGINT UNSIGNED NULL,
+    `is_active`             TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_payment_transaction_code` (`code`),
     KEY `idx_payment_transaction_folio_id` (`folio_id`),
@@ -285,6 +296,7 @@ CREATE TABLE `payment_allocation`
     `payment_transaction_id` BIGINT UNSIGNED NOT NULL,
     `folio_item_id`          BIGINT UNSIGNED NOT NULL,
     `amount_applied`         DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`              TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_payment_allocation_payment_transaction_id` (`payment_transaction_id`),
     KEY `idx_payment_allocation_folio_item_id` (`folio_item_id`),
@@ -306,6 +318,7 @@ CREATE TABLE `rating`
     `comment`        TEXT            NULL,
     `review_date`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_public`      TINYINT(1)      NOT NULL DEFAULT 1,
+    `is_active`      TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_rating_reservation_id` (`reservation_id`),
     KEY `idx_rating_customer_id` (`customer_id`),
@@ -323,6 +336,7 @@ CREATE TABLE `asset_category`
     `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name`        VARCHAR(255)    NOT NULL,
     `description` TEXT            NULL,
+    `is_active`   TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -335,6 +349,7 @@ CREATE TABLE `asset`
     `total_quantity`     INT             NOT NULL DEFAULT 0,
     `available_quantity` INT             NOT NULL DEFAULT 0,
     `price`              DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`          TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_asset_category_id` (`category_id`),
     CONSTRAINT `fk_asset_category`
@@ -345,11 +360,12 @@ CREATE TABLE `asset`
 
 CREATE TABLE `room_asset`
 (
-    `id`       BIGINT UNSIGNED         NOT NULL AUTO_INCREMENT,
-    `room_id`  BIGINT UNSIGNED         NOT NULL,
-    `asset_id` BIGINT UNSIGNED         NOT NULL,
-    `quantity` INT                     NOT NULL DEFAULT 0,
-    `status`   ENUM ('Good','Damaged') NOT NULL DEFAULT 'Good',
+    `id`        BIGINT UNSIGNED         NOT NULL AUTO_INCREMENT,
+    `room_id`   BIGINT UNSIGNED         NOT NULL,
+    `asset_id`  BIGINT UNSIGNED         NOT NULL,
+    `quantity`  INT                     NOT NULL DEFAULT 0,
+    `status`    ENUM ('Good','Damaged') NOT NULL DEFAULT 'Good',
+    `is_active` TINYINT(1)              NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_room_asset_room_id` (`room_id`),
     KEY `idx_room_asset_asset_id` (`asset_id`),
@@ -371,6 +387,7 @@ CREATE TABLE `damage_report`
     `quantity`             INT             NOT NULL DEFAULT 1,
     `penalty_amount`       DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `status`               VARCHAR(50)     NOT NULL,
+    `is_active`            TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_damage_report_room_id` (`room_id`),
     KEY `idx_damage_report_reported_by_staff_id` (`reported_by_staff_id`),
@@ -394,6 +411,7 @@ CREATE TABLE `room_img`
     `img_url`       VARCHAR(2048)   NOT NULL,
     `img_type`      VARCHAR(50)     NULL,
     `is_primary`    TINYINT(1)      NOT NULL DEFAULT 0,
+    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_room_img_room_class_id` (`room_class_id`),
     CONSTRAINT `fk_room_img_room_class`
@@ -411,6 +429,7 @@ CREATE TABLE `housekeeping_task`
     `status`       VARCHAR(50)     NOT NULL,
     `assigned_at`  DATETIME        NULL,
     `completed_at` DATETIME        NULL,
+    `is_active`    TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_housekeeping_task_room_id` (`room_id`),
     KEY `idx_housekeeping_task_assignee_id` (`assignee_id`),
@@ -430,6 +449,7 @@ CREATE TABLE `asset_handover`
     `asset_id`      BIGINT UNSIGNED NOT NULL,
     `quantity`      INT             NOT NULL DEFAULT 0,
     `handover_date` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_asset_handover_staff_id` (`staff_id`),
     KEY `idx_asset_handover_asset_id` (`asset_id`),
@@ -454,6 +474,7 @@ CREATE TABLE `refund_request`
     `approved_by`            BIGINT UNSIGNED                                 NULL,
     `created_at`             DATETIME                                        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`             DATETIME                                        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `is_active`              TINYINT(1)                                      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_refund_request_payment_transaction_id` (`payment_transaction_id`),
     KEY `idx_refund_request_requested_by` (`requested_by`),

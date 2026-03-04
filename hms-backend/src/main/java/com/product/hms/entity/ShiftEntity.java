@@ -3,6 +3,7 @@ package com.product.hms.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -29,6 +30,10 @@ public class ShiftEntity {
 
     @OneToMany(mappedBy = "shiftEntity")
     private List<WorkScheduleEntity> workScheduleEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }
