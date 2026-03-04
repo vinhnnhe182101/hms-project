@@ -38,7 +38,7 @@ public class RoomEntity {
     private List<HousekeepingTaskEntity> housekeepingTaskEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
-    private List<ReservationDetailEntity> reservationDetailEntities = new ArrayList<>();
+    private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
     private List<RoomAssetEntity> roomAssetEntities = new ArrayList<>();

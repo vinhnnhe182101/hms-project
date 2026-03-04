@@ -61,8 +61,8 @@ public class ReservationEntity {
     @OneToMany(mappedBy = "reservationEntity")
     private List<RatingEntity> ratingEntities = new ArrayList<>();
 
-    @OneToOne(mappedBy = "reservationEntity")
-    private ReservationDetailEntity reservationDetailEntity;
+    @OneToMany(mappedBy = "reservationEntity")
+    private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "reservationEntity")
     private List<RoomOccupantEntity> roomOccupantEntities = new ArrayList<>();

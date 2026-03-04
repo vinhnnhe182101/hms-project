@@ -80,7 +80,7 @@ CREATE TABLE `reservation`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `reservation_detail`
+CREATE TABLE `reservation_room_allocation`
 (
     `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `reservation_id`   BIGINT UNSIGNED NOT NULL,
@@ -88,7 +88,6 @@ CREATE TABLE `reservation_detail`
     `room_id`          BIGINT UNSIGNED NULL,
     `quantity`         INT             NOT NULL DEFAULT 1,
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `actual_check_in`  DATETIME        NULL,
     `actual_check_out` DATETIME        NULL,
     PRIMARY KEY (`id`),
     KEY `idx_reservation_detail_reservation_id` (`reservation_id`),
@@ -108,21 +107,16 @@ CREATE TABLE `reservation_detail`
 
 CREATE TABLE `room_occupant`
 (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_id` BIGINT UNSIGNED NOT NULL,
-    `room_id`        BIGINT UNSIGNED NOT NULL,
-    `customer_id`    BIGINT UNSIGNED NOT NULL,
-    `role`           VARCHAR(50)     NOT NULL,
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `allocation_id` BIGINT UNSIGNED NOT NULL, -- Nối trực tiếp với Allocation
+    `customer_id`   BIGINT UNSIGNED NOT NULL,
+    `role`          VARCHAR(50)     NOT NULL, -- Ví dụ: 'Primary', 'Guest'
     PRIMARY KEY (`id`),
-    KEY `idx_room_occupant_reservation_id` (`reservation_id`),
-    KEY `idx_room_occupant_room_id` (`room_id`),
+    KEY `idx_room_occupant_allocation_id` (`allocation_id`),
     KEY `idx_room_occupant_customer_id` (`customer_id`),
-    CONSTRAINT `fk_room_occupant_reservation`
-        FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
+    CONSTRAINT `fk_room_occupant_allocation`
+        FOREIGN KEY (`allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT `fk_room_occupant_room`
-        FOREIGN KEY (`room_id`) REFERENCES `room` (`id`)
-            ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT `fk_room_occupant_customer`
         FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT

@@ -1,6 +1,5 @@
--- MySQL 8 DML seed data (snake_case) for the snake_case schema
-
-use `hms_db`;
+-- MySQL 8 DML seed data (snake_case) cập nhật theo cấu trúc Allocation/Occupant
+USE `hms_db`;
 
 START TRANSACTION;
 
@@ -26,17 +25,19 @@ TRUNCATE TABLE `user`;
 TRUNCATE TABLE `service_booking`;
 TRUNCATE TABLE `service`;
 TRUNCATE TABLE `room_occupant`;
-TRUNCATE TABLE `reservation_detail`;
+TRUNCATE TABLE `reservation_room_allocation`;
 TRUNCATE TABLE `reservation`;
 TRUNCATE TABLE `room`;
 TRUNCATE TABLE `room_class`;
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- 1. ROOM CLASS
 INSERT INTO `room_class` (`id`, `name`, `base_price`, `standard_capacity`, `max_capacity`, `extra_person_fee`)
 VALUES (1, 'Standard', 800000.00, 2, 3, 150000.00),
        (2, 'Deluxe', 1200000.00, 2, 4, 200000.00),
        (3, 'Suite', 2500000.00, 2, 5, 300000.00);
 
+-- 2. ROOM
 INSERT INTO `room` (`id`, `room_number`, `room_class_id`, `status`, `description`)
 VALUES (1, '101', 1, 'AVAILABLE', 'Standard room - floor 1'),
        (2, '102', 1, 'AVAILABLE', 'Standard room - floor 1'),
@@ -44,6 +45,7 @@ VALUES (1, '101', 1, 'AVAILABLE', 'Standard room - floor 1'),
        (4, '202', 2, 'MAINTENANCE', 'Deluxe room - maintenance'),
        (5, '301', 3, 'AVAILABLE', 'Suite - floor 3');
 
+-- 3. USER & STAFF
 INSERT INTO `user` (`id`, `email`, `password`, `role`, `provider`, `provider_id`)
 VALUES (1, 'admin@hotel.local', '$2y$10$dummyhashadmin', 'ADMIN', 'local', NULL),
        (2, 'reception@hotel.local', '$2y$10$dummyhashreception', 'RECEPTIONIST', 'local', NULL),
@@ -56,42 +58,56 @@ VALUES (1, 2, 'Front Office', 'Nguyễn Lễ', '0901000001', 'ACTIVE'),
        (2, 3, 'Housekeeping', 'Trần My', '0901000002', 'ACTIVE'),
        (3, 1, 'Management', 'Phạm Admin', '0901000003', 'ACTIVE');
 
+-- 4. CUSTOMER
 INSERT INTO `customer` (`id`, `full_name`, `phone_number`, `identity_card`, `email`, `type`, `guardian_id`, `user_id`)
 VALUES (1, 'John Nguyen', '0902000001', '012345678901', 'john.customer@gmail.com', 'ADULT', NULL, 4),
        (2, 'Anna Tran', '0902000002', '012345678902', 'anna.customer@hotel.local', 'ADULT', NULL, 5),
-       (3, 'Be Nguyen', '0902000003', NULL, NULL, 'CHILD', 1, NULL);
+       (3, 'Be Nguyen', '0902000003', NULL, NULL, 'CHILD', 1, NULL),
+       (4, 'Guest Friend', '0902000004', '012345678904', NULL, 'ADULT', NULL, NULL);
 
+-- 5. RESERVATION (Đơn đặt phòng tổng)
 INSERT INTO `reservation` (`id`, `code`, `customer_id`, `expected_check_in`, `expected_check_out`, `status`,
                            `total_deposit`, `number_of_members`, `note`, `created_at`)
-VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00', 'BOOKED', 500000.00, 3, 'Family trip',
-        '2026-03-01 10:00:00'),
+VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00', 'BOOKED', 500000.00, 3,
+        'Gia đình đi du lịch', '2026-03-01 10:00:00'),
        (2, 'RSV-20260301-0002', 2, '2026-03-15 14:00:00', '2026-03-16 12:00:00', 'BOOKED', 0.00, 1, NULL,
         '2026-03-01 11:00:00');
 
-INSERT INTO `reservation_detail` (`id`, `reservation_id`, `room_class_id`, `room_id`, `quantity`, `price_at_booking`,
-                                  `actual_check_in`, `actual_check_out`)
-VALUES (1, 1, 2, 3, 1, 1200000.00, NULL, NULL),
-       (2, 2, 1, 1, 1, 800000.00, NULL, NULL);
+-- 6. RESERVATION ROOM ALLOCATION (Phòng cụ thể trong đơn đặt)
+-- RSV 1 đặt 1 phòng Deluxe (đã gán phòng 201)
+-- RSV 2 đặt 1 phòng Standard (đã gán phòng 101)
+INSERT INTO `reservation_room_allocation` (`id`, `reservation_id`, `room_class_id`, `room_id`, `quantity`,
+                                           `price_at_booking`, `actual_check_out`)
+VALUES (1, 1, 2, 3, 1, 1200000.00, NULL), -- Allocation cho phòng 201 (Deluxe)
+       (2, 2, 1, 1, 1, 800000.00, NULL);
+-- Allocation cho phòng 101 (Standard)
 
-INSERT INTO `room_occupant` (`id`, `reservation_id`, `room_id`, `customer_id`, `role`)
-VALUES (1, 1, 3, 1, 'PRIMARY'),
-       (2, 1, 3, 3, 'CHILD'),
-       (3, 2, 1, 2, 'PRIMARY');
+-- 7. ROOM OCCUPANT (Ai ở phòng nào - Nối qua Allocation ID)
+-- Phòng 201 (Allocation 1) có John Nguyen và Be Nguyen
+-- Phòng 101 (Allocation 2) có Anna Tran
+INSERT INTO `room_occupant` (`id`, `allocation_id`, `customer_id`, `role`)
+VALUES (1, 1, 1, 'PRIMARY'),
+       (2, 1, 3, 'CHILD'),
+       (3, 2, 2, 'PRIMARY');
 
+-- 8. SERVICE
 INSERT INTO `service` (`id`, `name`, `service_category`, `price`)
 VALUES (1, 'Breakfast Buffet', 'F&B', 200000.00),
        (2, 'Minibar - Soft Drink', 'Minibar', 50000.00),
        (3, 'Aroma Massage 60min', 'Spa', 700000.00);
 
+-- 9. SERVICE BOOKING
 INSERT INTO `service_booking` (`id`, `reservation_id`, `service_id`, `quantity`, `status`, `price_at_booking`)
 VALUES (1, 1, 1, 3, 'CONFIRMED', 200000.00),
        (2, 1, 3, 1, 'CONFIRMED', 700000.00),
        (3, 2, 2, 2, 'CONFIRMED', 50000.00);
 
+-- 10. FOLIO (Hóa đơn tổng cho Reservation)
 INSERT INTO `folio` (`id`, `reservation_id`, `total_charges`, `total_paid`, `balance`, `status`)
 VALUES (1, 1, 0.00, 0.00, 0.00, 'OPEN'),
        (2, 2, 0.00, 0.00, 0.00, 'OPEN');
 
+-- 11. FOLIO ITEM (Chi tiết hóa đơn)
 INSERT INTO `folio_item` (`id`, `folio_id`, `type`, `service_booking_id`, `description`, `quantity`, `total_price`,
                           `status`)
 VALUES (1, 1, 'ROOM', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'POSTED'),
@@ -100,23 +116,27 @@ VALUES (1, 1, 'ROOM', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'P
        (4, 2, 'ROOM', NULL, 'Room charge (Standard) - 1 night', 1, 800000.00, 'POSTED'),
        (5, 2, 'SERVICE', 3, 'Minibar - Soft Drink', 2, 100000.00, 'POSTED');
 
+-- Tự động cập nhật tổng tiền Folio
 UPDATE `folio`
 SET `total_charges` = (SELECT IFNULL(SUM(`total_price`), 0) FROM `folio_item` WHERE `folio_id` = `folio`.`id`),
     `balance`       = `total_charges` - `total_paid`
 WHERE `id` IN (1, 2);
 
+-- 12. PAYMENT TRANSACTION
 INSERT INTO `payment_transaction` (`id`, `folio_id`, `code`, `transaction_reference`, `payment_method`, `amount`,
                                    `type`, `status`, `created_at`, `handled_by`)
 VALUES (1, 1, 'PAY-20260301-0001', 'VNPAY-REF-AAA001', 'VNPAY', 500000.00, 'DEPOSIT', 'SUCCESS', '2026-03-01 10:05:00',
         1),
        (2, 1, 'PAY-20260312-0001', 'CASH-REC-0001', 'CASH', 3200000.00, 'PAYMENT', 'SUCCESS', '2026-03-12 11:00:00', 1);
 
+-- 13. PAYMENT ALLOCATION (Phân bổ tiền thanh toán cho từng item)
 INSERT INTO `payment_allocation` (`id`, `payment_transaction_id`, `folio_item_id`, `amount_applied`)
 VALUES (1, 1, 1, 500000.00),
        (2, 2, 1, 1900000.00),
        (3, 2, 2, 600000.00),
        (4, 2, 3, 700000.00);
 
+-- Tự động cập nhật lại số tiền đã trả vào Folio
 UPDATE `folio` f
     JOIN (SELECT pt.`folio_id` AS folio_id, SUM(pa.`amount_applied`) AS paid
           FROM `payment_allocation` pa
@@ -125,9 +145,7 @@ UPDATE `folio` f
 SET f.`total_paid` = x.paid,
     f.`balance`    = f.`total_charges` - x.paid;
 
-INSERT INTO `rating` (`id`, `reservation_id`, `customer_id`, `rating`, `comment`, `review_date`, `is_public`)
-VALUES (1, 1, 1, 5, 'Phòng sạch sẽ, dịch vụ tốt.', '2026-03-13 09:00:00', 1);
-
+-- 14. ASSETS & OTHER TABLES
 INSERT INTO `asset_category` (`id`, `name`, `description`)
 VALUES (1, 'Electronics', 'TV, hair dryer, etc.'),
        (2, 'Furniture', 'Bed, chair, table, etc.'),
@@ -142,9 +160,7 @@ INSERT INTO `room_asset` (`id`, `room_id`, `asset_id`, `quantity`, `status`)
 VALUES (1, 1, 1, 1, 'Good'),
        (2, 1, 2, 1, 'Good'),
        (3, 3, 1, 1, 'Good'),
-       (4, 3, 2, 1, 'Good'),
-       (5, 5, 1, 1, 'Good'),
-       (6, 5, 2, 1, 'Good');
+       (4, 3, 2, 1, 'Good');
 
 INSERT INTO `damage_report` (`id`, `room_id`, `reported_by_staff_id`, `reservation_id`, `quantity`, `penalty_amount`,
                              `status`)
@@ -152,29 +168,19 @@ VALUES (1, 3, 2, 1, 1, 120000.00, 'OPEN');
 
 INSERT INTO `room_img` (`id`, `room_class_id`, `img_url`, `img_type`, `is_primary`)
 VALUES (1, 1, 'https://cdn.example.com/rooms/standard_1.jpg', 'thumbnail', 1),
-       (2, 2, 'https://cdn.example.com/rooms/deluxe_1.jpg', 'thumbnail', 1),
-       (3, 3, 'https://cdn.example.com/rooms/suite_1.jpg', 'thumbnail', 1);
-
-INSERT INTO `housekeeping_task` (`id`, `room_id`, `assignee_id`, `task_type`, `status`, `assigned_at`, `completed_at`)
-VALUES (1, 1, 2, 'CLEANING', 'SCHEDULED', '2026-03-10 09:00:00', NULL),
-       (2, 3, 2, 'INSPECTION', 'COMPLETED', '2026-03-12 12:30:00', '2026-03-12 13:00:00');
-
-INSERT INTO `asset_handover` (`id`, `staff_id`, `asset_id`, `quantity`, `handover_date`)
-VALUES (1, 2, 3, 20, '2026-03-01 08:00:00');
+       (2, 2, 'https://cdn.example.com/rooms/deluxe_1.jpg', 'thumbnail', 1);
 
 INSERT INTO `shift` (`id`, `shift_name`, `start_time`, `end_time`)
 VALUES (1, 'Morning', '06:00:00', '14:00:00'),
-       (2, 'Afternoon', '14:00:00', '22:00:00'),
-       (3, 'Night', '22:00:00', '06:00:00');
+       (2, 'Afternoon', '14:00:00', '22:00:00');
 
 INSERT INTO `work_schedule` (`id`, `staff_id`, `shift_id`, `work_date`, `status`)
 VALUES (1, 1, 2, '2026-03-10', 'SCHEDULED'),
-       (2, 2, 1, '2026-03-10', 'SCHEDULED'),
-       (3, 2, 1, '2026-03-12', 'COMPLETED');
+       (2, 2, 1, '2026-03-10', 'SCHEDULED');
 
 INSERT INTO `refund_request` (`id`, `payment_transaction_id`, `amount`, `reason`, `reject_reason`, `status`,
                               `requested_by`, `approved_by`, `created_at`, `updated_at`)
-VALUES (1, 1, 200000.00, 'Khách đổi lịch, yêu cầu hoàn một phần cọc', NULL, 'PENDING', 1, NULL, '2026-03-02 09:00:00',
+VALUES (1, 1, 200000.00, 'Khách đổi lịch, hoàn cọc một phần', NULL, 'PENDING', 1, NULL, '2026-03-02 09:00:00',
         '2026-03-02 09:00:00');
 
 COMMIT;
