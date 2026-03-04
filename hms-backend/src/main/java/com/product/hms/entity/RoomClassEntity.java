@@ -39,7 +39,7 @@ public class RoomClassEntity {
     private BigDecimal extraPersonFee;
 
     @OneToMany(mappedBy = "roomClassEntity")
-    private List<ReservationDetailEntity> reservationDetailEntities = new ArrayList<>();
+    private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomClassEntity")
     private List<RoomEntity> roomEntities = new ArrayList<>();
