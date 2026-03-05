@@ -83,7 +83,8 @@ VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00',
 
 -- 6. RESERVATION ROOM ALLOCATION (has status now)
 INSERT INTO `reservation_room_allocation`
-(`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `quantity`, `price_at_booking`, `actual_check_out`,
+(`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `number_of_people`, `price_at_booking`,
+ `actual_check_out`,
  `is_active`)
 VALUES (1, 1, 2, 3, 'ASSIGNED', 1, 1200000.00, NULL, 1),
        (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, NULL, 1);

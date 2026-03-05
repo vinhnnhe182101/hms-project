@@ -156,7 +156,7 @@ CREATE TABLE `reservation_room_allocation`
     `room_id`          BIGINT UNSIGNED NULL,
     `status`           VARCHAR(50)     NOT NULL DEFAULT 'PENDING'
         COMMENT 'Allocation status: PENDING | ASSIGNED | CHECKED_IN | CHECKED_OUT | CANCELLED',
-    `quantity`         INT             NOT NULL DEFAULT 1 COMMENT 'Quantity of rooms in this allocation (usually 1 when room_id is used).',
+    `number_of_people` INT             NOT NULL DEFAULT 1 COMMENT 'Number of people for this allocation',
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
     `actual_check_out` DATETIME        NULL,
     `is_active`        TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',

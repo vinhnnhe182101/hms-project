@@ -36,13 +36,13 @@ public class ReservationRoomAllocationEntity {
     @JoinColumn(name = "room_id")
     private RoomEntity roomEntity;
 
-    @ColumnDefault("1")
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
-
     @ColumnDefault("0.00")
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtBooking;
+
+    @ColumnDefault("1")
+    @Column(name = "number_of_people", nullable = false)
+    private Integer numberOfPeople;
 
     @Column(name = "actual_check_out")
     private Instant actualCheckOut;
