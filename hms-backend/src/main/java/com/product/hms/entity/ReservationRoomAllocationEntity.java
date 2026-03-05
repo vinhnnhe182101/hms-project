@@ -34,8 +34,7 @@ public class ReservationRoomAllocationEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "room_id")
-    private RoomEntity Entityroom;
-
+    private RoomEntity roomEntity;
 
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)

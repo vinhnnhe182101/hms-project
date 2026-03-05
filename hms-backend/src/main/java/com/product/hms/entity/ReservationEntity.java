@@ -68,9 +68,6 @@ public class ReservationEntity {
     private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "reservationEntity")
-    private List<RoomOccupantEntity> roomOccupantEntities = new ArrayList<>();
-
-    @OneToMany(mappedBy = "reservationEntity")
     private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
 
     @ColumnDefault("1")

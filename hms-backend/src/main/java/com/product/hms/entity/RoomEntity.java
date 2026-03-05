@@ -46,9 +46,6 @@ public class RoomEntity {
     @OneToMany(mappedBy = "roomEntity")
     private List<RoomAssetEntity> roomAssetEntities = new ArrayList<>();
 
-    @OneToMany(mappedBy = "roomEntity")
-    private List<RoomOccupantEntity> roomOccupantEntities = new ArrayList<>();
-
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
