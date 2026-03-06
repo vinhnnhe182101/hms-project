@@ -3,6 +3,7 @@ package com.product.hms.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -56,6 +57,10 @@ public class StaffEntity {
 
     @OneToMany(mappedBy = "staffEntity")
     private List<WorkScheduleEntity> workScheduleEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

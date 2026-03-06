@@ -38,5 +38,9 @@ public class UserEntity {
     @OneToOne
     private StaffEntity staffEntity;
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }

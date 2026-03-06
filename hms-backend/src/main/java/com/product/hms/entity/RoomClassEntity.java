@@ -26,9 +26,11 @@ public class RoomClassEntity {
     @Column(name = "base_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal basePrice;
 
+
     @ColumnDefault("1")
     @Column(name = "standard_capacity", nullable = false)
     private Integer standardCapacity;
+
 
     @ColumnDefault("1")
     @Column(name = "max_capacity", nullable = false)
@@ -46,6 +48,10 @@ public class RoomClassEntity {
 
     @OneToMany(mappedBy = "roomClassEntity")
     private List<RoomImgEntity> roomImgEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

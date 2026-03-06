@@ -34,21 +34,25 @@ public class ReservationRoomAllocationEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "room_id")
-    private RoomEntity Entityroom;
-
-    @ColumnDefault("1")
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    private RoomEntity roomEntity;
 
     @ColumnDefault("0.00")
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtBooking;
+
+    @ColumnDefault("1")
+    @Column(name = "number_of_people", nullable = false)
+    private Integer numberOfPeople;
 
     @Column(name = "actual_check_out")
     private Instant actualCheckOut;
 
     @OneToMany(mappedBy = "allocationEntity")
     private Set<RoomOccupantEntity> roomOccupantEntities = new LinkedHashSet<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

@@ -2,12 +2,15 @@ spring:
   application:
     name: hms-backend
   datasource:
-    url: jdbc:mysql://localhost:3306/hms_db?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/hms_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-vnpay:
-  tmn-code: "YOUR_TMN_CODE"
-  hash-secret: "YOUR_HASH_SECRET"
-  pay-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
