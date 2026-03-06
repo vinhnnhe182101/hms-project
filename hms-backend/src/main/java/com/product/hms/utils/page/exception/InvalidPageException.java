@@ -1,11 +1,15 @@
 package com.product.hms.utils.page.exception;
 
-public class InvalidPageException extends RuntimeException {
+import com.product.hms.exception.ApiException;
+import com.product.hms.exception.ErrorCode;
+
+public class InvalidPageException extends ApiException {
     public InvalidPageException(String message) {
-        super(message);
+        super(ErrorCode.INVALID_PAGE_PARAMS, message);
     }
 
     public InvalidPageException(int index, int size) {
-        super(String.format("Invalid page index or size: %d, %d", index, size));
+        super(ErrorCode.INVALID_PAGE_PARAMS,
+                String.format("Invalid page index or size: %d, %d", index, size));
     }
 }
