@@ -218,21 +218,21 @@ CREATE TABLE `service`
 -- =========================
 CREATE TABLE `service_booking`
 (
-    `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_id`   BIGINT UNSIGNED NOT NULL,
-    `service_id`       BIGINT UNSIGNED NOT NULL,
-    `quantity`         INT             NOT NULL DEFAULT 1,
-    `status`           VARCHAR(50)     NOT NULL COMMENT 'Service booking status: PENDING | CONFIRMED | IN_PROGRESS | FINISHED | CANCELLED',
-    `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `reservation_room_allocation_id` BIGINT UNSIGNED NOT NULL,
+    `service_id`                     BIGINT UNSIGNED NOT NULL,
+    `quantity`                       INT             NOT NULL DEFAULT 1,
+    `status`                         VARCHAR(50)     NOT NULL COMMENT 'Service booking status: PENDING | CONFIRMED | IN_PROGRESS | FINISHED | CANCELLED',
+    `price_at_booking`               DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`                      TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    KEY `idx_service_booking_reservation_id` (`reservation_id`),
+    KEY `idx_service_booking_reservation_id` (`reservation_room_allocation_id`),
     KEY `idx_service_booking_service_id` (`service_id`),
     CONSTRAINT `fk_service_booking_service`
         FOREIGN KEY (`service_id`) REFERENCES `service` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT `fk_service_booking_reservation`
-        FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
+        FOREIGN KEY (`reservation_room_allocation_id`) REFERENCES `reservation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -279,17 +279,17 @@ CREATE TABLE `work_schedule`
 -- =========================
 CREATE TABLE `folio`
 (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_id` BIGINT UNSIGNED NOT NULL,
-    `total_charges`  DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `total_paid`     DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `balance`        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `status`         VARCHAR(50)     NOT NULL COMMENT 'Folio status: OPEN | LOCKED | SETTLED',
-    `is_active`      TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `reservation_room_allocation_id` BIGINT UNSIGNED NOT NULL,
+    `total_charges`                  DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `total_paid`                     DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `balance`                        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `status`                         VARCHAR(50)     NOT NULL COMMENT 'Folio status: OPEN | LOCKED | SETTLED',
+    `is_active`                      TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_folio_reservation_id` (`reservation_id`),
+    UNIQUE KEY `uk_folio_reservation_id` (`reservation_room_allocation_id`),
     CONSTRAINT `fk_folio_reservation`
-        FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
+        FOREIGN KEY (`reservation_room_allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
