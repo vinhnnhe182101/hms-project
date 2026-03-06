@@ -46,7 +46,7 @@ public class PaymentTransactionEntity {
     @Column(name = "status", nullable = false, length = 50)
     private String status;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @ColumnDefault("CURRENT_TIMESTAMP(6)")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
@@ -60,6 +60,10 @@ public class PaymentTransactionEntity {
 
     @OneToMany(mappedBy = "paymentTransactionEntity")
     private List<RefundRequestEntity> refundRequestEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

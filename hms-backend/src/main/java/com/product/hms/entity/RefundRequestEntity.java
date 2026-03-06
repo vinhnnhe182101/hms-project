@@ -38,8 +38,7 @@ public class RefundRequestEntity {
     private String rejectReason;
 
     @ColumnDefault("'PENDING'")
-    @Lob
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     private String status;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -51,13 +50,17 @@ public class RefundRequestEntity {
     @JoinColumn(name = "approved_by")
     private StaffEntity approvedByEntity;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @ColumnDefault("CURRENT_TIMESTAMP(6)")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @ColumnDefault("CURRENT_TIMESTAMP(6)")
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

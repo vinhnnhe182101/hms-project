@@ -32,6 +32,7 @@ public class DamageReportEntity {
     @JoinColumn(name = "reservation_id")
     private ReservationEntity reservationEntity;
 
+
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -42,6 +43,10 @@ public class DamageReportEntity {
 
     @Column(name = "status", nullable = false, length = 50)
     private String status;
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

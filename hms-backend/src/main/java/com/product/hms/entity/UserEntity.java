@@ -25,8 +25,7 @@ public class UserEntity {
     private String role;
 
     @ColumnDefault("'local'")
-    @Lob
-    @Column(name = "provider", nullable = false)
+    @Column(name = "provider", nullable = false, length = 50)
     private String provider;
 
     @Column(name = "provider_id")
@@ -37,6 +36,10 @@ public class UserEntity {
 
     @OneToOne
     private StaffEntity staffEntity;
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

@@ -1,8 +1,10 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +26,9 @@ public class RoomEntity {
     @JoinColumn(name = "room_class_id", nullable = false)
     private RoomClassEntity roomClassEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private RoomStatus status;
 
     @Lob
     @Column(name = "description")
@@ -38,13 +41,14 @@ public class RoomEntity {
     private List<HousekeepingTaskEntity> housekeepingTaskEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
-    private List<ReservationDetailEntity> reservationDetailEntities = new ArrayList<>();
+    private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
     private List<RoomAssetEntity> roomAssetEntities = new ArrayList<>();
 
-    @OneToMany(mappedBy = "roomEntity")
-    private List<RoomOccupantEntity> roomOccupantEntities = new ArrayList<>();
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

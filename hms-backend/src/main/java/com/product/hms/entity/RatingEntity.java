@@ -36,13 +36,18 @@ public class RatingEntity {
     @Column(name = "comment")
     private String comment;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @ColumnDefault("CURRENT_TIMESTAMP(6)")
     @Column(name = "review_date", nullable = false)
     private Timestamp reviewDate;
+
 
     @ColumnDefault("1")
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic;
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

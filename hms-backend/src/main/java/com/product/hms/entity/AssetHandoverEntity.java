@@ -29,9 +29,13 @@ public class AssetHandoverEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @ColumnDefault("CURRENT_TIMESTAMP(6)")
     @Column(name = "handover_date", nullable = false)
     private Timestamp handoverDate;
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

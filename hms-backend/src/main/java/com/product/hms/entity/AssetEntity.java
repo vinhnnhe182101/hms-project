@@ -44,5 +44,9 @@ public class AssetEntity {
     @OneToMany(mappedBy = "assetEntity")
     private List<RoomAssetEntity> roomAssetEntities = new ArrayList<>();
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }

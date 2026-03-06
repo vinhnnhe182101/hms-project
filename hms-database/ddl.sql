@@ -133,7 +133,7 @@ CREATE TABLE `service`
 (
     `id`               BIGINT UNSIGNED              NOT NULL AUTO_INCREMENT,
     `name`             VARCHAR(255)                 NOT NULL,
-    `service_category` ENUM ('Spa','Minibar','F&B') NOT NULL,
+    `service_category` ENUM ('Spa','Minibar') NOT NULL,
     `price`            DECIMAL(12, 2)               NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
@@ -397,7 +397,7 @@ CREATE TABLE `room_img`
 (
     `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `room_class_id` BIGINT UNSIGNED NOT NULL,
-    `img_url`       VARCHAR(2048)   NOT NULL,
+    `img_data`      LONGBLOB        NOT NULL,   -- Đã đổi từ img_url sang img_data (LONGBLOB)
     `img_type`      VARCHAR(50)     NULL,
     `is_primary`    TINYINT(1)      NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
@@ -407,6 +407,7 @@ CREATE TABLE `room_img`
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+
 
 CREATE TABLE `housekeeping_task`
 (

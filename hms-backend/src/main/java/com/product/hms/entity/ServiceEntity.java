@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ServiceCategory;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,9 +23,8 @@ public class ServiceEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Lob
-    @Column(name = "service_category", nullable = false)
-    private String serviceCategoryEntity;
+    @Column(name = "service_category", nullable = false, length = 50)
+    private ServiceCategory serviceCategory;
 
     @ColumnDefault("0.00")
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
@@ -32,6 +32,10 @@ public class ServiceEntity {
 
     @OneToMany(mappedBy = "serviceEntity")
     private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }
