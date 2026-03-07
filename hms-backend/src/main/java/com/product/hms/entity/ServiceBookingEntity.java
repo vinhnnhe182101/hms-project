@@ -24,13 +24,12 @@ public class ServiceBookingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "reservation_id", nullable = false)
-    private ReservationEntity reservationEntity;
+    @JoinColumn(name = "reservation_room_allocation_id", nullable = false)
+    private ReservationRoomAllocationEntity reservationRoomAllocationEntity;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity serviceEntity;
-
 
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
@@ -51,5 +50,6 @@ public class ServiceBookingEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-
+    @OneToMany(mappedBy = "reservationEntity")
+    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
 }

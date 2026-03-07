@@ -67,9 +67,6 @@ public class ReservationEntity {
     @OneToMany(mappedBy = "reservationEntity")
     private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reservationEntity")
-    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
-
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
