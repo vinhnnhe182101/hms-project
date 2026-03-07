@@ -19,6 +19,7 @@ hms-backend/*
 !hms-backend/config/
 !hms-backend/pom.xml
 !hms-backend/src/
+hms-backend/src/main/resources/logback-spring.xml
 
 !hms-database
 hms-database/*

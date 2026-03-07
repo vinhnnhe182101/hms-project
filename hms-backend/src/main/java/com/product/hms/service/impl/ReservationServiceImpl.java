@@ -8,7 +8,7 @@ import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.dto.response.RoomClassQuantityResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BadRequestException;
@@ -112,13 +112,13 @@ public class ReservationServiceImpl implements ReservationService {
             Map<Long, RoomClassEntity> roomClassById,
             BigDecimal depositAmount
     ) {
-        List<ReservationRoomAllocationEntity> allocations = roomAllocationService.createRoomAllocations(
+        List<ReservationRoomEntity> allocations = roomAllocationService.createRoomAllocations(
                 reservation,
                 request,
                 roomClassById
         );
 
-        for (ReservationRoomAllocationEntity allocation : allocations) {
+        for (ReservationRoomEntity allocation : allocations) {
             folioService.createFolioWithDepositItem(allocation, depositAmount);
         }
     }
@@ -240,8 +240,8 @@ public class ReservationServiceImpl implements ReservationService {
 
     private ReservationResponse buildReservationResponse(ReservationEntity reservation, CustomerEntity customer) {
         List<RoomClassQuantityResponse> allocationResponses = new ArrayList<>();
-        List<ReservationRoomAllocationEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
-        for (ReservationRoomAllocationEntity allocation : allocations) {
+        List<ReservationRoomEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
+        for (ReservationRoomEntity allocation : allocations) {
             allocationResponses.add(new RoomClassQuantityResponse(
                     allocation.getId(),
                     allocation.getRoomClassEntity().getId(),
@@ -306,10 +306,10 @@ public class ReservationServiceImpl implements ReservationService {
         validateCancellationAllowed(reservation);
 
         boolean isEligibleForRefund = isRefundEligible(reservation);
-        List<ReservationRoomAllocationEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
+        List<ReservationRoomEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
 
         // Process refund or cancellation fee for each allocation
-        for (ReservationRoomAllocationEntity allocation : allocations) {
+        for (ReservationRoomEntity allocation : allocations) {
             if (isEligibleForRefund) {
                 folioService.createRefundItem(allocation, reservation.getTotalDeposit());
             } else {

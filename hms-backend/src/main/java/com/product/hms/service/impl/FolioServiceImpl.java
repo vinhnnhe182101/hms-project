@@ -1,7 +1,7 @@
 package com.product.hms.service.impl;
 
 import com.product.hms.entity.FolioEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.enums.FolioStatus;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
@@ -19,7 +19,7 @@ public class FolioServiceImpl implements FolioService {
     private final FolioRepository folioRepository;
     private final FolioItemService folioItemService;
 
-    private FolioEntity createFolio(ReservationRoomAllocationEntity allocation, BigDecimal depositAmount) {
+    private FolioEntity createFolio(ReservationRoomEntity allocation, BigDecimal depositAmount) {
         FolioEntity folio = new FolioEntity();
         folio.setReservationRoomAllocation(allocation);
         folio.setTotalCharges(depositAmount);
@@ -31,13 +31,13 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void createFolioWithDepositItem(ReservationRoomAllocationEntity allocation, BigDecimal depositAmount) {
+    public void createFolioWithDepositItem(ReservationRoomEntity allocation, BigDecimal depositAmount) {
         FolioEntity savedFolio = createFolio(allocation, depositAmount);
         folioItemService.createFolioItemForDeposit(savedFolio, depositAmount);
     }
 
     @Override
-    public void createRefundItem(ReservationRoomAllocationEntity allocation, BigDecimal refundAmount) {
+    public void createRefundItem(ReservationRoomEntity allocation, BigDecimal refundAmount) {
         FolioEntity folio = folioRepository.findByReservationRoomAllocation(allocation)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
@@ -54,7 +54,7 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void createCancellationFeeItem(ReservationRoomAllocationEntity allocation, BigDecimal cancellationAmount) {
+    public void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount) {
         FolioEntity folio = folioRepository.findByReservationRoomAllocation(allocation)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,

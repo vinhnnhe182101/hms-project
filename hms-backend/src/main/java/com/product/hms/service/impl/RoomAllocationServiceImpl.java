@@ -3,7 +3,7 @@ package com.product.hms.service.impl;
 import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.request.RoomClassQuantityRequest;
 import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.repository.ReservationRoomAllocationRepository;
 import com.product.hms.service.RoomAllocationService;
@@ -20,28 +20,28 @@ public class RoomAllocationServiceImpl implements RoomAllocationService {
     private final ReservationRoomAllocationRepository reservationRoomAllocationRepository;
 
     @Override
-    public List<ReservationRoomAllocationEntity> createRoomAllocations(
+    public List<ReservationRoomEntity> createRoomAllocations(
             ReservationEntity reservation,
             ReservationRequest request,
             Map<Long, RoomClassEntity> roomClassById
     ) {
-        List<ReservationRoomAllocationEntity> allocations = new ArrayList<>();
+        List<ReservationRoomEntity> allocations = new ArrayList<>();
         for (RoomClassQuantityRequest roomClassQuantity : request.roomClassQuantities()) {
             RoomClassEntity roomClass = roomClassById.get(roomClassQuantity.roomClassId());
-            ReservationRoomAllocationEntity allocation = new ReservationRoomAllocationEntity();
+            ReservationRoomEntity allocation = new ReservationRoomEntity();
             allocation.setReservationEntity(reservation);
             allocation.setRoomClassEntity(roomClass);
             allocation.setNumberOfPeople(roomClassQuantity.numberOfPeople());
             allocation.setPriceAtBooking(roomClass.getBasePrice());
             allocation.setIsActive(true);
-            ReservationRoomAllocationEntity savedAllocation = reservationRoomAllocationRepository.save(allocation);
+            ReservationRoomEntity savedAllocation = reservationRoomAllocationRepository.save(allocation);
             allocations.add(savedAllocation);
         }
         return allocations;
     }
 
     @Override
-    public List<ReservationRoomAllocationEntity> getAllocationsByReservation(ReservationEntity reservation) {
+    public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation) {
         return reservationRoomAllocationRepository.findByReservationEntity(reservation);
     }
 

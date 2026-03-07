@@ -8,7 +8,7 @@ import com.product.hms.dto.response.CustomerResponse;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BusinessException;
@@ -116,7 +116,7 @@ class ReservationServiceUpdateTest {
                 "Updated note"
         );
 
-        ReservationRoomAllocationEntity allocation = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity allocation = new ReservationRoomEntity();
         allocation.setId(100L);
         allocation.setReservationEntity(reservation);
         allocation.setRoomClassEntity(roomClass);

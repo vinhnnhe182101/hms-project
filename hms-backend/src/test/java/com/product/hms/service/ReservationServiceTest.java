@@ -8,7 +8,7 @@ import com.product.hms.dto.response.CustomerResponse;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BadRequestException;
@@ -273,7 +273,7 @@ class ReservationServiceTest {
     private void setupMocksForReservationCreation() {
         when(reservationRepository.save(any(ReservationEntity.class))).thenReturn(mockReservation);
 
-        ReservationRoomAllocationEntity mockAllocation = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity mockAllocation = new ReservationRoomEntity();
         mockAllocation.setId(1L);
         mockAllocation.setRoomClassEntity(mockRoomClass1);
         mockAllocation.setNumberOfPeople(2);
@@ -308,7 +308,7 @@ class ReservationServiceTest {
     private void verifySuccessfulReservationCreation() {
         verify(reservationRepository).save(any(ReservationEntity.class));
         verify(roomAllocationService).createRoomAllocations(any(), any(), any());
-        verify(folioService).createFolioWithDepositItem(any(ReservationRoomAllocationEntity.class), any(BigDecimal.class));
+        verify(folioService).createFolioWithDepositItem(any(ReservationRoomEntity.class), any(BigDecimal.class));
         verify(customerMapper).toResponse(mockCustomer);
     }
 
@@ -521,12 +521,12 @@ class ReservationServiceTest {
         );
         ReservationRequest request = createReservationRequest(mockCustomerRequest, roomClassQuantities, 3, "Multiple room classes");
 
-        ReservationRoomAllocationEntity mockAllocation1 = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity mockAllocation1 = new ReservationRoomEntity();
         mockAllocation1.setId(1L);
         mockAllocation1.setRoomClassEntity(mockRoomClass1);
         mockAllocation1.setNumberOfPeople(2);
 
-        ReservationRoomAllocationEntity mockAllocation2 = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity mockAllocation2 = new ReservationRoomEntity();
         mockAllocation2.setId(2L);
         mockAllocation2.setRoomClassEntity(mockRoomClass2);
         mockAllocation2.setNumberOfPeople(3);
@@ -565,12 +565,12 @@ class ReservationServiceTest {
         );
         ReservationRequest request = createReservationRequest(mockCustomerRequest, roomClassQuantities, 2, "Duplicate room class test");
 
-        ReservationRoomAllocationEntity mockAllocation1 = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity mockAllocation1 = new ReservationRoomEntity();
         mockAllocation1.setId(1L);
         mockAllocation1.setRoomClassEntity(mockRoomClass1);
         mockAllocation1.setNumberOfPeople(2);
 
-        ReservationRoomAllocationEntity mockAllocation2 = new ReservationRoomAllocationEntity();
+        ReservationRoomEntity mockAllocation2 = new ReservationRoomEntity();
         mockAllocation2.setId(2L);
         mockAllocation2.setRoomClassEntity(mockRoomClass1);
         mockAllocation2.setNumberOfPeople(3);
@@ -613,7 +613,7 @@ class ReservationServiceTest {
             return mockReservation;
         });
         when(roomAllocationService.createRoomAllocations(any(), any(), any()))
-                .thenReturn(List.of(new ReservationRoomAllocationEntity()));
+                .thenReturn(List.of(new ReservationRoomEntity()));
         when(customerMapper.toResponse(mockCustomer)).thenReturn(mockCustomerResponse);
 
         // When
@@ -637,7 +637,7 @@ class ReservationServiceTest {
         setupMocksForRoomClass(ROOM_CLASS_1_ID, mockRoomClass1);
         when(reservationRepository.save(any(ReservationEntity.class))).thenReturn(mockReservation);
         when(roomAllocationService.createRoomAllocations(any(), any(), any()))
-                .thenReturn(List.of(new ReservationRoomAllocationEntity()));
+                .thenReturn(List.of(new ReservationRoomEntity()));
         when(customerMapper.toResponse(mockCustomer)).thenReturn(mockCustomerResponse);
 
         // When
@@ -660,7 +660,7 @@ class ReservationServiceTest {
         assertThat(savedReservation.getCreatedAt()).isNotNull();
 
         // Verify folio creation was delegated to folio service
-        verify(folioService).createFolioWithDepositItem(any(ReservationRoomAllocationEntity.class), any(BigDecimal.class));
+        verify(folioService).createFolioWithDepositItem(any(ReservationRoomEntity.class), any(BigDecimal.class));
     }
 
     @Test
@@ -700,7 +700,7 @@ class ReservationServiceTest {
         setupMocksForRoomClass(ROOM_CLASS_1_ID, mockRoomClass1);
         when(reservationRepository.save(any(ReservationEntity.class))).thenReturn(mockReservation);
         when(roomAllocationService.createRoomAllocations(any(), any(), any()))
-                .thenReturn(List.of(new ReservationRoomAllocationEntity()));
+                .thenReturn(List.of(new ReservationRoomEntity()));
         when(customerMapper.toResponse(mockCustomer)).thenReturn(mockCustomerResponse);
 
         // When
@@ -713,7 +713,7 @@ class ReservationServiceTest {
         // Total cost = 100 (base) + 20 (1 extra person) = 120, deposit = 120 * 0.2 = 24
         assertThat(savedReservation.getTotalDeposit()).isEqualByComparingTo(BigDecimal.valueOf(24.00));
 
-        verify(folioService).createFolioWithDepositItem(any(ReservationRoomAllocationEntity.class), any(BigDecimal.class));
+        verify(folioService).createFolioWithDepositItem(any(ReservationRoomEntity.class), any(BigDecimal.class));
     }
 }
 

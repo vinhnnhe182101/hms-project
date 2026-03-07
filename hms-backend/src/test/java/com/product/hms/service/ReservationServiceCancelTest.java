@@ -5,7 +5,7 @@ import com.product.hms.dto.response.CustomerResponse;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomAllocationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BusinessException;
@@ -106,8 +106,8 @@ class ReservationServiceCancelTest {
     /**
      * Creates a complete allocation with room class
      */
-    private ReservationRoomAllocationEntity createAllocation(Long id) {
-        ReservationRoomAllocationEntity allocation = new ReservationRoomAllocationEntity();
+    private ReservationRoomEntity createAllocation(Long id) {
+        ReservationRoomEntity allocation = new ReservationRoomEntity();
         allocation.setId(id);
         allocation.setRoomClassEntity(createMockRoomClass());
         allocation.setNumberOfPeople(2);
@@ -123,7 +123,7 @@ class ReservationServiceCancelTest {
                 Instant.now().plus(3, ChronoUnit.DAYS)
         );
 
-        ReservationRoomAllocationEntity allocation = createAllocation(100L);
+        ReservationRoomEntity allocation = createAllocation(100L);
 
         when(reservationRepository.findById(RESERVATION_ID)).thenReturn(Optional.of(reservation));
         when(roomAllocationService.getAllocationsByReservation(reservation)).thenReturn(List.of(allocation));
@@ -155,7 +155,7 @@ class ReservationServiceCancelTest {
                 Instant.now().plus(10, ChronoUnit.HOURS)
         );
 
-        ReservationRoomAllocationEntity allocation = createAllocation(100L);
+        ReservationRoomEntity allocation = createAllocation(100L);
 
         when(reservationRepository.findById(RESERVATION_ID)).thenReturn(Optional.of(reservation));
         when(roomAllocationService.getAllocationsByReservation(reservation)).thenReturn(List.of(allocation));
@@ -264,8 +264,8 @@ class ReservationServiceCancelTest {
                 Instant.now().plus(5, ChronoUnit.DAYS)
         );
 
-        ReservationRoomAllocationEntity allocation1 = createAllocation(100L);
-        ReservationRoomAllocationEntity allocation2 = createAllocation(101L);
+        ReservationRoomEntity allocation1 = createAllocation(100L);
+        ReservationRoomEntity allocation2 = createAllocation(101L);
 
         when(reservationRepository.findById(RESERVATION_ID)).thenReturn(Optional.of(reservation));
         when(roomAllocationService.getAllocationsByReservation(reservation)).thenReturn(List.of(allocation1, allocation2));
