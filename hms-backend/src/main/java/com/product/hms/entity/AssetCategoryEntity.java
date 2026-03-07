@@ -3,6 +3,7 @@ package com.product.hms.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,10 @@ public class AssetCategoryEntity {
 
     @OneToMany(mappedBy = "categoryEntity")
     private List<AssetEntity> assetEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

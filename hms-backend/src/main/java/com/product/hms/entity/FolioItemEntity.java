@@ -38,6 +38,7 @@ public class FolioItemEntity {
     @Column(name = "description")
     private String description;
 
+
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -51,6 +52,10 @@ public class FolioItemEntity {
 
     @OneToMany(mappedBy = "folioItemEntity")
     private List<PaymentAllocationEntity> paymentAllocationEntities = new ArrayList<>();
+
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

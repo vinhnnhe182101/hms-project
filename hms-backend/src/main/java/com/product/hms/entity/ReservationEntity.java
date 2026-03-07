@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,12 +34,14 @@ public class ReservationEntity {
     @Column(name = "expected_check_out", nullable = false)
     private Timestamp expectedCheckOut;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private ReservationStatus status;
 
     @ColumnDefault("0.00")
     @Column(name = "total_deposit", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalDeposit;
+
 
     @ColumnDefault("1")
     @Column(name = "number_of_members", nullable = false)
@@ -61,14 +64,12 @@ public class ReservationEntity {
     @OneToMany(mappedBy = "reservationEntity")
     private List<RatingEntity> ratingEntities = new ArrayList<>();
 
-    @OneToOne(mappedBy = "reservationEntity")
-    private ReservationDetailEntity reservationDetailEntity;
-
     @OneToMany(mappedBy = "reservationEntity")
-    private List<RoomOccupantEntity> roomOccupantEntities = new ArrayList<>();
+    private List<ReservationRoomEntity> reservationRoomAllocationEntities = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reservationEntity")
-    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
 
 }

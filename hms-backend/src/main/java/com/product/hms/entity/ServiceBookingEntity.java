@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ServiceBookingStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,8 +24,8 @@ public class ServiceBookingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "reservation_id", nullable = false)
-    private ReservationEntity reservationEntity;
+    @JoinColumn(name = "reservation_room_id", nullable = false)
+    private ReservationRoomEntity reservationRoomEntity;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_id", nullable = false)
@@ -34,8 +35,9 @@ public class ServiceBookingEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private ServiceBookingStatus status;
 
     @ColumnDefault("0.00")
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
@@ -44,5 +46,10 @@ public class ServiceBookingEntity {
     @OneToMany(mappedBy = "serviceBookingEntity")
     private List<FolioItemEntity> folioItemEntities = new ArrayList<>();
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
+    @OneToMany(mappedBy = "reservationEntity")
+    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
 }

@@ -33,5 +33,9 @@ public class PaymentAllocationEntity {
     @Column(name = "amount_applied", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountApplied;
 
+    @ColumnDefault("1")
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
 
 }
