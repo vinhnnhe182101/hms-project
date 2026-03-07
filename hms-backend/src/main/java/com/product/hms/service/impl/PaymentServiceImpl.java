@@ -2,9 +2,6 @@ package com.product.hms.service.impl;
 
 import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.PaymentTransactionEntity;
-import com.product.hms.enums.PaymentMethod;
-import com.product.hms.enums.PaymentTransactionStatus;
-import com.product.hms.enums.PaymentTransactionType;
 import com.product.hms.repository.FolioRepository;
 import com.product.hms.repository.PaymentTransactionRepository;
 import com.product.hms.service.PaymentService;
@@ -47,10 +44,10 @@ public class PaymentServiceImpl implements PaymentService {
         transaction.setCode(generateTransactionCode());
         String txnRef = generateTxnRef();
         transaction.setTransactionReference(txnRef);
-        transaction.setPaymentMethod(PaymentMethod.VNPAY);
+        transaction.setPaymentMethod("VNPAY");
         transaction.setAmount(amount);
-        transaction.setType(PaymentTransactionType.PAYMENT);
-        transaction.setStatus(PaymentTransactionStatus.PENDING);
+        transaction.setType("PAYMENT");
+        transaction.setStatus("PENDING");
         transaction.setCreatedAt(java.sql.Timestamp.from(Instant.now()));
 
         paymentTransactionRepository.save(transaction);
@@ -87,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
         boolean isSuccess = "00".equals(vnpResponseCode) && "00".equals(vnpTransactionStatus);
 
         if (isSuccess) {
-            transaction.setStatus(PaymentTransactionStatus.SUCCESS);
+            transaction.setStatus("SUCCESS");
 
             if (amountStr != null) {
                 try {
@@ -111,7 +108,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
         } else {
-            transaction.setStatus(PaymentTransactionStatus.FAILED);
+            transaction.setStatus("FAILED");
         }
 
         paymentTransactionRepository.save(transaction);
