@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ReservationRoomAllocationRepository extends JpaRepository<ReservationRoomEntity, Long> {
+public interface ReservationRoomRepository extends JpaRepository<ReservationRoomEntity, Long> {
 
     /**
      * Find all allocations for a reservation
@@ -19,4 +19,10 @@ public interface ReservationRoomAllocationRepository extends JpaRepository<Reser
      * Delete all allocations for a reservation.
      */
     void deleteByReservationEntity(ReservationEntity reservationEntity);
+
+    /**
+     * Find all active allocations by reservation ID for check-in purposes.
+     */
+    List<ReservationRoomEntity> findByReservationEntity_IdAndIsActiveTrue(Long reservationId);
 }
+

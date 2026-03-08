@@ -1,7 +1,9 @@
 package com.product.hms.enums;
 
 import com.product.hms.entity.converter.base.core.DbValueEnum;
+import lombok.Getter;
 
+@Getter
 public enum PaymentMethod implements DbValueEnum {
     CASH("CASH"),
     CARD("CARD"),
@@ -14,11 +16,4 @@ public enum PaymentMethod implements DbValueEnum {
     PaymentMethod(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
-    }
 }
-
-

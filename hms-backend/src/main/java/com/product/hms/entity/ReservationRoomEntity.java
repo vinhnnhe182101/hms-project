@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.ReservationRoomStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +47,12 @@ public class ReservationRoomEntity {
 
     @Column(name = "actual_check_out")
     private Instant actualCheckOut;
+
+    @Column(name = "actual_check_in")
+    private Instant actualCheckIn;
+
+    @Column(name = "status", nullable = false, length = 50)
+    private ReservationRoomStatus status;
 
     @OneToMany(mappedBy = "reservationRoomEntity")
     private Set<RoomOccupantEntity> roomOccupantEntities = new LinkedHashSet<>();

@@ -1,7 +1,9 @@
 package com.product.hms.enums;
 
 import com.product.hms.entity.converter.base.core.DbValueEnum;
+import lombok.Getter;
 
+@Getter
 public enum RoomAssetStatus implements DbValueEnum {
     GOOD("Good"),
     DAMAGED("Damaged");
@@ -10,10 +12,5 @@ public enum RoomAssetStatus implements DbValueEnum {
 
     RoomAssetStatus(String dbValue) {
         this.dbValue = dbValue;
-    }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
     }
 }
