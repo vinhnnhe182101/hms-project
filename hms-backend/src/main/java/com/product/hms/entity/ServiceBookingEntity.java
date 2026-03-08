@@ -9,8 +9,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -43,13 +41,8 @@ public class ServiceBookingEntity {
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtBooking;
 
-    @OneToMany(mappedBy = "serviceBookingEntity")
-    private List<FolioItemEntity> folioItemEntities = new ArrayList<>();
 
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
-    @OneToMany(mappedBy = "reservationEntity")
-    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
 }

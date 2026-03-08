@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -64,7 +66,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("token", token)
                 .queryParam("email", user.getEmail())
                 .queryParam("role", user.getRole())
-                .queryParam("fullName", fullName)
+                .queryParam("fullName", URLEncoder.encode(fullName, StandardCharsets.UTF_8))
                 .queryParam("provider", user.getProvider())
                 .build().toUriString();
     }
