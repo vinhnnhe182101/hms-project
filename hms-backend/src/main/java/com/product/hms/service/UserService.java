@@ -1,6 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.entity.UserEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import com.product.hms.dto.request.StaffRequestDTO;
 import com.product.hms.dto.request.UserRequestDTO;
@@ -35,9 +36,8 @@ public interface UserService {
     StaffResponseDTO getStaffById(Long id);
 
     List<StaffResponseDTO> getAllStaff();
-
     void deleteStaff(Long id);
-
+    UserDetails loadUserByUsername(String email);
     UserEntity processOAuth2User(Map<String, Object> attributes, String provider);
     boolean existsByEmail(String email);
     UserEntity findByEmail(String email);

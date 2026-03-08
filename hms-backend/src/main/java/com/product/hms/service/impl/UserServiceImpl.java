@@ -13,10 +13,12 @@ import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.StaffRepository;
 import com.product.hms.repository.UserRepository;
 import com.product.hms.service.UserService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -163,6 +165,26 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.STAFF_NOT_FOUND, "Staff not found with id: " + id));
         entity.setIsActive(false);
         staffRepository.save(entity);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) {
+        return null;
+    }
+
+    @Override
+    public UserEntity processOAuth2User(Map<String, Object> attributes, String provider) {
+        return null;
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return false;
+    }
+
+    @Override
+    public UserEntity findByEmail(String email) {
+        return null;
     }
 
     private void mapUserRequestToEntity(UserRequestDTO request, UserEntity entity) {
