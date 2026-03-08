@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
     Container, Grid, Card, Image, Stack, Box, Text, Button,
-    Select, Group, Badge, RangeSlider, Title, LoadingOverlay,
+    Select, Group, Badge, Title, LoadingOverlay,
     Pagination, Center, Loader, Rating
 } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
+import dayjs from 'dayjs';
 import { IconUsers, IconBed, IconChevronRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { getRoomClassList } from '../../apis/roomClassApi';
@@ -22,16 +24,18 @@ export default function RoomsPage() {
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(9);
 
-    // State for filters (client-side filter on price range)
-    const [priceRange, setPriceRange] = useState([0, 10]);
-    const [debouncedPriceRange, setDebouncedPriceRange] = useState([0, 10]);
+    // State for Search
+    const [checkIn, setCheckIn] = useState(dayjs().hour(14).minute(0).second(0).toDate());
+    const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate());
 
     // Fetch room classes from backend
-    const fetchRooms = async (currentPage = 0, size = pageSize) => {
+    const fetchRooms = async (currentPage = 0, size = pageSize, inDate = checkIn, outDate = checkOut) => {
         setLoading(true);
         setError(null);
         try {
-            const data = await getRoomClassList(currentPage, size);
+            const inIso = inDate ? dayjs(inDate).format('YYYY-MM-DDTHH:mm:ss') : null;
+            const outIso = outDate ? dayjs(outDate).format('YYYY-MM-DDTHH:mm:ss') : null;
+            const data = await getRoomClassList(currentPage, size, inIso, outIso);
             if (data && data.data) {
                 setRooms(data.data);
                 setTotalPages(data.totalPages);
@@ -70,12 +74,6 @@ export default function RoomsPage() {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
     };
 
-    // Client-side filter by price range (unit: triệu đồng)
-    const filteredRooms = rooms.filter((room) => {
-        const priceInMillion = (room.basePrice || 0) / 1_000_000;
-        return priceInMillion >= debouncedPriceRange[0] && priceInMillion <= debouncedPriceRange[1];
-    });
-
     return (
         <Box>
             {/* Page Header */}
@@ -97,44 +95,71 @@ export default function RoomsPage() {
                     <Grid.Col span={{ base: 12, md: 3 }}>
                         <Box style={{ position: 'sticky', top: '20px' }}>
                             <Stack gap="xl">
-                                {/* Price Filter (client-side) */}
+                                {/* Search Date Filters */}
                                 <Box>
-                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Bộ lọc</Text>
-                                    <Text fw={500} mb="sm" style={{ fontSize: '14px' }}>Mức giá (đêm)</Text>
-                                    <RangeSlider
-                                        value={priceRange}
-                                        onChange={setPriceRange}
-                                        onChangeEnd={setDebouncedPriceRange}
-                                        min={0}
-                                        max={10}
-                                        step={0.5}
-                                        minRange={0.5}
-                                        label={(value) => `${value}tr`}
-                                        marks={[
-                                            { value: 0, label: '0' },
-                                            { value: 5, label: '5tr' },
-                                            { value: 10, label: '10tr' }
-                                        ]}
-                                        color="#D4A574"
-                                        mb="md"
-                                    />
-                                    <Text size="sm" c="dimmed" mt={30} ta="center">
-                                        {priceRange[0]}tr – {priceRange[1]}tr
-                                    </Text>
-                                </Box>
+                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Bộ lọc tìm kiếm</Text>
 
-                                <Box>
+                                    <DateTimePicker
+                                        label="Nhận phòng"
+                                        placeholder="Chọn ngày giờ"
+                                        value={checkIn}
+                                        onChange={(date) => {
+                                            setCheckIn(date);
+                                            if (date && checkOut && date >= checkOut) {
+                                                setCheckOut(dayjs(date).add(1, 'hour').toDate());
+                                            }
+                                        }}
+                                        minDate={new Date()}
+                                        mb="sm"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <DateTimePicker
+                                        label="Trả phòng"
+                                        placeholder="Chọn ngày giờ"
+                                        value={checkOut}
+                                        onChange={(date) => {
+                                            if (date && checkIn && date <= checkIn) {
+                                                // Handle invalid backwards selection
+                                                setCheckOut(dayjs(checkIn).add(1, 'hour').toDate());
+                                            } else {
+                                                setCheckOut(date);
+                                            }
+                                        }}
+                                        minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
+                                        mb="md"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <Button
+                                        fullWidth
+                                        color="orange"
+                                        mb="sm"
+                                        onClick={() => {
+                                            setPage(0);
+                                            fetchRooms(0, pageSize, checkIn, checkOut);
+                                        }}
+                                    >
+                                        Tìm phòng trống
+                                    </Button>
+
                                     <Button
                                         variant="light"
                                         color="gray"
                                         fullWidth
                                         onClick={() => {
-                                            setPriceRange([0, 10]);
-                                            setDebouncedPriceRange([0, 10]);
+                                            const defaultIn = dayjs().hour(14).minute(0).second(0).toDate();
+                                            const defaultOut = dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate();
+                                            setCheckIn(defaultIn);
+                                            setCheckOut(defaultOut);
                                             setPage(0);
+                                            // Reset to today fetch
+                                            fetchRooms(0, pageSize, defaultIn, defaultOut);
                                         }}
                                     >
-                                        Xóa bộ lọc
+                                        Đặt lại
                                     </Button>
                                 </Box>
                             </Stack>
@@ -165,14 +190,14 @@ export default function RoomsPage() {
                                 <Text c="red" ta="center" my="lg">{error}</Text>
                             )}
 
-                            {!loading && !error && filteredRooms.length === 0 && (
+                            {!loading && !error && rooms.length === 0 && (
                                 <Text ta="center" my="xl" size="lg" c="dimmed">
                                     Không tìm thấy loại phòng phù hợp.
                                 </Text>
                             )}
 
                             <Grid>
-                                {filteredRooms.map((room) => (
+                                {rooms.map((room) => (
                                     <Grid.Col key={room.id} span={{ base: 12, sm: 6, md: 4 }}>
                                         <Card
                                             shadow="sm"
@@ -203,7 +228,7 @@ export default function RoomsPage() {
                                                     height={220}
                                                     alt={room.name}
                                                     style={{ objectFit: 'cover' }}
-                                                    fallbackSrc="https://via.placeholder.com/300x220?text=No+Image"
+                                                    fallbackSrc="https://placehold.co/300x220?text=No+Image"
                                                 />
                                             </Card.Section>
 
@@ -213,8 +238,8 @@ export default function RoomsPage() {
                                                     <Title order={3} fw={600} style={{ fontSize: '16px', flex: 1 }}>
                                                         {room.name}
                                                     </Title>
-                                                    <Badge variant="light" color="blue" radius="sm" style={{ flexShrink: 0 }}>
-                                                        {room.totalRooms} phòng
+                                                    <Badge variant="light" color={room.totalRooms > 0 ? "green" : "red"} radius="sm" style={{ flexShrink: 0 }}>
+                                                        {room.totalRooms} phòng trống
                                                     </Badge>
                                                 </Group>
 

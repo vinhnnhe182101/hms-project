@@ -31,10 +31,10 @@ public class UserEntity {
     @Column(name = "provider_id")
     private String providerId;
 
-    @OneToOne
+    @OneToOne(mappedBy = "userEntity", fetch = FetchType.EAGER)
     private CustomerEntity customerEntity;
 
-    @OneToOne
+    @OneToOne(mappedBy = "userEntity", fetch = FetchType.EAGER)
     private StaffEntity staffEntity;
 
     @ColumnDefault("1")

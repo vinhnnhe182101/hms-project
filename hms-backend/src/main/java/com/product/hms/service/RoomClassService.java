@@ -5,11 +5,12 @@ import com.product.hms.dto.response.RoomClassResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface RoomClassService {
 
-    Page<RoomClassResponse> getRoomClassList(Pageable pageable);
+    Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable);
 
     /**
      * Lấy thông tin chi tiết một loại phòng:

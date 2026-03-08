@@ -1,9 +1,11 @@
-import { Group, Button, Text, Box } from '@mantine/core';
+import { Group, Button, Text, Box, Menu, Avatar } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { customer, logout } = useAuth();
 
     const isActive = (path) => {
         return location.pathname === path;
@@ -15,6 +17,11 @@ export default function Header() {
         { label: 'Dịch vụ', path: '/services' },
         { label: 'Lịch sử', path: '/history' }
     ];
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
         <header style={{
@@ -68,18 +75,46 @@ export default function Header() {
                     ))}
                 </Group>
 
-                <Button
-                    style={{
-                        backgroundColor: '#D4A574',
-                        fontSize: '15px',
-                        padding: '8px 20px',
-                        height: 'auto',
-                        fontWeight: 500
-                    }}
-                    radius="md"
-                >
-                    Đăng nhập
-                </Button>
+                {customer ? (
+                    <Menu shadow="md" width={180} position="bottom-end">
+                        <Menu.Target>
+                            <Group gap={10} style={{ cursor: 'pointer' }}>
+                                <Avatar
+                                    color="orange"
+                                    radius="xl"
+                                    size="sm"
+                                    style={{ backgroundColor: '#D4A574' }}
+                                >
+                                    {customer.fullName?.charAt(0)?.toUpperCase() || 'K'}
+                                </Avatar>
+                                <Text fw={600} size="sm" style={{ color: '#333', maxWidth: 120 }} lineClamp={1}>
+                                    {customer.fullName}
+                                </Text>
+                            </Group>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Label>Tài khoản</Menu.Label>
+                            <Menu.Item onClick={handleLogout} color="red">
+                                Đăng xuất
+                            </Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
+                ) : (
+                    <Button
+                        id="header-login-btn"
+                        style={{
+                            backgroundColor: '#D4A574',
+                            fontSize: '15px',
+                            padding: '8px 20px',
+                            height: 'auto',
+                            fontWeight: 500
+                        }}
+                        radius="md"
+                        onClick={() => navigate('/login')}
+                    >
+                        Đăng nhập
+                    </Button>
+                )}
             </Box>
         </header>
     );

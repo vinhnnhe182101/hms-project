@@ -83,4 +83,36 @@ public class RatingServiceImpl implements RatingService {
 
         return distribution;
     }
+
+    @Override
+    public Page<RatingSummaryResponse> getLatestRatings(Pageable pageable) {
+        Page<RatingEntity> pageData = ratingRepository.findLatestPublicRatings(pageable);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd 'Thg' MM, yyyy");
+
+        return pageData.map(entity -> {
+            List<RatingResponse> content = pageData.getContent().stream().map(e -> {
+                RatingResponse res = new RatingResponse();
+                res.setId(e.getId());
+                res.setName(e.getCustomerEntity() != null ? e.getCustomerEntity().getFullName() : "Khách ẩn danh");
+                if (res.getName() != null && !res.getName().isEmpty()) {
+                    res.setAvatar(res.getName().substring(0, 1).toUpperCase());
+                } else {
+                    res.setAvatar("A");
+                }
+                res.setRating(e.getRating());
+                res.setComment(e.getComment());
+                if (e.getReviewDate() != null) {
+                    res.setDate(sdf.format(e.getReviewDate()));
+                } else {
+                    res.setDate("Gần đây");
+                }
+                return res;
+            }).collect(Collectors.toList());
+
+            RatingSummaryResponse response = new RatingSummaryResponse();
+            response.setContent(content);
+
+            return response;
+        });
+    }
 }

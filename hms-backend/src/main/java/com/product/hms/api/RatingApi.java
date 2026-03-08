@@ -13,8 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/ratings")
+@RequestMapping("/api/v1/ratings")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class RatingApi {
 
     private final RatingService ratingService;
@@ -44,6 +45,23 @@ public class RatingApi {
         response.put("pageSize", feedbackPage.getSize());
         response.put("hasNext", feedbackPage.hasNext());
         response.put("hasPrevious", feedbackPage.hasPrevious());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/latest")
+    public ResponseEntity<Map<String, Object>> getLatestRatings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RatingSummaryResponse> feedbackPage = ratingService.getLatestRatings(pageable);
+
+        RatingSummaryResponse feedbackData = feedbackPage.getContent().isEmpty()
+                ? new RatingSummaryResponse()
+                : feedbackPage.getContent().get(0);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", feedbackData.getContent());
 
         return ResponseEntity.ok(response);
     }

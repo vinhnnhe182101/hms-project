@@ -1,12 +1,12 @@
 package com.product.hms.repository;
 
-import com.product.hms.entity.UserEntity;
+import com.product.hms.entity.FolioEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByEmail(String email);
+public interface FolioRepository extends JpaRepository<FolioEntity, Long> {
+    Optional<FolioEntity> findByReservationId(Long reservationId);
 }

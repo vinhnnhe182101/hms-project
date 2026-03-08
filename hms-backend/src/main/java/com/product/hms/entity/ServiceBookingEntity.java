@@ -31,6 +31,11 @@ public class ServiceBookingEntity {
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity serviceEntity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "allocation_id")
+    private ReservationRoomAllocationEntity allocationEntity;
+
 
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)

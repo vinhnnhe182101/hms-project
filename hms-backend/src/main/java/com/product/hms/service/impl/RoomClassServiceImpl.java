@@ -12,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.product.hms.enums.ReservationStatus;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,8 +32,13 @@ public class RoomClassServiceImpl implements RoomClassService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RoomClassResponse> getRoomClassList(Pageable pageable) {
-        return roomClassRepository.findRoomClassSummary(pageable)
+    public Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable) {
+        List<ReservationStatus> statuses = List.of(
+                ReservationStatus.PENDING_DEPOSIT,
+                ReservationStatus.CONFIRMED,
+                ReservationStatus.IN_HOUSE
+        );
+        return roomClassRepository.findRoomClassSummary(checkIn, checkOut, statuses, pageable)
                 .map(this::mapSummaryToResponse);
     }
 

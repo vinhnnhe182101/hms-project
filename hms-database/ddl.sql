@@ -80,27 +80,27 @@ CREATE TABLE `reservation`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `reservation_detail`
+CREATE TABLE `reservation_room_allocation`
 (
     `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `reservation_id`   BIGINT UNSIGNED NOT NULL,
     `room_class_id`    BIGINT UNSIGNED NOT NULL,
     `room_id`          BIGINT UNSIGNED NULL,
-    `quantity`         INT             NOT NULL DEFAULT 1,
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `actual_check_in`  DATETIME        NULL,
+    `number_of_people` INT             NOT NULL DEFAULT 1,
     `actual_check_out` DATETIME        NULL,
+    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
-    KEY `idx_reservation_detail_reservation_id` (`reservation_id`),
-    KEY `idx_reservation_detail_room_class_id` (`room_class_id`),
-    KEY `idx_reservation_detail_room_id` (`room_id`),
-    CONSTRAINT `fk_reservation_detail_reservation`
+    KEY `idx_reservation_room_allocation_reservation_id` (`reservation_id`),
+    KEY `idx_reservation_room_allocation_room_class_id` (`room_class_id`),
+    KEY `idx_reservation_room_allocation_room_id` (`room_id`),
+    CONSTRAINT `fk_reservation_room_allocation_reservation`
         FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT `fk_reservation_detail_room_class`
+    CONSTRAINT `fk_reservation_room_allocation_room_class`
         FOREIGN KEY (`room_class_id`) REFERENCES `room_class` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT `fk_reservation_detail_room`
+    CONSTRAINT `fk_reservation_room_allocation_room`
         FOREIGN KEY (`room_id`) REFERENCES `room` (`id`)
             ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB
@@ -109,20 +109,16 @@ CREATE TABLE `reservation_detail`
 CREATE TABLE `room_occupant`
 (
     `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_id` BIGINT UNSIGNED NOT NULL,
-    `room_id`        BIGINT UNSIGNED NOT NULL,
+    `allocation_id`  BIGINT UNSIGNED NOT NULL,
     `customer_id`    BIGINT UNSIGNED NOT NULL,
     `role`           VARCHAR(50)     NOT NULL,
+    `is_active`      TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
-    KEY `idx_room_occupant_reservation_id` (`reservation_id`),
-    KEY `idx_room_occupant_room_id` (`room_id`),
+    KEY `idx_room_occupant_allocation_id` (`allocation_id`),
     KEY `idx_room_occupant_customer_id` (`customer_id`),
-    CONSTRAINT `fk_room_occupant_reservation`
-        FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
+    CONSTRAINT `fk_room_occupant_allocation`
+        FOREIGN KEY (`allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT `fk_room_occupant_room`
-        FOREIGN KEY (`room_id`) REFERENCES `room` (`id`)
-            ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT `fk_room_occupant_customer`
         FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT
@@ -144,17 +140,23 @@ CREATE TABLE `service_booking`
     `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `reservation_id`   BIGINT UNSIGNED NOT NULL,
     `service_id`       BIGINT UNSIGNED NOT NULL,
+    `allocation_id`    BIGINT UNSIGNED NULL,
     `quantity`         INT             NOT NULL DEFAULT 1,
     `status`           VARCHAR(50)     NOT NULL,
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_service_booking_reservation_id` (`reservation_id`),
     KEY `idx_service_booking_service_id` (`service_id`),
+    KEY `idx_service_booking_allocation_id` (`allocation_id`),
     CONSTRAINT `fk_service_booking_service`
         FOREIGN KEY (`service_id`) REFERENCES `service` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT `fk_service_booking_reservation`
         FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT `fk_service_booking_allocation`
+        FOREIGN KEY (`allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

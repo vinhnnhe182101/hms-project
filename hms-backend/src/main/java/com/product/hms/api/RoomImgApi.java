@@ -13,6 +13,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/v1/room-images")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class RoomImgApi {
 
     private final RoomImgService roomImgService;

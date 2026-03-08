@@ -1,72 +1,50 @@
+import { useState, useEffect } from 'react';
 import { Container, Title, Text, Button, Grid, Card, Image, Stack, Box, Group } from '@mantine/core';
+import { Carousel } from '@mantine/carousel';
 import { IconToolsKitchen2, IconSwimming, IconSparkles } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import '@mantine/carousel/styles.css';
+import { getRoomClassList } from '../../apis/roomClassApi';
+import { getAllServices } from '../../apis/serviceApi';
+import { getLatestRatings } from '../../apis/ratingApi';
 
 export default function HomePage() {
     const navigate = useNavigate();
 
-    const featuredRooms = [
-        {
-            id: 1,
-            tag: 'PHỔ BIẾN NHẤT',
-            name: 'Deluxe Ocean View',
-            description: 'Phòng rộng 45m² với ban công nhìn ra biển, trang bị đầy đủ tiện nghi hiện đại.',
-            price: '2.500.000đ',
-            image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500'
-        },
-        {
-            id: 2,
-            tag: 'GIA ĐÌNH',
-            name: 'Family Suite',
-            description: 'Phòng gần biển rộng rãi và gần biển với 2 phòng ngủ và phòng khách riêng biệt.',
-            price: '4.200.000đ',
-            image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=500'
-        },
-        {
-            id: 3,
-            tag: 'CAO CẤP',
-            name: 'Royal Penthouse',
-            description: 'Tầng penthouse xa xỉ tầng cao nhất với hồ bơi riêng và phục vụ 24/7.',
-            price: '15.000.000đ',
-            image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=500'
-        }
-    ];
+    const [featuredRooms, setFeaturedRooms] = useState([]);
+    const [services, setServices] = useState([]);
+    const [testimonials, setTestimonials] = useState([]);
 
-    const services = [
-        {
-            icon: IconToolsKitchen2,
-            title: 'Nhà Hàng 5 Sao',
-            description: 'Thưởng thức ẩm thực Á - Âu từ các đầu bếp hàng đầu.'
-        },
-        {
-            icon: IconSparkles,
-            title: 'Spa & Wellness',
-            description: 'Thư giãn cơ thể và tâm trí với các liệu pháp chăm sóc chuyên nghiệp.'
-        },
-        {
-            icon: IconSwimming,
-            title: 'Hồ Bơi Vô Cực',
-            description: 'Hồ bơi ngoài trời với tầm nhìn toàn cảnh thành phố và bờ biển.'
-        }
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Lấy 5 phòng nổi bật
+                const roomsResponse = await getRoomClassList(0, 5);
+                setFeaturedRooms(roomsResponse?.data || []);
 
-    const testimonials = [
-        {
-            name: 'Nguyễn Văn A',
-            role: 'Khách hàng thân thiết',
-            comment: 'Kỳ nghỉ tuyệt vời nhất của gia đình tôi. Phòng đẹp, sạch sẽ, nhân viên cực kỳ thân thiện và chu đáo.'
-        },
-        {
-            name: 'Trần Thị B',
-            role: 'Du khách',
-            comment: 'Nội thất sang trọng hàng đầu, bể bơi view đẹp. Chắc chắn tôi sẽ quay lại vào lần tới.'
-        },
-        {
-            name: 'Lê Minh C',
-            role: 'Khách doanh nghiệp',
-            comment: 'Dịch vụ chuyên nghiệp, check-in nhanh chóng. Phòng Penthouse thực sự đẳng cấp.'
-        }
-    ];
+                // Lấy 5 dịch vụ
+                const servicesResponse = await getAllServices(0, 5);
+                const servicesData = servicesResponse?.data || servicesResponse?.content || [];
+                setServices(servicesData);
+
+                // Lấy 3 đánh giá mới nhất
+                const ratingsResponse = await getLatestRatings(0, 3);
+                setTestimonials(ratingsResponse?.content || []);
+            } catch (error) {
+                console.error('Lỗi khi tải dữ liệu trang chủ:', error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const formatPrice = (price) =>
+        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+
+    const getServiceIcon = (category) => {
+        if (category === 'SPA') return IconSparkles;
+        if (category === 'MINIBAR') return IconToolsKitchen2;
+        return IconSwimming;
+    };
 
     return (
         <Box>
@@ -116,9 +94,16 @@ export default function HomePage() {
                     </Text>
                 </Box>
 
-                <Grid>
+                <Carousel
+                    withIndicators
+                    slideSize={{ base: '100%', sm: '50%', md: '33.333333%' }}
+                    slideGap="md"
+                    loop
+                    align="start"
+                    slidesToScroll={1}
+                >
                     {featuredRooms.map((room) => (
-                        <Grid.Col key={room.id} span={{ base: 12, sm: 6, md: 4 }}>
+                        <Carousel.Slide key={room.id}>
                             <Card
                                 shadow="sm"
                                 padding="0"
@@ -143,25 +128,10 @@ export default function HomePage() {
                                 <Card.Section>
                                     <Box style={{ position: 'relative' }}>
                                         <Image
-                                            src={room.image}
+                                            src={room.primaryImage?.dataUrl || 'https://placehold.co/400x250?text=No+Image'}
                                             height={220}
                                             alt={room.name}
                                         />
-                                        <Box
-                                            style={{
-                                                position: 'absolute',
-                                                top: '16px',
-                                                left: '16px',
-                                                backgroundColor: '#D4A574',
-                                                color: 'white',
-                                                padding: '4px 12px',
-                                                borderRadius: '4px',
-                                                fontSize: '11px',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            {room.tag}
-                                        </Box>
                                     </Box>
                                 </Card.Section>
 
@@ -169,13 +139,10 @@ export default function HomePage() {
                                     <Title order={3} fw={600} style={{ fontSize: '16px' }}>
                                         {room.name}
                                     </Title>
-                                    <Text c="dimmed" style={{ minHeight: '50px', fontSize: '13px' }}>
-                                        {room.description}
-                                    </Text>
                                     <Group justify="space-between" mt="md">
                                         <Box>
                                             <Text fw={700} c="#D4A574" style={{ fontSize: '20px' }}>
-                                                {room.price}
+                                                {formatPrice(room.basePrice)}
                                             </Text>
                                             <Text c="dimmed" style={{ fontSize: '14px' }}>/ đêm</Text>
                                         </Box>
@@ -185,9 +152,9 @@ export default function HomePage() {
                                     </Group>
                                 </Stack>
                             </Card>
-                        </Grid.Col>
+                        </Carousel.Slide>
                     ))}
-                </Grid>
+                </Carousel>
 
                 <Box ta="center" mt={40}>
                     <Button
@@ -218,11 +185,18 @@ export default function HomePage() {
                         </Text>
                     </Box>
 
-                    <Grid>
+                    <Carousel
+                        withIndicators
+                        slideSize={{ base: '100%', sm: '50%', md: '33.333333%' }}
+                        slideGap="md"
+                        loop
+                        align="start"
+                        slidesToScroll={1}
+                    >
                         {services.map((service, index) => {
-                            const Icon = service.icon;
+                            const Icon = getServiceIcon(service.serviceCategory);
                             return (
-                                <Grid.Col key={index} span={{ base: 12, sm: 6, md: 4 }}>
+                                <Carousel.Slide key={index}>
                                     <Card
                                         shadow="sm"
                                         padding="xl"
@@ -255,11 +229,8 @@ export default function HomePage() {
                                             <Icon size={32} color="#D4A574" />
                                         </Box>
                                         <Title order={3} fw={600} mb="sm" style={{ fontSize: '20px' }}>
-                                            {service.title}
+                                            {service.name}
                                         </Title>
-                                        <Text c="dimmed" style={{ fontSize: '16px' }}>
-                                            {service.description}
-                                        </Text>
                                         <Button
                                             variant="subtle"
                                             color="gray"
@@ -271,10 +242,10 @@ export default function HomePage() {
                                             Xem thêm
                                         </Button>
                                     </Card>
-                                </Grid.Col>
+                                </Carousel.Slide>
                             );
                         })}
-                    </Grid>
+                    </Carousel>
 
                     <Box ta="center" mt={40}>
                         <Button
@@ -332,10 +303,10 @@ export default function HomePage() {
                                     </Box>
                                     <Box>
                                         <Text fw={600} style={{ fontSize: '16px' }}>
-                                            {testimonial.name}
+                                            {testimonial.name || 'Ẩn danh'}
                                         </Text>
                                         <Text c="dimmed" style={{ fontSize: '14px' }}>
-                                            {testimonial.role}
+                                            Ngày đăng: {testimonial.date || 'Gần đây'}
                                         </Text>
                                     </Box>
                                 </Group>

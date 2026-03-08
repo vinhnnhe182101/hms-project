@@ -14,20 +14,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @RestController
 @RequestMapping("/api/v1/room-classes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class RoomClassApi {
 
     private final RoomClassService roomClassService;
     @GetMapping
     public ResponseEntity<Map<String, Object>> getRoomClassList(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkIn,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkOut,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
+        if (checkIn == null) {
+            checkIn = LocalDateTime.now().withHour(14).withMinute(0).withSecond(0).withNano(0);
+        }
+        if (checkOut == null) {
+            checkOut = checkIn.plusDays(1).withHour(12).withMinute(0).withSecond(0).withNano(0);
+        }
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<RoomClassResponse> resultPage = roomClassService.getRoomClassList(pageable);
+        Page<RoomClassResponse> resultPage = roomClassService.getRoomClassList(
+                Timestamp.valueOf(checkIn),
+                Timestamp.valueOf(checkOut),
+                pageable);
 
         Map<String, Object> response = new HashMap<>();
         response.put("data", resultPage.getContent());

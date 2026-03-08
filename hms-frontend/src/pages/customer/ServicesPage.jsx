@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Container, Grid, Card, Box, Text, Title, Button, Group, Stack,
-    Badge, Tabs, Modal, Table, Loader, Center, Image, Pagination
+    Badge, Tabs, Loader, Center, Image, Pagination
 } from '@mantine/core';
 import { IconPlus, IconMinus, IconTrash } from '@tabler/icons-react';
 import { getAllServices, getServicesByCategory } from '../../apis/serviceApi';
@@ -22,8 +23,8 @@ const ALL_CATEGORIES = [
 ];
 
 export default function ServicesPage() {
+    const navigate = useNavigate();
     const [cart, setCart] = useState([]);
-    const [cartOpened, setCartOpened] = useState(false);
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [services, setServices] = useState([]);
@@ -127,7 +128,7 @@ export default function ServicesPage() {
                         src="https://images.unsplash.com/photo-1582719478250-c89afe4dc84b?w=400&h=250&fit=crop"
                         height={160}
                         alt={service.name}
-                        fallbackSrc="https://via.placeholder.com/400x250?text=Service"
+                        fallbackSrc="https://placehold.co/400x250?text=Service"
                     />
                 </Card.Section>
 
@@ -338,9 +339,9 @@ export default function ServicesPage() {
                                                 fontWeight: 600,
                                                 padding: '14px'
                                             }}
-                                            onClick={() => setCartOpened(true)}
+                                            onClick={() => navigate('/services/checkout', { state: { cart } })}
                                         >
-                                            Đặt Hàng
+                                            Đặt Dịch Vụ
                                         </Button>
                                     </Box>
                                 </>
@@ -349,86 +350,6 @@ export default function ServicesPage() {
                     </Grid.Col>
                 </Grid>
             </Box>
-
-            {/* Order Confirmation Modal */}
-            <Modal
-                opened={cartOpened}
-                onClose={() => setCartOpened(false)}
-                title={
-                    <Title order={2} style={{ fontSize: '28px', fontWeight: 700, color: '#2c3e50' }}>
-                        Xác Nhận Đơn Hàng
-                    </Title>
-                }
-                size="xl"
-                centered
-                padding="xl"
-            >
-                <Stack gap="xl">
-                    <Table
-                        striped
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        style={{ fontSize: '16px' }}
-                    >
-                        <Table.Thead>
-                            <Table.Tr style={{ backgroundColor: '#f8f9fa' }}>
-                                <Table.Th style={{ fontSize: '18px', fontWeight: 600, padding: '16px' }}>Dịch vụ</Table.Th>
-                                <Table.Th style={{ textAlign: 'center', fontSize: '18px', fontWeight: 600, padding: '16px' }}>SL</Table.Th>
-                                <Table.Th style={{ textAlign: 'right', fontSize: '18px', fontWeight: 600, padding: '16px' }}>Thành tiền</Table.Th>
-                            </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                            {cart.map((item) => (
-                                <Table.Tr key={item.id}>
-                                    <Table.Td style={{ fontSize: '16px', padding: '16px' }}>{item.name}</Table.Td>
-                                    <Table.Td style={{ textAlign: 'center', fontSize: '16px', padding: '16px' }}>{item.quantity}</Table.Td>
-                                    <Table.Td style={{ textAlign: 'right', fontSize: '16px', padding: '16px' }}>
-                                        {formatPrice(item.price * item.quantity)}
-                                    </Table.Td>
-                                </Table.Tr>
-                            ))}
-                        </Table.Tbody>
-                        <Table.Tfoot>
-                            <Table.Tr style={{ backgroundColor: '#fff9f0' }}>
-                                <Table.Td colSpan={2} style={{ fontSize: '20px', fontWeight: 700, padding: '20px' }}>
-                                    Tổng cộng
-                                </Table.Td>
-                                <Table.Td style={{ textAlign: 'right', fontSize: '24px', fontWeight: 700, color: '#D4A574', padding: '20px' }}>
-                                    {formatPrice(getTotalPrice())}
-                                </Table.Td>
-                            </Table.Tr>
-                        </Table.Tfoot>
-                    </Table>
-
-                    <Box p="xl" style={{ backgroundColor: '#f8f9fa', borderRadius: '12px', textAlign: 'center' }}>
-                        <Text size="lg" c="dimmed" mb="xs">📍 Giao hàng đến phòng của bạn</Text>
-                        <Text size="md" c="dimmed">⏱️ Thời gian dự kiến: 15–30 phút</Text>
-                    </Box>
-
-                    <Group justify="center" gap="lg" mt="md">
-                        <Button
-                            variant="outline"
-                            size="xl"
-                            onClick={() => setCartOpened(false)}
-                            style={{ borderColor: '#D4A574', color: '#D4A574', fontSize: '18px', padding: '16px 48px', fontWeight: 600 }}
-                        >
-                            Hủy
-                        </Button>
-                        <Button
-                            size="xl"
-                            style={{ backgroundColor: '#D4A574', fontSize: '18px', padding: '16px 48px', fontWeight: 600 }}
-                            onClick={() => {
-                                alert('✅ Đơn hàng đã được gửi thành công!\n\n🚀 Chúng tôi sẽ giao đến phòng của bạn trong 15–30 phút.\n\n📞 Hotline: 1900-xxxx');
-                                setCart([]);
-                                setCartOpened(false);
-                            }}
-                        >
-                            ✓ Xác Nhận Đặt Hàng
-                        </Button>
-                    </Group>
-                </Stack>
-            </Modal>
         </Box>
     );
 }

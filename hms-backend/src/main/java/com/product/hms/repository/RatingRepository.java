@@ -54,4 +54,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
             "AND r.isPublic = true " +
             "GROUP BY r.rating")
     List<Object[]> countRatingsByRatingForRoomClass(@Param("roomClassId") Long roomClassId);
+
+    @Query("SELECT r FROM RatingEntity r WHERE r.isPublic = true ORDER BY r.reviewDate DESC")
+    Page<RatingEntity> findLatestPublicRatings(Pageable pageable);
 }

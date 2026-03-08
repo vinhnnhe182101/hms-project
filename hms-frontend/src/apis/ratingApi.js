@@ -20,3 +20,15 @@ export const getRoomClassRatings = async (roomClassId, page = 0, size = 5, ratin
         throw error;
     }
 };
+
+export const getLatestRatings = async (page = 0, size = 3) => {
+    try {
+        const response = await axios.get(`${API_URL}/latest`, {
+            params: { page, size }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching latest ratings:', error);
+        throw error;
+    }
+};

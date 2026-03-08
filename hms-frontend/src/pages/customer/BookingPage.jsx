@@ -4,19 +4,21 @@ import {
     NumberInput, Button, Divider, Stack, Card, Loader, Center,
     Select
 } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
+import { DateTimePicker } from '@mantine/dates';
+import dayjs from 'dayjs';
 import { IconUsers, IconBuilding, IconCalendar, IconCoin } from '@tabler/icons-react';
 import { getRoomClassList } from '../../apis/roomClassApi';
+import { useNavigate } from 'react-router-dom';
 import '@mantine/dates/styles.css';
 
 export default function BookingPage() {
+    const navigate = useNavigate();
     const [roomClasses, setRoomClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [quantities, setQuantities] = useState({});
 
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    const today = dayjs().hour(14).minute(0).second(0).toDate();
+    const tomorrow = dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate();
 
     const [checkIn, setCheckIn] = useState(today);
     const [checkOut, setCheckOut] = useState(tomorrow);
@@ -31,10 +33,13 @@ export default function BookingPage() {
         const fetchRooms = async () => {
             try {
                 setLoading(true);
-                const data = await getRoomClassList(0, 50);
+                const inIso = checkIn ? dayjs(checkIn).format('YYYY-MM-DDTHH:mm:ss') : null;
+                const outIso = checkOut ? dayjs(checkOut).format('YYYY-MM-DDTHH:mm:ss') : null;
+                const data = await getRoomClassList(0, 50, inIso, outIso);
                 const rooms = data?.data || [];
                 setRoomClasses(rooms);
-                // Khởi tạo quantities = 0 cho mỗi phòng
+
+                // Khởi tạo quantities = 0 cho mỗi phòng (reset khi đổi ngày)
                 const initQty = {};
                 rooms.forEach(r => { initQty[r.id] = 0; });
                 setQuantities(initQty);
@@ -45,7 +50,7 @@ export default function BookingPage() {
             }
         };
         fetchRooms();
-    }, []);
+    }, [checkIn, checkOut]);
 
     const formatPrice = (price) =>
         new Intl.NumberFormat('vi-VN').format(price || 0);
@@ -74,7 +79,9 @@ export default function BookingPage() {
                 total: quantities[r.id] * r.basePrice * nights,
             }));
 
-        alert(`Đặt phòng:\n${JSON.stringify({ checkIn, checkOut, nights, guests, rooms: selected }, null, 2)}`);
+        navigate('/booking/checkout', {
+            state: { checkIn, checkOut, nights, guests, rooms: selected }
+        });
     };
 
     return (
@@ -256,46 +263,43 @@ export default function BookingPage() {
                                 {/* Check-in */}
                                 <Box>
                                     <Text size="sm" fw={500} mb={6} c="dimmed">Ngày đến:</Text>
-                                    <DatePickerInput
+                                    <DateTimePicker
                                         value={checkIn}
                                         onChange={(date) => {
                                             setCheckIn(date);
-                                            if (date && checkOut && new Date(date) >= new Date(checkOut)) {
-                                                const next = new Date(date);
-                                                next.setDate(next.getDate() + 1);
-                                                setCheckOut(next);
+                                            if (date && checkOut && date >= checkOut) {
+                                                setCheckOut(dayjs(date).add(1, 'hour').toDate());
                                             }
                                         }}
-                                        minDate={today}
-                                        valueFormat="DD/MM/YYYY"
+                                        minDate={new Date()}
+                                        valueFormat="DD/MM/YYYY HH:mm"
                                         leftSection={<IconCalendar size={16} color="#D4A574" />}
                                         styles={{
                                             input: { borderColor: '#D4A574', fontWeight: 500 },
                                         }}
+                                        clearable={false}
                                     />
                                 </Box>
 
                                 {/* Check-out */}
                                 <Box>
                                     <Text size="sm" fw={500} mb={6} c="dimmed">Ngày đi:</Text>
-                                    <DatePickerInput
+                                    <DateTimePicker
                                         value={checkOut}
                                         onChange={(date) => {
-                                            if (!date) return;
-                                            if (checkIn && new Date(date) <= new Date(checkIn)) {
-                                                const next = new Date(checkIn);
-                                                next.setDate(next.getDate() + 1);
-                                                setCheckOut(next);
+                                            if (date && checkIn && date <= checkIn) {
+                                                setCheckOut(dayjs(checkIn).add(1, 'hour').toDate());
                                             } else {
                                                 setCheckOut(date);
                                             }
                                         }}
-                                        minDate={checkIn ? new Date(new Date(checkIn).getTime() + 86400000) : tomorrow}
-                                        valueFormat="DD/MM/YYYY"
+                                        minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
+                                        valueFormat="DD/MM/YYYY HH:mm"
                                         leftSection={<IconCalendar size={16} color="#D4A574" />}
                                         styles={{
                                             input: { borderColor: '#D4A574', fontWeight: 500 },
                                         }}
+                                        clearable={false}
                                     />
                                 </Box>
 

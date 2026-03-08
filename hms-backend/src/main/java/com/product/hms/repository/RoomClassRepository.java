@@ -2,6 +2,7 @@ package com.product.hms.repository;
 
 import com.product.hms.entity.RoomAssetEntity;
 import com.product.hms.entity.RoomClassEntity;
+import com.product.hms.enums.ReservationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.List;
+
 
 @Repository
 public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long> {
@@ -21,13 +24,28 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
                    rc.name,
                    rc.standardCapacity,
                    rc.basePrice,
-                   COUNT(r.id)
+                   (COUNT(DISTINCT r.id) - 
+                    (SELECT COUNT(DISTINCT r2.id) 
+                     FROM ReservationRoomAllocationEntity alloc
+                     JOIN alloc.reservationEntity res
+                     JOIN alloc.roomEntity r2
+                     WHERE r2.roomClassEntity.id = rc.id
+                       AND res.expectedCheckIn < :checkOut
+                       AND res.expectedCheckOut > :checkIn
+                       AND res.status IN :statuses
+                       AND alloc.isActive = true
+                       AND res.isActive = true
+                       AND r2.isActive = true))
             FROM RoomClassEntity rc
-            LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id
+            LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
+            WHERE rc.isActive = true
             GROUP BY rc.id, rc.name, rc.standardCapacity, rc.basePrice
             ORDER BY rc.id ASC
             """)
-    Page<Object[]> findRoomClassSummary(Pageable pageable);
+    Page<Object[]> findRoomClassSummary(@Param("checkIn") Timestamp checkIn,
+                                        @Param("checkOut") Timestamp checkOut,
+                                        @Param("statuses") List<ReservationStatus> statuses,
+                                        Pageable pageable);
 
     // ===== DETAIL =====
 

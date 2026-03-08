@@ -164,7 +164,7 @@ export default function RoomDetailPage() {
                                 height={500}
                                 alt={roomData.name}
                                 style={{ objectFit: 'cover' }}
-                                fallbackSrc="https://via.placeholder.com/800x500?text=No+Image"
+                                fallbackSrc="https://placehold.co/800x500?text=No+Image"
                             />
                             <Badge
                                 style={{
@@ -202,7 +202,7 @@ export default function RoomDetailPage() {
                                         height={230}
                                         alt={`Ảnh ${idx + 2}`}
                                         style={{ objectFit: 'cover' }}
-                                        fallbackSrc="https://via.placeholder.com/400x230?text=No+Image"
+                                        fallbackSrc="https://placehold.co/400x230?text=No+Image"
                                     />
                                     {/* "Xem thêm" overlay nếu có nhiều ảnh hơn */}
                                     {idx === 1 && images.length > 3 && (
@@ -528,14 +528,7 @@ export default function RoomDetailPage() {
                                                 <Text mb="xs" fw={500} style={{ fontSize: '15px' }}>Đánh giá của bạn</Text>
                                                 <Rating size="lg" color="#FFB800" defaultValue={0} />
                                             </Box>
-                                            <TextInput
-                                                label="Tên"
-                                                placeholder="Nhập tên của bạn"
-                                                styles={{
-                                                    label: { fontSize: '15px', fontWeight: 500, marginBottom: '8px' },
-                                                    input: { fontSize: '15px' }
-                                                }}
-                                            />
+                                        
                                             <Textarea
                                                 label="Nội dung"
                                                 placeholder="Chia sẻ trải nghiệm của bạn..."
@@ -644,7 +637,7 @@ export default function RoomDetailPage() {
                                                 height={200}
                                                 alt={other.name}
                                                 style={{ objectFit: 'cover' }}
-                                                fallbackSrc="https://via.placeholder.com/400x200?text=No+Image"
+                                                fallbackSrc="https://placehold.co/400x200?text=No+Image"
                                             />
                                         </Card.Section>
                                         <Box p="lg">
