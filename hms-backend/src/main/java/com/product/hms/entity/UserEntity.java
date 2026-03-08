@@ -32,15 +32,13 @@ public class UserEntity {
     @Column(name = "provider_id")
     private String providerId;
 
-    @OneToOne
+    @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private CustomerEntity customerEntity;
 
-    @OneToOne
+    @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private StaffEntity staffEntity;
 
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
-
 }
