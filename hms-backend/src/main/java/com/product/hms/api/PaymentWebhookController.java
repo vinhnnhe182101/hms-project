@@ -23,21 +23,9 @@ public class PaymentWebhookController {
 
     @GetMapping("/vnpay-ipn")
     public ResponseEntity<Map<String, String>> handleVnPayIpn(@RequestParam Map<String, String> allParams) {
-        Map<String, String> response = new HashMap<>();
-        try {
-            paymentService.processVnPayIpn(allParams);
-            response.put("RspCode", "00");
-            response.put("Message", "Success");
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            response.put("RspCode", "97");
-            response.put("Message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception ex) {
-            response.put("RspCode", "99");
-            response.put("Message", "Unknown error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        Map<String, String> result = paymentService.processVnPayIpn(allParams);
+
+        return ResponseEntity.ok(result);
     }
 }
 

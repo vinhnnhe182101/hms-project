@@ -10,6 +10,10 @@ public interface PaymentService {
                                  String clientIp,
                                  String returnUrl);
 
-    void processVnPayIpn(Map<String, String> params);
+    String createVnPaymentUrlByPaymentTransactionId(long paymentTransactionId,
+                                                    String clientIp,
+                                                    String returnUrl);
+
+    Map<String, String> processVnPayIpn(Map<String, String> params);
 }
 

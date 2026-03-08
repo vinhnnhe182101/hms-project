@@ -19,8 +19,8 @@ public class RoomOccupantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "allocation_id", nullable = false)
-    private ReservationRoomAllocationEntity allocationEntity;
+    @JoinColumn(name = "reservation_room_id", nullable = false)
+    private ReservationRoomEntity reservationRoomEntity;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)

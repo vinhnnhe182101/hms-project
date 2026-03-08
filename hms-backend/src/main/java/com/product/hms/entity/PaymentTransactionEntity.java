@@ -1,8 +1,5 @@
 package com.product.hms.entity;
 
-import com.product.hms.enums.PaymentMethod;
-import com.product.hms.enums.PaymentTransactionStatus;
-import com.product.hms.enums.PaymentTransactionType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,21 +33,18 @@ public class PaymentTransactionEntity {
     @Column(name = "transaction_reference")
     private String transactionReference;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false, length = 50)
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
 
     @ColumnDefault("0.00")
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50)
-    private PaymentTransactionType type;
+    private String type;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private PaymentTransactionStatus status;
+    private String status;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
@@ -70,5 +64,6 @@ public class PaymentTransactionEntity {
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
 
 }

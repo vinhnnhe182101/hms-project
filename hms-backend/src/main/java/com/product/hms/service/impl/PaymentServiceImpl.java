@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,59 +61,113 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void processVnPayIpn(Map<String, String> params) {
-        boolean validSignature = vnPayUtil.validateSignature(params);
-        if (!validSignature) {
-            throw new IllegalArgumentException("Invalid VNPAY signature");
+    public String createVnPaymentUrlByPaymentTransactionId(long paymentTransactionId,
+                                                           String clientIp,
+                                                           String returnUrl) {
+        PaymentTransactionEntity transaction = paymentTransactionRepository.findById(paymentTransactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment transaction not found with id " + paymentTransactionId));
+
+        if ("SUCCESS".equalsIgnoreCase(transaction.getStatus())) {
+            throw new IllegalStateException("Transaction is already paid");
+        }
+
+        if (transaction.getAmount() == null) {
+            throw new IllegalArgumentException("Payment transaction amount is missing for id " + paymentTransactionId);
+        }
+
+        long amountVnd = transaction.getAmount().longValue();
+
+        String txnRef = transaction.getTransactionReference();
+        if (txnRef == null || txnRef.isBlank()) {
+            txnRef = generateTxnRef();
+            transaction.setTransactionReference(txnRef);
+            paymentTransactionRepository.save(transaction);
+        }
+
+        String orderInfo = "Payment for transaction " + paymentTransactionId;
+
+        return vnPayUtil.generatePaymentUrl(txnRef, amountVnd, clientIp, orderInfo, returnUrl);
+    }
+
+    @Override
+@Transactional
+public Map<String, String> processVnPayIpn(Map<String, String> params) {
+    Map<String, String> response = new HashMap<>();
+    try {
+        // 1. Kiểm tra chữ ký (Checksum)
+        if (!vnPayUtil.validateSignature(params)) {
+            response.put("RspCode", "97");
+            response.put("Message", "Invalid signature");
+            return response;
         }
 
         String vnpTxnRef = params.get("vnp_TxnRef");
         String vnpResponseCode = params.get("vnp_ResponseCode");
-        String vnpTransactionStatus = params.get("vnp_TransactionStatus");
         String amountStr = params.get("vnp_Amount");
 
-        if (vnpTxnRef == null) {
-            throw new IllegalArgumentException("Missing vnp_TxnRef");
-        }
-
+        // 2. Kiểm tra sự tồn tại của giao dịch trong DB
+        // Sử dụng findByTransactionReference có kèm PESSIMISTIC_WRITE để tránh Race Condition
         Optional<PaymentTransactionEntity> optionalTransaction =
                 paymentTransactionRepository.findByTransactionReference(vnpTxnRef);
 
-        PaymentTransactionEntity transaction = optionalTransaction
-                .orElseThrow(() -> new IllegalArgumentException("Payment transaction not found for reference " + vnpTxnRef));
+        if (optionalTransaction.isEmpty()) {
+            response.put("RspCode", "01");
+            response.put("Message", "Order not found");
+            return response;
+        }
 
-        boolean isSuccess = "00".equals(vnpResponseCode) && "00".equals(vnpTransactionStatus);
+        PaymentTransactionEntity transaction = optionalTransaction.get();
 
-        if (isSuccess) {
+        // 3. Kiểm tra số tiền (VNPAY nhân 100 lần số tiền thực tế)
+        long vnpAmount = Long.parseLong(amountStr) / 100;
+        if (transaction.getAmount().longValue() != vnpAmount) {
+            response.put("RspCode", "04");
+            response.put("Message", "Invalid amount");
+            return response;
+        }
+
+        // 4. Kiểm tra trạng thái giao dịch (Idempotency)
+        // Nếu đã khác PENDING nghĩa là đã được xử lý bởi lần gọi IPN trước hoặc Return URL
+        if (!"PENDING".equals(transaction.getStatus())) {
+            response.put("RspCode", "02");
+            response.put("Message", "Order already confirmed");
+            return response;
+        }
+
+        // 5. Xử lý logic nghiệp vụ khi thanh toán thành công
+        if ("00".equals(vnpResponseCode)) {
             transaction.setStatus("SUCCESS");
-
-            if (amountStr != null) {
-                try {
-                    long amountLong = Long.parseLong(amountStr) / 100;
-                    BigDecimal amount = BigDecimal.valueOf(amountLong);
-
-                    FolioEntity folio = transaction.getFolioEntity();
-                    if (folio != null) {
-                        BigDecimal currentPaid = folio.getTotalPaid() != null ? folio.getTotalPaid() : BigDecimal.ZERO;
-                        BigDecimal newTotalPaid = currentPaid.add(amount);
-                        folio.setTotalPaid(newTotalPaid);
-
-                        BigDecimal totalCharges = folio.getTotalCharges() != null ? folio.getTotalCharges() : BigDecimal.ZERO;
-                        BigDecimal newBalance = totalCharges.subtract(newTotalPaid);
-                        folio.setBalance(newBalance);
-
-                        folioRepository.save(folio);
-                    }
-                } catch (NumberFormatException ignored) {
-                }
+            
+            FolioEntity folio = transaction.getFolioEntity();
+            if (folio != null) {
+                // Cập nhật số tiền đã trả và số dư
+                BigDecimal paidAmount = BigDecimal.valueOf(vnpAmount);
+                BigDecimal currentTotalPaid = folio.getTotalPaid() != null ? folio.getTotalPaid() : BigDecimal.ZERO;
+                
+                folio.setTotalPaid(currentTotalPaid.add(paidAmount));
+                
+                BigDecimal totalCharges = folio.getTotalCharges() != null ? folio.getTotalCharges() : BigDecimal.ZERO;
+                folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
+                
+                folioRepository.save(folio);
             }
-
         } else {
             transaction.setStatus("FAILED");
         }
 
         paymentTransactionRepository.save(transaction);
+
+        // 6. Phản hồi thành công cho VNPAY
+        response.put("RspCode", "00");
+        response.put("Message", "Confirm Success");
+
+    } catch (Exception e) {
+        response.put("RspCode", "99");
+        response.put("Message", "Unknown error: " + e.getMessage());
     }
+    
+    return response;
+}
 
     private String generateTransactionCode() {
         return "PAY-" + UUID.randomUUID();

@@ -15,8 +15,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "reservation_room_allocation", schema = "hms_db")
-public class ReservationRoomAllocationEntity {
+@Table(name = "reservation_room", schema = "hms_db")
+public class ReservationRoomEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -47,7 +47,7 @@ public class ReservationRoomAllocationEntity {
     @Column(name = "actual_check_out")
     private Instant actualCheckOut;
 
-    @OneToMany(mappedBy = "allocationEntity")
+    @OneToMany(mappedBy = "reservationRoomEntity")
     private Set<RoomOccupantEntity> roomOccupantEntities = new LinkedHashSet<>();
 
     @ColumnDefault("1")

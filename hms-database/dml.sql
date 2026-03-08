@@ -1,9 +1,9 @@
 -- MySQL 8 DML seed data (snake_case) for hms_db
--- Generated/updated to match your latest schema changes:
--- - reservation_room_allocation: added status + number_of_people
--- - service_booking: now references reservation_room_allocation via reservation_room_allocation_id
--- - folio: now references reservation_room_allocation via reservation_room_allocation_id (1 folio per allocation)
--- - Keep enum/status values aligned with UC suggestions
+-- Updated to match latest schema changes:
+-- - reservation_room_allocation -> reservation_room
+-- - service_booking now references reservation_room via reservation_room_id
+-- - folio now references reservation_room via reservation_room_id (1 folio per reservation_room)
+-- - room_occupant: allocation_id -> reservation_room_id
 --
 -- Safe re-run strategy: TRUNCATE in FK order with FOREIGN_KEY_CHECKS=0
 
@@ -12,6 +12,7 @@ USE `hms_db`;
 START TRANSACTION;
 
 SET FOREIGN_KEY_CHECKS = 0;
+
 TRUNCATE TABLE `refund_request`;
 TRUNCATE TABLE `asset_handover`;
 TRUNCATE TABLE `housekeeping_task`;
@@ -33,10 +34,11 @@ TRUNCATE TABLE `user`;
 TRUNCATE TABLE `service_booking`;
 TRUNCATE TABLE `service`;
 TRUNCATE TABLE `room_occupant`;
-TRUNCATE TABLE `reservation_room_allocation`;
+TRUNCATE TABLE `reservation_room`;
 TRUNCATE TABLE `reservation`;
 TRUNCATE TABLE `room`;
 TRUNCATE TABLE `room_class`;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1) ROOM CLASS
@@ -88,17 +90,17 @@ VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00',
        (2, 'RSV-20260301-0002', 2, '2026-03-15 14:00:00', '2026-03-16 12:00:00', 'PENDING_DEPOSIT',
         0.00, 1, NULL, '2026-03-01 11:00:00', 1);
 
--- 7) RESERVATION ROOM ALLOCATION (per room slot)
-INSERT INTO `reservation_room_allocation`
+-- 7) RESERVATION ROOM (per room slot)
+INSERT INTO `reservation_room`
 (`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `number_of_people`, `price_at_booking`,
  `actual_check_out`, `is_active`)
 VALUES (1, 1, 2, 3, 'ASSIGNED', 3, 1200000.00, NULL, 1), -- Deluxe 201: John + child + 1 guest total 3 people
        (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, NULL, 1);
 -- Standard 101: Anna 1 person
 
--- 8) ROOM OCCUPANT (attached to allocation)
+-- 8) ROOM OCCUPANT (attached to reservation_room)
 INSERT INTO `room_occupant`
-    (`id`, `allocation_id`, `customer_id`, `role`, `is_active`)
+    (`id`, `reservation_room_id`, `customer_id`, `role`, `is_active`)
 VALUES (1, 1, 1, 'PRIMARY', 1),
        (2, 1, 3, 'CHILD', 1),
        (3, 1, 4, 'GUEST', 1),
@@ -111,23 +113,23 @@ VALUES (1, 'Breakfast Buffet', 'F&B', 200000.00, 1),
        (2, 'Minibar - Soft Drink', 'Minibar', 50000.00, 1),
        (3, 'Aroma Massage 60min', 'Spa', 700000.00, 1);
 
--- 10) SERVICE BOOKING (now links to allocation)
+-- 10) SERVICE BOOKING (links to reservation_room)
 INSERT INTO `service_booking`
-(`id`, `reservation_room_allocation_id`, `service_id`, `quantity`, `status`, `price_at_booking`, `is_active`)
-VALUES (1, 1, 1, 3, 'PENDING', 200000.00, 1), -- Breakfast for allocation 1
-       (2, 1, 3, 1, 'PENDING', 700000.00, 1), -- Spa for allocation 1
+(`id`, `reservation_room_id`, `service_id`, `quantity`, `status`, `price_at_booking`, `is_active`)
+VALUES (1, 1, 1, 3, 'PENDING', 200000.00, 1), -- Breakfast for reservation_room 1
+       (2, 1, 3, 1, 'PENDING', 700000.00, 1), -- Spa for reservation_room 1
        (3, 2, 2, 2, 'PENDING', 50000.00, 1);
--- Minibar for allocation 2
+-- Minibar for reservation_room 2
 
--- 11) FOLIO (1 folio per allocation)
+-- 11) FOLIO (1 folio per reservation_room)
 INSERT INTO `folio`
-(`id`, `reservation_room_allocation_id`, `total_charges`, `total_paid`, `balance`, `status`, `is_active`)
+(`id`, `reservation_room_id`, `total_charges`, `total_paid`, `balance`, `status`, `is_active`)
 VALUES (1, 1, 0.00, 0.00, 0.00, 'OPEN', 1),
        (2, 2, 0.00, 0.00, 0.00, 'OPEN', 1);
 
 -- 12) FOLIO ITEM
--- Allocation 1: 2 nights Deluxe + services
--- Allocation 2: 1 night Standard + minibar
+-- reservation_room 1: 2 nights Deluxe + services
+-- reservation_room 2: 1 night Standard + minibar
 INSERT INTO `folio_item`
 (`id`, `folio_id`, `type`, `service_booking_id`, `description`, `quantity`, `total_price`, `status`, `is_active`)
 VALUES (1, 1, 'ROOM_CHARGE', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'UNPAID', 1),
@@ -145,7 +147,7 @@ SET f.`total_charges` = (SELECT IFNULL(SUM(fi.`total_price`), 0)
 WHERE f.`id` IN (1, 2);
 
 -- 13) PAYMENT TRANSACTION
--- Deposit for allocation 1 + final payment for allocation 1
+-- Deposit for reservation_room 1 + final payment for reservation_room 1
 INSERT INTO `payment_transaction`
 (`id`, `folio_id`, `code`, `transaction_reference`, `payment_method`, `amount`,
  `type`, `status`, `created_at`, `handled_by`, `is_active`)

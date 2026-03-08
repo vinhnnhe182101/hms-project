@@ -2,16 +2,14 @@
 -- HMS DB - MySQL 8 Full Schema (snake_case) + enum comments
 -- DB name: hms_db
 --
--- Mục tiêu:
--- 1) Tạo mới DB + toàn bộ bảng (DROP/CREATE)
--- 2) Thêm cột is_active cho mọi bảng (default 1)
--- 3) Dùng VARCHAR/ENUM như hiện tại của bạn
--- 4) COMMENT rõ ràng các cột status/type/role nhận giá trị nào
---
--- Lưu ý:
--- - Đây là "full schema": chạy 1 phát là có DB sạch.
--- - COMMENT chỉ mang tính tài liệu (DB không tự enforce nếu cột là VARCHAR).
---   Nếu muốn enforce, bạn đổi sang ENUM hoặc CHECK.
+-- Update theo yêu cầu mới:
+-- - Chuyển tất cả ENUM -> VARCHAR + COMMENT (giống các cột status/type/role khác)
+--   Cụ thể trong schema này có:
+--   1) user.provider
+--   2) service.service_category
+--   3) work_schedule.status
+--   4) room_asset.status
+--   5) refund_request.status
 -- =========================================================
 
 SET NAMES utf8mb4;
@@ -62,13 +60,13 @@ CREATE TABLE `room`
 -- =========================
 CREATE TABLE `user`
 (
-    `id`          BIGINT UNSIGNED         NOT NULL AUTO_INCREMENT,
-    `email`       VARCHAR(255)            NOT NULL,
-    `password`    VARCHAR(255)            NULL,
-    `role`        VARCHAR(50)             NOT NULL COMMENT 'User role (suggested): ADMIN | RECEPTIONIST | HOUSEKEEPING | MANAGER | CUSTOMER',
-    `provider`    ENUM ('local','google') NOT NULL DEFAULT 'local' COMMENT 'Auth provider ENUM: local | google',
-    `provider_id` VARCHAR(255)            NULL,
-    `is_active`   TINYINT(1)              NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `email`       VARCHAR(255)    NOT NULL,
+    `password`    VARCHAR(255)    NULL,
+    `role`        VARCHAR(50)     NOT NULL COMMENT 'User role (suggested): ADMIN | RECEPTIONIST | HOUSEKEEPING | MANAGER | CUSTOMER',
+    `provider`    VARCHAR(50)     NOT NULL DEFAULT 'local' COMMENT 'Auth provider: local | google',
+    `provider_id` VARCHAR(255)    NULL,
+    `is_active`   TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_email` (`email`)
 ) ENGINE = InnoDB
@@ -146,9 +144,9 @@ CREATE TABLE `reservation`
   DEFAULT CHARSET = utf8mb4;
 
 -- =========================
--- reservation_room_allocation
+-- reservation_room
 -- =========================
-CREATE TABLE `reservation_room_allocation`
+CREATE TABLE `reservation_room`
 (
     `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `reservation_id`   BIGINT UNSIGNED NOT NULL,
@@ -161,17 +159,17 @@ CREATE TABLE `reservation_room_allocation`
     `actual_check_out` DATETIME        NULL,
     `is_active`        TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    KEY `idx_reservation_detail_reservation_id` (`reservation_id`),
-    KEY `idx_reservation_detail_room_class_id` (`room_class_id`),
-    KEY `idx_reservation_detail_room_id` (`room_id`),
-    KEY `idx_reservation_detail_status` (`status`),
-    CONSTRAINT `fk_reservation_detail_reservation`
+    KEY `idx_reservation_room_reservation_id` (`reservation_id`),
+    KEY `idx_reservation_room_room_class_id` (`room_class_id`),
+    KEY `idx_reservation_room_room_id` (`room_id`),
+    KEY `idx_reservation_room_status` (`status`),
+    CONSTRAINT `fk_reservation_room_reservation`
         FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT `fk_reservation_detail_room_class`
+    CONSTRAINT `fk_reservation_room_room_class`
         FOREIGN KEY (`room_class_id`) REFERENCES `room_class` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT `fk_reservation_detail_room`
+    CONSTRAINT `fk_reservation_room_room`
         FOREIGN KEY (`room_id`) REFERENCES `room` (`id`)
             ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB
@@ -182,16 +180,16 @@ CREATE TABLE `reservation_room_allocation`
 -- =========================
 CREATE TABLE `room_occupant`
 (
-    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `allocation_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK -> reservation_room_allocation.id',
-    `customer_id`   BIGINT UNSIGNED NOT NULL,
-    `role`          VARCHAR(50)     NOT NULL COMMENT 'Occupant role: PRIMARY | GUEST | CHILD',
-    `is_active`     TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `reservation_room_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK -> reservation_room.id',
+    `customer_id`         BIGINT UNSIGNED NOT NULL,
+    `role`                VARCHAR(50)     NOT NULL COMMENT 'Occupant role: PRIMARY | GUEST | CHILD',
+    `is_active`           TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    KEY `idx_room_occupant_allocation_id` (`allocation_id`),
+    KEY `idx_room_occupant_reservation_room_id` (`reservation_room_id`),
     KEY `idx_room_occupant_customer_id` (`customer_id`),
-    CONSTRAINT `fk_room_occupant_allocation`
-        FOREIGN KEY (`allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
+    CONSTRAINT `fk_room_occupant_reservation_room`
+        FOREIGN KEY (`reservation_room_id`) REFERENCES `reservation_room` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT `fk_room_occupant_customer`
         FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`)
@@ -204,11 +202,11 @@ CREATE TABLE `room_occupant`
 -- =========================
 CREATE TABLE `service`
 (
-    `id`               BIGINT UNSIGNED              NOT NULL AUTO_INCREMENT,
-    `name`             VARCHAR(255)                 NOT NULL,
-    `service_category` ENUM ('Spa','Minibar','F&B') NOT NULL COMMENT 'Service category ENUM: Spa | Minibar | F&B',
-    `price`            DECIMAL(12, 2)               NOT NULL DEFAULT 0,
-    `is_active`        TINYINT(1)                   NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name`             VARCHAR(255)    NOT NULL,
+    `service_category` VARCHAR(50)     NOT NULL COMMENT 'Service category: Spa | Minibar | F&B',
+    `price`            DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -218,21 +216,21 @@ CREATE TABLE `service`
 -- =========================
 CREATE TABLE `service_booking`
 (
-    `id`                             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_room_allocation_id` BIGINT UNSIGNED NOT NULL,
-    `service_id`                     BIGINT UNSIGNED NOT NULL,
-    `quantity`                       INT             NOT NULL DEFAULT 1,
-    `status`                         VARCHAR(50)     NOT NULL COMMENT 'Service booking status: PENDING | CONFIRMED | IN_PROGRESS | FINISHED | CANCELLED',
-    `price_at_booking`               DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `is_active`                      TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `reservation_room_id` BIGINT UNSIGNED NOT NULL,
+    `service_id`          BIGINT UNSIGNED NOT NULL,
+    `quantity`            INT             NOT NULL DEFAULT 1,
+    `status`              VARCHAR(50)     NOT NULL COMMENT 'Service booking status: PENDING | CONFIRMED | IN_PROGRESS | FINISHED | CANCELLED',
+    `price_at_booking`    DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `is_active`           TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    KEY `idx_service_booking_reservation_id` (`reservation_room_allocation_id`),
+    KEY `idx_service_booking_reservation_room_id` (`reservation_room_id`),
     KEY `idx_service_booking_service_id` (`service_id`),
     CONSTRAINT `fk_service_booking_service`
         FOREIGN KEY (`service_id`) REFERENCES `service` (`id`)
             ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT `fk_service_booking_reservation`
-        FOREIGN KEY (`reservation_room_allocation_id`) REFERENCES `reservation` (`id`)
+    CONSTRAINT `fk_service_booking_reservation_room`
+        FOREIGN KEY (`reservation_room_id`) REFERENCES `reservation_room` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -256,12 +254,12 @@ CREATE TABLE `shift`
 -- =========================
 CREATE TABLE `work_schedule`
 (
-    `id`        BIGINT UNSIGNED                           NOT NULL AUTO_INCREMENT,
-    `staff_id`  BIGINT UNSIGNED                           NOT NULL,
-    `shift_id`  BIGINT UNSIGNED                           NOT NULL,
-    `work_date` DATE                                      NOT NULL,
-    `status`    ENUM ('SCHEDULED','ON_LEAVE','COMPLETED') NOT NULL DEFAULT 'SCHEDULED' COMMENT 'Work schedule status ENUM: SCHEDULED | ON_LEAVE | COMPLETED',
-    `is_active` TINYINT(1)                                NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `staff_id`  BIGINT UNSIGNED NOT NULL,
+    `shift_id`  BIGINT UNSIGNED NOT NULL,
+    `work_date` DATE            NOT NULL,
+    `status`    VARCHAR(50)     NOT NULL DEFAULT 'SCHEDULED' COMMENT 'Work schedule status: SCHEDULED | ON_LEAVE | COMPLETED',
+    `is_active` TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
     KEY `idx_work_schedule_staff_id` (`staff_id`),
     KEY `idx_work_schedule_shift_id` (`shift_id`),
@@ -279,17 +277,17 @@ CREATE TABLE `work_schedule`
 -- =========================
 CREATE TABLE `folio`
 (
-    `id`                             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `reservation_room_allocation_id` BIGINT UNSIGNED NOT NULL,
-    `total_charges`                  DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `total_paid`                     DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `balance`                        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    `status`                         VARCHAR(50)     NOT NULL COMMENT 'Folio status: OPEN | LOCKED | SETTLED',
-    `is_active`                      TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `reservation_room_id` BIGINT UNSIGNED NOT NULL,
+    `total_charges`       DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `total_paid`          DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `balance`             DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `status`              VARCHAR(50)     NOT NULL COMMENT 'Folio status: OPEN | LOCKED | SETTLED',
+    `is_active`           TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_folio_reservation_id` (`reservation_room_allocation_id`),
-    CONSTRAINT `fk_folio_reservation`
-        FOREIGN KEY (`reservation_room_allocation_id`) REFERENCES `reservation_room_allocation` (`id`)
+    UNIQUE KEY `uk_folio_reservation_room_id` (`reservation_room_id`),
+    CONSTRAINT `fk_folio_reservation_room`
+        FOREIGN KEY (`reservation_room_id`) REFERENCES `reservation_room` (`id`)
             ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -434,12 +432,12 @@ CREATE TABLE `asset`
 -- =========================
 CREATE TABLE `room_asset`
 (
-    `id`        BIGINT UNSIGNED         NOT NULL AUTO_INCREMENT,
-    `room_id`   BIGINT UNSIGNED         NOT NULL,
-    `asset_id`  BIGINT UNSIGNED         NOT NULL,
-    `quantity`  INT                     NOT NULL DEFAULT 0,
-    `status`    ENUM ('Good','Damaged') NOT NULL DEFAULT 'Good' COMMENT 'Room asset status ENUM: Good | Damaged',
-    `is_active` TINYINT(1)              NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `room_id`   BIGINT UNSIGNED NOT NULL,
+    `asset_id`  BIGINT UNSIGNED NOT NULL,
+    `quantity`  INT             NOT NULL DEFAULT 0,
+    `status`    VARCHAR(50)     NOT NULL DEFAULT 'Good' COMMENT 'Room asset status: Good | Damaged',
+    `is_active` TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
     KEY `idx_room_asset_room_id` (`room_id`),
     KEY `idx_room_asset_asset_id` (`asset_id`),
@@ -553,18 +551,18 @@ CREATE TABLE `asset_handover`
 -- =========================
 CREATE TABLE `refund_request`
 (
-    `id`                     BIGINT UNSIGNED                                 NOT NULL AUTO_INCREMENT,
-    `payment_transaction_id` BIGINT UNSIGNED                                 NOT NULL,
-    `amount`                 DECIMAL(12, 2)                                  NOT NULL DEFAULT 0,
-    `reason`                 TEXT                                            NULL,
-    `reject_reason`          TEXT                                            NULL,
-    `status`                 ENUM ('PENDING','APPROVED','REJECTED','FAILED') NOT NULL DEFAULT 'PENDING'
-        COMMENT 'Refund request status ENUM: PENDING | APPROVED | REJECTED | FAILED',
-    `requested_by`           BIGINT UNSIGNED                                 NOT NULL,
-    `approved_by`            BIGINT UNSIGNED                                 NULL,
-    `created_at`             DATETIME                                        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`             DATETIME                                        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `is_active`              TINYINT(1)                                      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+    `id`                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `payment_transaction_id` BIGINT UNSIGNED NOT NULL,
+    `amount`                 DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `reason`                 TEXT            NULL,
+    `reject_reason`          TEXT            NULL,
+    `status`                 VARCHAR(50)     NOT NULL DEFAULT 'PENDING'
+        COMMENT 'Refund request status: PENDING | APPROVED | REJECTED | FAILED',
+    `requested_by`           BIGINT UNSIGNED NOT NULL,
+    `approved_by`            BIGINT UNSIGNED NULL,
+    `created_at`             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `is_active`              TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
     KEY `idx_refund_request_payment_transaction_id` (`payment_transaction_id`),
     KEY `idx_refund_request_requested_by` (`requested_by`),

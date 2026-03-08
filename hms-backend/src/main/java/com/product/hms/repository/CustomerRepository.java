@@ -9,6 +9,15 @@ import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> {
+
+    /**
+     * Find customer by identity card number
+     *
+     * @param identityCard the identity card number
+     * @return Optional containing the customer if found
+     */
+    Optional<CustomerEntity> findByIdentityCard(String identityCard);
     Optional<CustomerEntity> findByUserEntity(UserEntity userEntity);
     Optional<CustomerEntity> findByEmail(String email);
 }
+

@@ -1,7 +1,5 @@
 package com.product.hms.entity;
 
-import com.product.hms.enums.FolioItemStatus;
-import com.product.hms.enums.FolioItemType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,9 +26,8 @@ public class FolioItemEntity {
     @JoinColumn(name = "folio_id", nullable = false)
     private FolioEntity folioEntity;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50)
-    private FolioItemType type;
+    private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
@@ -50,9 +47,8 @@ public class FolioItemEntity {
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private FolioItemStatus status;
+    private String status;
 
     @OneToMany(mappedBy = "folioItemEntity")
     private List<PaymentAllocationEntity> paymentAllocationEntities = new ArrayList<>();
