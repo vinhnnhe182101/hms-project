@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/service-bookings")
+@RequestMapping("/api/v1/home/service-bookings")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Hỗ trợ dev frontend local
-public class ServiceBookingApi {
+
+public class HomeServiceBookingApi {
 
     private final ServiceBookingService serviceBookingService;
 

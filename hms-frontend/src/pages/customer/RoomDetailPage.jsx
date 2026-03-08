@@ -113,7 +113,7 @@ export default function RoomDetailPage() {
     if (loading) {
         return (
             <Center style={{ height: '80vh' }}>
-                <Loader size="xl" color="#D4A574" />
+                <Loader size="xl" color="teal" />
             </Center>
         );
     }
@@ -127,7 +127,7 @@ export default function RoomDetailPage() {
                         <Text size="xl" c="dimmed">Không tìm thấy loại phòng.</Text>
                         <Button
                             onClick={() => navigate('/rooms')}
-                            style={{ backgroundColor: '#D4A574' }}
+                            color="teal"
                         >
                             Quay lại danh sách phòng
                         </Button>
@@ -193,7 +193,7 @@ export default function RoomDetailPage() {
                                         borderRadius: '12px',
                                         overflow: 'hidden',
                                         cursor: 'pointer',
-                                        border: activeImage === idx + 1 ? '3px solid #D4A574' : '3px solid transparent'
+                                        border: activeImage === idx + 1 ? '3px solid var(--mantine-color-teal-6)' : '3px solid transparent'
                                     }}
                                     onClick={() => setActiveImage(idx + 1)}
                                 >
@@ -250,7 +250,7 @@ export default function RoomDetailPage() {
                                     fractions={2}
                                     readOnly
                                     size="md"
-                                    color="#FFB800"
+                                    color="yellow"
                                 />
                                 <Text fw={700} style={{ fontSize: '16px' }}>
                                     {roomData.averageRating ? roomData.averageRating.toFixed(1) : '0.0'}
@@ -262,7 +262,7 @@ export default function RoomDetailPage() {
                         </Box>
 
                         {/* Tabs */}
-                        <Tabs value={activeTab} onChange={setActiveTab} color="#D4A574">
+                        <Tabs value={activeTab} onChange={setActiveTab} color="teal">
                             <Tabs.List mb={20}>
                                 <Tabs.Tab value="overview" style={{ fontSize: '16px', fontWeight: 500 }}>
                                     Tổng quan
@@ -313,7 +313,7 @@ export default function RoomDetailPage() {
                                                         <Text style={{ fontSize: '20px' }}>💰</Text>
                                                         <Text fw={600} c="dimmed" size="sm">Giá mỗi đêm</Text>
                                                     </Group>
-                                                    <Text fw={700} c="#D4A574" style={{ fontSize: '18px' }}>
+                                                    <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
                                                         {formatPrice(roomData.basePrice)}
                                                     </Text>
                                                 </Box>
@@ -360,7 +360,7 @@ export default function RoomDetailPage() {
                                                             minWidth: '40px',
                                                             height: '40px',
                                                             borderRadius: '10px',
-                                                            backgroundColor: 'rgba(212, 165, 116, 0.15)',
+                                                            backgroundColor: 'var(--mantine-color-teal-0)',
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             justifyContent: 'center'
@@ -385,11 +385,11 @@ export default function RoomDetailPage() {
                                     <Stack gap="md">
                                         <Box>
                                             <Text fw={600} mb="xs" style={{ fontSize: '16px' }}>Check-in</Text>
-                                            <Text c="dimmed" style={{ fontSize: '15px' }}>Sau 14:00 (2:00 PM)</Text>
+                                            <Text c="dimmed" style={{ fontSize: '15px' }}>Trước 20 phút</Text>
                                         </Box>
                                         <Box>
                                             <Text fw={600} mb="xs" style={{ fontSize: '16px' }}>Check-out</Text>
-                                            <Text c="dimmed" style={{ fontSize: '15px' }}>Trước 12:00 (12:00 PM)</Text>
+                                            <Text c="dimmed" style={{ fontSize: '15px' }}>Trước 20 phút</Text>
                                         </Box>
                                         <Box>
                                             <Text fw={600} mb="xs" style={{ fontSize: '16px' }}>Hủy phòng</Text>
@@ -415,7 +415,7 @@ export default function RoomDetailPage() {
                                         <Group gap={8}>
                                             <Text fw={700} style={{ fontSize: '20px' }}>{roomRating.toFixed(1)}</Text>
                                             <Box>
-                                                <Rating value={roomRating} fractions={2} readOnly size="sm" color="#FFB800" />
+                                                <Rating value={roomRating} fractions={2} readOnly size="sm" color="yellow" />
                                                 <Text c="dimmed" size="xs">{roomReviewsCount} đánh giá</Text>
                                             </Box>
                                         </Group>
@@ -428,11 +428,7 @@ export default function RoomDetailPage() {
                                                 variant={selectedRatingFilter === 'all' ? 'filled' : 'outline'}
                                                 size="sm"
                                                 onClick={() => setSelectedRatingFilter('all')}
-                                                style={{
-                                                    backgroundColor: selectedRatingFilter === 'all' ? '#D4A574' : 'transparent',
-                                                    borderColor: '#D4A574',
-                                                    color: selectedRatingFilter === 'all' ? 'white' : '#D4A574'
-                                                }}
+                                                color="teal"
                                             >
                                                 Tất cả ({roomReviewsCount})
                                             </Button>
@@ -445,11 +441,7 @@ export default function RoomDetailPage() {
                                                         variant={selectedRatingFilter === star ? 'filled' : 'outline'}
                                                         size="sm"
                                                         onClick={() => setSelectedRatingFilter(star)}
-                                                        style={{
-                                                            backgroundColor: selectedRatingFilter === star ? '#D4A574' : 'transparent',
-                                                            borderColor: '#D4A574',
-                                                            color: selectedRatingFilter === star ? 'white' : '#D4A574'
-                                                        }}
+                                                        color="teal"
                                                     >
                                                         {star} ⭐ ({count})
                                                     </Button>
@@ -472,14 +464,14 @@ export default function RoomDetailPage() {
                                     <Stack gap="lg" style={{ minHeight: '300px' }}>
                                         {ratingLoading ? (
                                             <Center style={{ flex: 1 }}>
-                                                <Loader color="#D4A574" />
+                                                <Loader color="teal" />
                                             </Center>
                                         ) : (() => {
                                             return reviewsList.length > 0 ? (
                                                 reviewsList.map((review) => (
                                                     <Card key={review.id} padding="lg" radius="md" withBorder>
                                                         <Group mb="sm">
-                                                            <Avatar size={40} radius="xl" color="#D4A574">
+                                                            <Avatar size={40} radius="xl" color="teal">
                                                                 {review.avatar}
                                                             </Avatar>
                                                             <Box style={{ flex: 1 }}>
@@ -526,9 +518,9 @@ export default function RoomDetailPage() {
                                         <Stack gap="md">
                                             <Box>
                                                 <Text mb="xs" fw={500} style={{ fontSize: '15px' }}>Đánh giá của bạn</Text>
-                                                <Rating size="lg" color="#FFB800" defaultValue={0} />
+                                                <Rating size="lg" color="yellow" defaultValue={0} />
                                             </Box>
-                                        
+
                                             <Textarea
                                                 label="Nội dung"
                                                 placeholder="Chia sẻ trải nghiệm của bạn..."
@@ -539,8 +531,9 @@ export default function RoomDetailPage() {
                                                 }}
                                             />
                                             <Button
+                                                color="teal"
+                                                size="md"
                                                 style={{
-                                                    backgroundColor: '#D4A574',
                                                     fontSize: '16px',
                                                     padding: '10px 32px',
                                                     fontWeight: 500
@@ -561,7 +554,7 @@ export default function RoomDetailPage() {
                             {/* Price */}
                             <Group justify="space-between" mb={16}>
                                 <Box>
-                                    <Text fw={700} c="#D4A574" style={{ fontSize: '26px' }}>
+                                    <Text fw={700} color="teal.6" style={{ fontSize: '26px' }}>
                                         {formatPrice(roomData.basePrice)}
                                     </Text>
                                     <Text c="dimmed" size="sm">/ đêm</Text>
@@ -589,9 +582,9 @@ export default function RoomDetailPage() {
                             <Button
                                 fullWidth
                                 size="lg"
+                                color="teal"
                                 onClick={() => navigate('/booking')}
                                 style={{
-                                    backgroundColor: '#D4A574',
                                     fontSize: '16px',
                                     fontWeight: 600,
                                     padding: '12px',
@@ -611,7 +604,7 @@ export default function RoomDetailPage() {
 
                     {otherLoading ? (
                         <Center py={40}>
-                            <Loader size="lg" color="#D4A574" />
+                            <Loader size="lg" color="teal" />
                         </Center>
                     ) : otherRooms.length > 0 ? (
                         <Grid>
@@ -651,14 +644,14 @@ export default function RoomDetailPage() {
                                             </Group>
                                             <Group justify="space-between" align="flex-end">
                                                 <Box>
-                                                    <Text fw={700} c="#D4A574" style={{ fontSize: '18px' }}>
+                                                    <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
                                                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(other.basePrice || 0)}
                                                     </Text>
                                                     <Text c="dimmed" size="xs">/ đêm</Text>
                                                 </Box>
                                                 <Button
                                                     size="xs"
-                                                    style={{ backgroundColor: '#D4A574' }}
+                                                    color="teal"
                                                     rightSection={<IconChevronRight size={14} />}
                                                 >
                                                     Xem

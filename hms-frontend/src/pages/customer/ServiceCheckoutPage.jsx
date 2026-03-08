@@ -55,7 +55,7 @@ export default function ServiceCheckoutPage() {
         return (
             <Container py={60} ta="center">
                 <Title order={2} mb="md">Giỏ hàng của bạn đang trống</Title>
-                <Button onClick={() => navigate('/services')} color="orange">
+                <Button onClick={() => navigate('/services')} color="teal">
                     Quay lại danh sách dịch vụ
                 </Button>
             </Container>
@@ -174,7 +174,7 @@ export default function ServiceCheckoutPage() {
 
                     {/* Loading Context hoặc Chưa Đăng nhập & Check-in */}
                     {loadingRooms ? (
-                        <Center py={40}><Loader color="orange" /></Center>
+                        <Center py={40}><Loader color="teal" /></Center>
                     ) : !customer ? (
                         <Alert icon={<IconInfoCircle size={16} />} color="blue" mb="lg">
                             Bạn cần đăng nhập và có phòng đang thuê để tiếp tục đặt dịch vụ.
@@ -266,7 +266,7 @@ export default function ServiceCheckoutPage() {
                                         </Table.Td>
 
                                         <Table.Td style={{ textAlign: 'right', verticalAlign: 'top', paddingTop: '16px' }}>
-                                            <Text fw={600} color="#D4A574">
+                                            <Text fw={600} color="teal.6">
                                                 {formatPrice(item.price * item.quantity)}
                                             </Text>
                                         </Table.Td>
@@ -278,7 +278,7 @@ export default function ServiceCheckoutPage() {
 
                     <Group justify="space-between" mt="xl" pt="md" style={{ borderTop: '2px solid #e9ecef' }}>
                         <Title order={3}>Tổng thanh toán:</Title>
-                        <Title order={2} style={{ color: '#D4A574' }}>
+                        <Title order={2} color="teal.6">
                             {formatPrice(getTotalPrice())}
                         </Title>
                     </Group>
@@ -295,7 +295,6 @@ export default function ServiceCheckoutPage() {
                             size="lg"
                             color="teal"
                             leftSection={<IconCheck size={20} />}
-                            style={{ backgroundColor: '#D4A574' }}
                             onClick={handleConfirmBooking}
                             loading={isSubmitting}
                             disabled={loadingRooms || !customer || activeRooms.length === 0}

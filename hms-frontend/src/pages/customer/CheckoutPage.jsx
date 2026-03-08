@@ -91,7 +91,7 @@ export default function CheckoutPage() {
 
     return (
         <Box style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-            <Box style={{ backgroundColor: '#2c3e50', color: 'white', padding: '50px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '50px 0' }}>
                 <Container size="xl">
                     <Title order={1} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }} mb={8}>
                         Xác Nhận Thông Tin
@@ -119,7 +119,7 @@ export default function CheckoutPage() {
                         </Button>
                         <Card shadow="sm" radius="md" withBorder padding="xl">
                             <Group justify="space-between" align="center" mb="lg">
-                                <Title order={3} style={{ color: '#2c3e50' }}>Thông Tin Khách Hàng</Title>
+                                <Title order={3} color="teal.9">Thông Tin Khách Hàng</Title>
                                 {customer ? (
                                     <Badge color="green" variant="light" leftSection={<IconInfoCircle size={12} />}>
                                         Đã tự động điền
@@ -143,7 +143,7 @@ export default function CheckoutPage() {
                                     placeholder="Nhập họ và tên người đặt"
                                     value={name}
                                     onChange={(e) => setName(e.currentTarget.value)}
-                                    leftSection={<IconUser size={16} color="#D4A574" />}
+                                    leftSection={<IconUser size={16} color="teal" />}
                                     withAsterisk
                                     description={customer ? 'Thay đổi sẽ được cập nhật vào hồ sơ tài khoản' : undefined}
                                 />
@@ -152,7 +152,7 @@ export default function CheckoutPage() {
                                     placeholder="Nhập số điện thoại liên hệ"
                                     value={phone}
                                     onChange={(e) => setPhone(e.currentTarget.value)}
-                                    leftSection={<IconPhone size={16} color="#D4A574" />}
+                                    leftSection={<IconPhone size={16} color="teal" />}
                                     withAsterisk
                                     description={customer ? 'Thay đổi sẽ được cập nhật vào hồ sơ tài khoản' : undefined}
                                 />
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
                                     placeholder="Nhập số Chứng minh nhân dân hoặc Căn cước công dân"
                                     value={identityCard}
                                     onChange={(e) => setIdentityCard(e.currentTarget.value)}
-                                    leftSection={<IconIdBadge size={16} color="#D4A574" />}
+                                    leftSection={<IconIdBadge size={16} color="teal" />}
                                     withAsterisk
                                     description={customer ? 'Thay đổi sẽ được cập nhật vào hồ sơ tài khoản' : undefined}
                                 />
@@ -179,11 +179,11 @@ export default function CheckoutPage() {
                     {/* Right: Booking Summary */}
                     <Grid.Col span={{ base: 12, md: 5 }}>
                         <Card shadow="md" radius="md" padding="xl" withBorder style={{ position: 'sticky', top: '24px' }}>
-                            <Title order={3} mb="lg" style={{ color: '#2c3e50' }}>Tóm Tắt Đặt Phòng</Title>
+                            <Title order={3} mb="lg" color="teal.9">Tóm Tắt Đặt Phòng</Title>
 
                             <Stack gap="sm">
                                 <Group align="flex-start" wrap="nowrap">
-                                    <IconCalendar size={20} color="#D4A574" style={{ marginTop: 2 }} />
+                                    <IconCalendar size={20} color="teal" style={{ marginTop: 2 }} />
                                     <Box>
                                         <Text size="sm" fw={600}>Nhận phòng</Text>
                                         <Text size="sm" c="dimmed">
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
                                 </Group>
 
                                 <Group align="flex-start" wrap="nowrap">
-                                    <IconCalendar size={20} color="#D4A574" style={{ marginTop: 2 }} />
+                                    <IconCalendar size={20} color="teal" style={{ marginTop: 2 }} />
                                     <Box>
                                         <Text size="sm" fw={600}>Trả phòng</Text>
                                         <Text size="sm" c="dimmed">
@@ -203,7 +203,7 @@ export default function CheckoutPage() {
                                 </Group>
 
                                 <Group align="flex-start" wrap="nowrap">
-                                    <IconUsers size={20} color="#D4A574" style={{ marginTop: 2 }} />
+                                    <IconUsers size={20} color="teal" style={{ marginTop: 2 }} />
                                     <Box>
                                         <Text size="sm" fw={600}>Số người</Text>
                                         <Text size="sm" c="dimmed">{guests} người</Text>
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                                             <Text size="sm" fw={500}>{room.name}</Text>
                                             <Text size="xs" c="dimmed">{room.quantity} phòng × {nights} đêm</Text>
                                         </Box>
-                                        <Text size="sm" fw={600} c="#D4A574">
+                                        <Text size="sm" fw={600} color="teal.6">
                                             {formatPrice(room.total)} VNĐ
                                         </Text>
                                     </Group>
@@ -229,10 +229,10 @@ export default function CheckoutPage() {
 
                                 <Group justify="space-between" align="center">
                                     <Group gap={6}>
-                                        <IconCoin size={20} color="#D4A574" />
+                                        <IconCoin size={20} color="teal" />
                                         <Text size="md" fw={700}>Tổng thanh toán:</Text>
                                     </Group>
-                                    <Text size="xl" fw={800} c="#D4A574">
+                                    <Text size="xl" fw={800} color="teal.6">
                                         {formatPrice(totalPrice)} VNĐ
                                     </Text>
                                 </Group>
@@ -244,8 +244,8 @@ export default function CheckoutPage() {
                                     onClick={handleConfirmBooking}
                                     disabled={!name.trim() || !phone.trim() || !identityCard.trim()}
                                     loading={isSubmitting}
+                                    color="teal"
                                     style={{
-                                        backgroundColor: (!name.trim() || !phone.trim() || !identityCard.trim()) ? undefined : '#D4A574',
                                         fontSize: '16px',
                                         fontWeight: 600,
                                         padding: '14px',

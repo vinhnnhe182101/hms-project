@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/ratings';
+const API_URL = 'http://localhost:8080/api/v1/ratings';
 
 export const getRoomClassRatings = async (roomClassId, page = 0, size = 5, rating = null) => {
     try {
@@ -21,14 +21,4 @@ export const getRoomClassRatings = async (roomClassId, page = 0, size = 5, ratin
     }
 };
 
-export const getLatestRatings = async (page = 0, size = 3) => {
-    try {
-        const response = await axios.get(`${API_URL}/latest`, {
-            params: { page, size }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching latest ratings:', error);
-        throw error;
-    }
-};
+

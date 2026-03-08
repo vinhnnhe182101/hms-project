@@ -2,6 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { login } from '../../apis/authApi';
+import {
+    TextInput,
+    PasswordInput,
+    Button,
+    Paper,
+    Title,
+    Text,
+    Container,
+    Group,
+    Divider,
+    Stack,
+    Box,
+    Alert
+} from '@mantine/core';
+import { IconBrandGoogle, IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -17,9 +32,13 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const data = await login(email, password);
-            saveCustomer(data);
-            navigate('/');
+            const result = await login(email, password);
+            if (result.success) {
+                saveCustomer(result.data);
+                navigate('/');
+            } else {
+                setError(result.message);
+            }
         } catch (err) {
             const msg = err?.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
             setError(msg);
@@ -29,167 +48,113 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={styles.wrapper}>
-            <div style={styles.card}>
-                {/* Logo / Tên khách sạn */}
-                <div style={styles.logoArea}>
-                    <p style={styles.hotelName}>ROYAL HOTEL</p>
-                    <p style={styles.subtitle}>Chào mừng trở lại</p>
-                </div>
+        <Box
+            style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, var(--mantine-color-teal-9) 0%, var(--mantine-color-teal-7) 50%, var(--mantine-color-teal-9) 100%)',
+                padding: '20px',
+            }}
+        >
+            <Container size={420} my={40}>
+                <Paper radius="md" p="xl" withBorder shadow="md">
+                    <Stack align="center" mb="lg">
+                        <Title
+                            order={2}
+                            fw={900}
+                            style={{ letterSpacing: '2px', color: 'var(--mantine-color-teal-9)' }}
+                        >
+                            ROYAL HOTEL
+                        </Title>
+                        <Text c="dimmed" size="sm" ta="center">
+                            Chào mừng trở lại
+                        </Text>
+                    </Stack>
 
-                <form onSubmit={handleSubmit} style={styles.form}>
-                    <div style={styles.field}>
-                        <label style={styles.label}>Email</label>
-                        <input
-                            id="login-email"
-                            type="email"
-                            value={email}
-                            required
-                            autoComplete="email"
-                            placeholder="your@email.com"
-                            onChange={(e) => setEmail(e.target.value)}
-                            style={styles.input}
-                            onFocus={(e) => e.target.style.borderColor = '#D4A574'}
-                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                        />
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <Stack gap="md">
+                            <TextInput
+                                id="login-email"
+                                label="Email"
+                                placeholder="your@email.com"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
+                            />
 
-                    <div style={styles.field}>
-                        <label style={styles.label}>Mật khẩu</label>
-                        <input
-                            id="login-password"
-                            type="password"
-                            value={password}
-                            required
-                            autoComplete="current-password"
-                            placeholder="••••••••"
-                            onChange={(e) => setPassword(e.target.value)}
-                            style={styles.input}
-                            onFocus={(e) => e.target.style.borderColor = '#D4A574'}
-                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                        />
-                    </div>
+                            <PasswordInput
+                                id="login-password"
+                                label="Mật khẩu"
+                                placeholder="••••••••"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                            />
 
-                    {error && (
-                        <div style={styles.error}>{error}</div>
-                    )}
+                            {error && (
+                                <Alert icon={<IconAlertCircle size={16} />} title="Lỗi" color="red" radius="md">
+                                    {error}
+                                </Alert>
+                            )}
 
-                    <button
-                        id="login-submit"
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            ...styles.button,
-                            opacity: loading ? 0.7 : 1,
-                            cursor: loading ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        {loading ? 'Đang xử lý...' : 'Đăng nhập'}
-                    </button>
-                </form>
+                            <Button
+                                id="login-submit"
+                                type="submit"
+                                fullWidth
+                                loading={loading}
+                                color="teal"
+                                size="md"
+                                mt="sm"
+                            >
+                                Đăng nhập
+                            </Button>
 
-                <p style={styles.backLink}>
-                    <span
-                        style={styles.backLinkText}
-                        onClick={() => navigate('/')}
-                    >
-                        ← Quay về trang chủ
-                    </span>
-                </p>
-            </div>
-        </div>
+                            <Divider label="Hoặc" labelPosition="center" my="sm" />
+
+                            <Button
+                                component="a"
+                                href="http://localhost:8080/oauth2/authorize/google?redirect_uri=http://localhost:5173/oauth2/redirect"
+                                variant="default"
+                                leftSection={<IconBrandGoogle size={18} />}
+                                fullWidth
+                                size="md"
+                            >
+                                Đăng nhập với Google
+                            </Button>
+                        </Stack>
+                    </form>
+
+                    <Stack align="center" mt="xl" gap="xs">
+                        <Text size="sm">
+                            Chưa có tài khoản?{' '}
+                            <Text
+                                component="span"
+                                fw={600}
+                                color="teal"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => navigate('/register')}
+                            >
+                                Đăng ký ngay
+                            </Text>
+                        </Text>
+
+                        <Group
+                            gap={5}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate('/')}
+                        >
+                            <IconArrowLeft size={14} color="var(--mantine-color-gray-6)" />
+                            <Text size="xs" c="dimmed">
+                                Quay về trang chủ
+                            </Text>
+                        </Group>
+                    </Stack>
+                </Paper>
+            </Container>
+        </Box>
     );
 }
-
-const styles = {
-    wrapper: {
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        padding: '20px',
-    },
-    card: {
-        background: '#fff',
-        borderRadius: '16px',
-        padding: '48px 40px',
-        width: '100%',
-        maxWidth: '420px',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
-    },
-    logoArea: {
-        textAlign: 'center',
-        marginBottom: '36px',
-    },
-    hotelName: {
-        fontSize: '26px',
-        fontWeight: '900',
-        letterSpacing: '2px',
-        color: '#1a1a2e',
-        margin: '0 0 8px 0',
-    },
-    subtitle: {
-        fontSize: '14px',
-        color: '#888',
-        margin: 0,
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-    },
-    field: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-    },
-    label: {
-        fontSize: '13px',
-        fontWeight: '600',
-        color: '#444',
-        letterSpacing: '0.3px',
-    },
-    input: {
-        border: '1.5px solid #ddd',
-        borderRadius: '8px',
-        padding: '12px 14px',
-        fontSize: '15px',
-        outline: 'none',
-        transition: 'border-color 0.2s ease',
-        fontFamily: 'inherit',
-        color: '#222',
-    },
-    error: {
-        background: '#fff2f2',
-        border: '1px solid #ffcdd2',
-        borderRadius: '8px',
-        padding: '10px 14px',
-        color: '#c62828',
-        fontSize: '13px',
-    },
-    button: {
-        backgroundColor: '#D4A574',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '8px',
-        padding: '14px',
-        fontSize: '15px',
-        fontWeight: '600',
-        fontFamily: 'inherit',
-        letterSpacing: '0.3px',
-        transition: 'background-color 0.2s ease, transform 0.1s ease',
-        marginTop: '4px',
-    },
-    backLink: {
-        textAlign: 'center',
-        marginTop: '24px',
-        marginBottom: 0,
-    },
-    backLinkText: {
-        fontSize: '13px',
-        color: '#D4A574',
-        cursor: 'pointer',
-        fontWeight: '500',
-    },
-};

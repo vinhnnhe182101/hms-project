@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/service-bookings';
+const API_URL = 'http://localhost:8080/api/v1/service-bookings';
 
 export const getActiveAllocations = async (customerId) => {
     try {

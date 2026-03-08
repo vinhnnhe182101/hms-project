@@ -15,10 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/services")
+@RequestMapping("/api/v1/home/services")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-public class ServiceApi {
+
+public class HomeServiceApi {
 
     private final ServiceService serviceService;
 

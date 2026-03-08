@@ -19,10 +19,10 @@ import java.time.LocalDateTime;
 import java.sql.Timestamp;
 
 @RestController
-@RequestMapping("/api/v1/room-classes")
+@RequestMapping("/api/v1/home/room-classes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-public class RoomClassApi {
+
+public class HomeRoomClassApi {
 
     private final RoomClassService roomClassService;
     @GetMapping
@@ -30,13 +30,13 @@ public class RoomClassApi {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkIn,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkOut,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         if (checkIn == null) {
-            checkIn = LocalDateTime.now().withHour(14).withMinute(0).withSecond(0).withNano(0);
+            checkIn = LocalDateTime.now();
         }
         if (checkOut == null) {
-            checkOut = checkIn.plusDays(1).withHour(12).withMinute(0).withSecond(0).withNano(0);
+            checkOut = checkIn.plusDays(1);
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
@@ -56,26 +56,12 @@ public class RoomClassApi {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * GET /api/v1/room-classes/{id}
-     *
-     * Chi tiết một loại phòng gồm:
-     * - Tên, sức chứa tiêu chuẩn/tối đa, giá cơ bản, phụ phí
-     * - Tổng số phòng
-     * - Ảnh chính
-     * - Danh sách tài sản (assets) trong phòng
-     */
     @GetMapping("/{id}")
     public ResponseEntity<RoomClassDetailResponse> getRoomClassDetail(@PathVariable Long id) {
         return ResponseEntity.ok(roomClassService.getRoomClassDetail(id));
     }
 
-    /**
-     * GET /api/v1/room-classes/{id}/others
-     *
-     * Lấy danh sách các loại phòng khác (trừ loại phòng có ID hiện tại).
-     * Dùng để hiển thị gợi ý "Loại phòng khác" trên trang detail.
-     */
+
     @GetMapping("/{id}/others")
     public ResponseEntity<List<RoomClassResponse>> getOtherRoomClasses(@PathVariable Long id) {
         return ResponseEntity.ok(roomClassService.getOtherRoomClasses(id));

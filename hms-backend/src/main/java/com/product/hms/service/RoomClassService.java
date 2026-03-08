@@ -12,14 +12,9 @@ public interface RoomClassService {
 
     Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable);
 
-    /**
-     * Lấy thông tin chi tiết một loại phòng:
-     * tên, sức chứa, giá, phụ phí, số phòng, ảnh, danh sách tài sản.
-     */
+    Page<RoomClassResponse> getAllRoomClasses(Pageable pageable);
+
     RoomClassDetailResponse getRoomClassDetail(Long id);
 
-    /**
-     * Lấy danh sách các loại phòng khác (dùng để gợi ý trên trang detail).
-     */
     List<RoomClassResponse> getOtherRoomClasses(Long excludeId);
 }

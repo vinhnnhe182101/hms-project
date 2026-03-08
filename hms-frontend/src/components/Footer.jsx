@@ -3,7 +3,7 @@ import { Container, Grid, Text, Stack } from '@mantine/core';
 export default function Footer() {
     return (
         <footer style={{
-            backgroundColor: '#1a2332',
+            backgroundColor: 'var(--mantine-color-teal-9)',
             color: '#fff',
             padding: '60px 0 30px'
         }}>

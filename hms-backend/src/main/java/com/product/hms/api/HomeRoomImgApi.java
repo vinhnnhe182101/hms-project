@@ -11,10 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/room-images")
+@RequestMapping("/api/v1/home/room-images")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-public class RoomImgApi {
+
+public class HomeRoomImgApi {
 
     private final RoomImgService roomImgService;
 

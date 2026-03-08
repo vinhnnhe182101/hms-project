@@ -18,6 +18,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
             "JOIN res.reservationRoomAllocationEntities rra " +
             "WHERE rra.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
+            "AND r.isActive = true " +
             "ORDER BY r.reviewDate DESC")
     Page<RatingEntity> findPublicRatingsByRoomClassId(@Param("roomClassId") Long roomClassId, Pageable pageable);
 
@@ -26,6 +27,7 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
             "JOIN res.reservationRoomAllocationEntities rra " +
             "WHERE rra.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
+            "AND r.isActive = true " +
             "AND r.rating = :rating " +
             "ORDER BY r.reviewDate DESC")
     Page<RatingEntity> findPublicRatingsByRoomClassIdAndRating(
@@ -37,14 +39,16 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
             "JOIN r.reservationEntity res " +
             "JOIN res.reservationRoomAllocationEntities rra " +
             "WHERE rra.roomClassEntity.id = :roomClassId " +
-            "AND r.isPublic = true")
+            "AND r.isPublic = true " +
+            "AND r.isActive = true")
     Double getAverageRatingByRoomClassId(@Param("roomClassId") Long roomClassId);
 
     @Query("SELECT COUNT(r) FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
             "JOIN res.reservationRoomAllocationEntities rra " +
             "WHERE rra.roomClassEntity.id = :roomClassId " +
-            "AND r.isPublic = true")
+            "AND r.isPublic = true " +
+            "AND r.isActive = true")
     Long countPublicRatingsByRoomClassId(@Param("roomClassId") Long roomClassId);
 
     @Query("SELECT r.rating, COUNT(r) FROM RatingEntity r " +
@@ -52,9 +56,10 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
             "JOIN res.reservationRoomAllocationEntities rra " +
             "WHERE rra.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
+            "AND r.isActive = true " +
             "GROUP BY r.rating")
     List<Object[]> countRatingsByRatingForRoomClass(@Param("roomClassId") Long roomClassId);
 
-    @Query("SELECT r FROM RatingEntity r WHERE r.isPublic = true ORDER BY r.reviewDate DESC")
+    @Query("SELECT r FROM RatingEntity r WHERE r.isPublic = true AND r.isActive = true ORDER BY r.reviewDate DESC")
     Page<RatingEntity> findLatestPublicRatings(Pageable pageable);
 }

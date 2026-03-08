@@ -7,9 +7,11 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 
+import { theme } from './theme'
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <AuthProvider>
         <App />
       </AuthProvider>

@@ -35,10 +35,9 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
     @Override
     public List<ActiveAllocationResponseDTO> getActiveAllocationsByCustomer(Long customerId) {
-        // Lấy danh sách phòng thuộc booking đang IN_HOUSE hoặc CONFIRMED
+
         List<ReservationRoomAllocationEntity> allocations = allocationRepository.findActiveAllocationsByCustomer(
-                customerId,
-                List.of(ReservationStatus.CONFIRMED, ReservationStatus.IN_HOUSE)
+                customerId, List.of(ReservationStatus.IN_HOUSE)
         );
 
         return allocations.stream().map(a -> {
@@ -46,7 +45,7 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
             dto.setAllocationId(a.getId());
             dto.setReservationId(a.getReservationEntity().getId());
             
-            // Format tên phòng để FE hiển thị. VP P101, v.v
+
             String roomName = (a.getRoomEntity() != null) ? "Phòng " + a.getRoomEntity().getRoomNumber() : "Phòng đang chờ xếp";
             String className = (a.getRoomClassEntity() != null) ? a.getRoomClassEntity().getName() : "";
             
@@ -71,24 +70,19 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
             ServiceEntity service = serviceRepository.findById(item.getServiceId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ: " + item.getServiceId()));
 
-            // Tạo ServiceBooking Entity lưu vào DB
             ServiceBookingEntity serviceBookingEntity = new ServiceBookingEntity();
             serviceBookingEntity.setReservationEntity(allocation.getReservationEntity());
             serviceBookingEntity.setAllocationEntity(allocation);
             serviceBookingEntity.setServiceEntity(service);
             serviceBookingEntity.setQuantity(item.getQuantity());
-            
-            // Lấy giá lúc Booking để tránh trường hợp đổi giá sau này làm sai lệch lệch bill cũ
             serviceBookingEntity.setPriceAtBooking(service.getPrice());
             serviceBookingEntity.setStatus(ServiceBookingStatus.PENDING);
             serviceBookingEntity.setIsActive(true);
 
-            // Lưu trước để có ID cho Service Booking
             serviceBookingEntity = serviceBookingRepository.save(serviceBookingEntity);
 
-            // Tích hợp FOLIO: Xử lý hóa đơn tổng của khách
             FolioEntity folioEntity = folioRepository.findByReservationId(allocation.getReservationEntity().getId())
-                    .orElseGet(() -> { /* Nếu chưa có Folio (ví dụ chưa check-in), tự động tạo một cái mới cho Booking này */
+                    .orElseGet(() -> { /*  tự động tạo một cái mới cho Booking này */
                         FolioEntity newFolio = new FolioEntity();
                         newFolio.setReservation(allocation.getReservationEntity());
                         newFolio.setTotalCharges(BigDecimal.ZERO);
@@ -99,18 +93,15 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
                         return folioRepository.save(newFolio);
                     });
 
-            // Tính tổng tiền cho dịch vụ này
             BigDecimal itemTotalPrice = service.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
-            // Cộng tiền vào công nợ của Hóa Đơn Tổng (Folio)
             folioEntity.setTotalCharges(folioEntity.getTotalCharges().add(itemTotalPrice));
             folioEntity.setBalance(folioEntity.getBalance().add(itemTotalPrice));
             folioRepository.save(folioEntity);
 
-            // Tạo chi tiết Hóa Đơn (Folio Item)
             FolioItemEntity folioItem = new FolioItemEntity();
             folioItem.setFolioEntity(folioEntity);
-            folioItem.setType("SERVICE_CHARGE"); // Phân loại là chi phí Dịch vụ ngoài
+            folioItem.setType("SERVICE_CHARGE");
             folioItem.setServiceBookingEntity(serviceBookingEntity);
             folioItem.setDescription("Sử dụng dịch vụ: " + service.getName() + " (Phòng: " + 
                   (allocation.getRoomEntity() != null ? allocation.getRoomEntity().getRoomNumber() : "Chưa xếp phòng") + ")");

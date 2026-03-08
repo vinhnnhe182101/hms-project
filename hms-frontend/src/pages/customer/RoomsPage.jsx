@@ -13,22 +13,18 @@ import { getRoomClassList } from '../../apis/roomClassApi';
 export default function RoomsPage() {
     const navigate = useNavigate();
 
-    // State for rooms data and loading status
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // State for pagination
-    const [page, setPage] = useState(0); // 0-indexed for API
+    const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(9);
 
-    // State for Search
-    const [checkIn, setCheckIn] = useState(dayjs().hour(14).minute(0).second(0).toDate());
-    const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate());
+    const [checkIn, setCheckIn] = useState(dayjs().toDate());
+    const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').toDate());
 
-    // Fetch room classes from backend
     const fetchRooms = async (currentPage = 0, size = pageSize, inDate = checkIn, outDate = checkOut) => {
         setLoading(true);
         setError(null);
@@ -40,7 +36,6 @@ export default function RoomsPage() {
                 setRooms(data.data);
                 setTotalPages(data.totalPages);
                 setTotalItems(data.totalItems);
-                // Đồng bộ pageSize từ backend nếu backend trả về khác
                 if (data.pageSize && data.pageSize !== pageSize) {
                     setPageSize(Number(data.pageSize));
                 }
@@ -77,7 +72,7 @@ export default function RoomsPage() {
     return (
         <Box>
             {/* Page Header */}
-            <Box style={{ backgroundColor: '#2c3e50', color: 'white', padding: '50px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '50px 0' }}>
                 <Container size="xl">
                     <Title order={1} mb={10} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>
                         Các Loại Phòng
@@ -135,7 +130,7 @@ export default function RoomsPage() {
 
                                     <Button
                                         fullWidth
-                                        color="orange"
+                                        color="teal"
                                         mb="sm"
                                         onClick={() => {
                                             setPage(0);
@@ -150,12 +145,11 @@ export default function RoomsPage() {
                                         color="gray"
                                         fullWidth
                                         onClick={() => {
-                                            const defaultIn = dayjs().hour(14).minute(0).second(0).toDate();
-                                            const defaultOut = dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate();
+                                            const defaultIn = dayjs().toDate();
+                                            const defaultOut = dayjs().toDate();
                                             setCheckIn(defaultIn);
                                             setCheckOut(defaultOut);
                                             setPage(0);
-                                            // Reset to today fetch
                                             fetchRooms(0, pageSize, defaultIn, defaultOut);
                                         }}
                                     >
@@ -250,7 +244,7 @@ export default function RoomsPage() {
                                                         fractions={2}
                                                         readOnly
                                                         size="xs"
-                                                        color="#FFB800"
+                                                        color="yellow"
                                                     />
                                                     <Text size="xs" c="dimmed">
                                                         {room.averageRating
@@ -261,7 +255,7 @@ export default function RoomsPage() {
 
                                                 {/* Capacity */}
                                                 <Group gap="xs">
-                                                    <IconUsers size={15} color="#4CAF50" />
+                                                    <IconUsers size={15} color="var(--mantine-color-teal-6)" />
                                                     <Text size="sm" c="dimmed">
                                                         {room.standardCapacity} khách tiêu chuẩn
                                                     </Text>
@@ -270,7 +264,7 @@ export default function RoomsPage() {
                                                 <Box mt="auto">
                                                     <Group justify="space-between" mb="xs" align="flex-end">
                                                         <Box>
-                                                            <Text fw={700} c="#D4A574" style={{ fontSize: '18px' }}>
+                                                            <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
                                                                 {formatPrice(room.basePrice || 0)}
                                                             </Text>
                                                             <Text c="dimmed" style={{ fontSize: '12px' }}>/ đêm</Text>
@@ -280,8 +274,8 @@ export default function RoomsPage() {
                                                     <Stack gap="xs">
                                                         <Button
                                                             fullWidth
+                                                            color="teal"
                                                             style={{
-                                                                backgroundColor: '#D4A574',
                                                                 fontSize: '14px',
                                                                 padding: '8px 16px',
                                                                 fontWeight: 500
@@ -310,7 +304,7 @@ export default function RoomsPage() {
                                     total={totalPages}
                                     value={page + 1}
                                     onChange={(p) => setPage(p - 1)}
-                                    color="orange"
+                                    color="teal"
                                     size="lg"
                                 />
                             </Box>

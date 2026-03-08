@@ -149,12 +149,13 @@ export default function ServicesPage() {
                     )}
 
                     <Group justify="space-between" mt="auto" align="center">
-                        <Text fw={700} c="#D4A574" style={{ fontSize: '16px' }}>
+                        <Text fw={700} color="teal.6" style={{ fontSize: '16px' }}>
                             {formatPrice(service.price)}
                         </Text>
                         <Button
                             leftSection={<IconPlus size={16} />}
-                            style={{ backgroundColor: '#D4A574', fontSize: '14px' }}
+                            color="teal"
+                            style={{ fontSize: '14px' }}
                             onClick={() => addToCart(service)}
                         >
                             Thêm
@@ -168,7 +169,7 @@ export default function ServicesPage() {
     return (
         <Box>
             {/* Header */}
-            <Box style={{ backgroundColor: '#2c3e50', color: 'white', padding: '60px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '60px 0' }}>
                 <Container size="xl">
                     <Title order={1} mb="md" style={{ fontSize: '28px', fontWeight: 700 }}>
                         Dịch Vụ Phòng
@@ -186,7 +187,7 @@ export default function ServicesPage() {
                         <Tabs
                             value={activeCategory}
                             onChange={setActiveCategory}
-                            color="#D4A574"
+                            color="teal"
                         >
                             <Tabs.List mb={30}>
                                 {ALL_CATEGORIES.map((cat) => (
@@ -206,14 +207,14 @@ export default function ServicesPage() {
                                 <Tabs.Panel key={cat.id} value={cat.id}>
                                     {loading ? (
                                         <Center py={80}>
-                                            <Loader size="lg" color="#D4A574" />
+                                            <Loader size="lg" color="teal" />
                                         </Center>
                                     ) : error ? (
                                         <Box ta="center" py={60}>
                                             <Text c="red" size="lg" mb="md">{error}</Text>
                                             <Button
                                                 variant="outline"
-                                                style={{ borderColor: '#D4A574', color: '#D4A574' }}
+                                                color="teal"
                                                 onClick={() => setActiveCategory(activeCategory)}
                                             >
                                                 Thử lại
@@ -239,7 +240,7 @@ export default function ServicesPage() {
                                                         total={totalPages}
                                                         value={currentPage}
                                                         onChange={setCurrentPage}
-                                                        color="orange"
+                                                        color="teal"
                                                         size="lg"
                                                     />
                                                 </Group>
@@ -261,7 +262,8 @@ export default function ServicesPage() {
                                 <Badge
                                     size="xl"
                                     circle
-                                    style={{ backgroundColor: '#D4A574', color: 'white', fontSize: '16px' }}
+                                    color="teal"
+                                    style={{ color: 'white', fontSize: '16px' }}
                                 >
                                     {cart.reduce((total, item) => total + item.quantity, 0)}
                                 </Badge>
@@ -295,10 +297,10 @@ export default function ServicesPage() {
                                                     <Group gap={6}>
                                                         <Button
                                                             size="sm"
-                                                            variant="outline"
+                                                            variant="light"
+                                                            color="teal"
                                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                             p={6}
-                                                            style={{ borderColor: '#D4A574', color: '#D4A574' }}
                                                         >
                                                             <IconMinus size={14} />
                                                         </Button>
@@ -307,15 +309,15 @@ export default function ServicesPage() {
                                                         </Text>
                                                         <Button
                                                             size="sm"
-                                                            variant="outline"
+                                                            variant="light"
+                                                            color="teal"
                                                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                             p={6}
-                                                            style={{ borderColor: '#D4A574', color: '#D4A574' }}
                                                         >
                                                             <IconPlus size={14} />
                                                         </Button>
                                                     </Group>
-                                                    <Text fw={600} c="#D4A574" style={{ fontSize: '16px' }}>
+                                                    <Text fw={700} color="teal.6" style={{ fontSize: '16px' }}>
                                                         {formatPrice(item.price * item.quantity)}
                                                     </Text>
                                                 </Group>
@@ -326,15 +328,15 @@ export default function ServicesPage() {
                                     <Box pt="lg" style={{ borderTop: '2px solid #e9ecef' }}>
                                         <Group justify="space-between" mb="lg">
                                             <Text fw={700} style={{ fontSize: '16px' }}>Tổng cộng</Text>
-                                            <Text fw={700} c="#D4A574" style={{ fontSize: '18px' }}>
+                                            <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
                                                 {formatPrice(getTotalPrice())}
                                             </Text>
                                         </Group>
                                         <Button
                                             fullWidth
                                             size="lg"
+                                            color="teal"
                                             style={{
-                                                backgroundColor: '#D4A574',
                                                 fontSize: '15px',
                                                 fontWeight: 600,
                                                 padding: '14px'

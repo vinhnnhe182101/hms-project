@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/reservations")
+@RequestMapping("/api/v1/home/reservations")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-public class ReservationApi {
+public class HomeReservationApi {
 
     private final ReservationService reservationService;
 

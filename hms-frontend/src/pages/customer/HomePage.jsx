@@ -4,9 +4,7 @@ import { Carousel } from '@mantine/carousel';
 import { IconToolsKitchen2, IconSwimming, IconSparkles } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import '@mantine/carousel/styles.css';
-import { getRoomClassList } from '../../apis/roomClassApi';
-import { getAllServices } from '../../apis/serviceApi';
-import { getLatestRatings } from '../../apis/ratingApi';
+import { getHomeData } from '../../apis/homeApi';
 
 export default function HomePage() {
     const navigate = useNavigate();
@@ -16,25 +14,17 @@ export default function HomePage() {
     const [testimonials, setTestimonials] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchAllHomeData = async () => {
             try {
-                // Lấy 5 phòng nổi bật
-                const roomsResponse = await getRoomClassList(0, 5);
-                setFeaturedRooms(roomsResponse?.data || []);
-
-                // Lấy 5 dịch vụ
-                const servicesResponse = await getAllServices(0, 5);
-                const servicesData = servicesResponse?.data || servicesResponse?.content || [];
-                setServices(servicesData);
-
-                // Lấy 3 đánh giá mới nhất
-                const ratingsResponse = await getLatestRatings(0, 3);
-                setTestimonials(ratingsResponse?.content || []);
+                const data = await getHomeData();
+                setFeaturedRooms(data.featuredRooms || []);
+                setServices(data.services || []);
+                setTestimonials(data.testimonials || []);
             } catch (error) {
                 console.error('Lỗi khi tải dữ liệu trang chủ:', error);
             }
         };
-        fetchData();
+        fetchAllHomeData();
     }, []);
 
     const formatPrice = (price) =>
@@ -68,13 +58,11 @@ export default function HomePage() {
                     {/* Booking CTA */}
                     <Button
                         size="xl"
+                        color="teal"
                         style={{
-                            backgroundColor: '#D4A574',
                             fontSize: '18px',
                             padding: '16px 56px',
                             fontWeight: 600,
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 16px rgba(212,165,116,0.4)'
                         }}
                         onClick={() => navigate('/booking')}
                     >
@@ -100,7 +88,6 @@ export default function HomePage() {
                     slideGap="md"
                     loop
                     align="start"
-                    slidesToScroll={1}
                 >
                     {featuredRooms.map((room) => (
                         <Carousel.Slide key={room.id}>
@@ -141,12 +128,12 @@ export default function HomePage() {
                                     </Title>
                                     <Group justify="space-between" mt="md">
                                         <Box>
-                                            <Text fw={700} c="#D4A574" style={{ fontSize: '20px' }}>
+                                            <Text fw={700} color="teal.6" style={{ fontSize: '20px' }}>
                                                 {formatPrice(room.basePrice)}
                                             </Text>
                                             <Text c="dimmed" style={{ fontSize: '14px' }}>/ đêm</Text>
                                         </Box>
-                                        <Button variant="outline" color="gray" size="sm" style={{ fontSize: '15px' }}>
+                                        <Button variant="light" color="teal" size="sm" style={{ fontSize: '15px' }}>
                                             Chi tiết
                                         </Button>
                                     </Group>
@@ -158,11 +145,10 @@ export default function HomePage() {
 
                 <Box ta="center" mt={40}>
                     <Button
+                        color="teal"
                         size="lg"
                         variant="outline"
                         style={{
-                            borderColor: '#D4A574',
-                            color: '#D4A574',
                             fontSize: '16px',
                             padding: '12px 40px'
                         }}
@@ -171,10 +157,10 @@ export default function HomePage() {
                         Xem thêm
                     </Button>
                 </Box>
-            </Container>
+            </Container >
 
             {/* Services Section */}
-            <Box style={{ backgroundColor: '#f8f9fa', padding: '80px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-gray-0)', padding: '80px 0' }}>
                 <Container size="xl">
                     <Box ta="center" mb={50}>
                         <Title order={2} fw={700} mb="sm" style={{ fontSize: '32px' }}>
@@ -191,7 +177,6 @@ export default function HomePage() {
                         slideGap="md"
                         loop
                         align="start"
-                        slidesToScroll={1}
                     >
                         {services.map((service, index) => {
                             const Icon = getServiceIcon(service.serviceCategory);
@@ -219,14 +204,14 @@ export default function HomePage() {
                                                 width: '64px',
                                                 height: '64px',
                                                 borderRadius: '50%',
-                                                backgroundColor: '#FFF5E6',
+                                                backgroundColor: 'var(--mantine-color-teal-0)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 margin: '0 auto 20px'
                                             }}
                                         >
-                                            <Icon size={32} color="#D4A574" />
+                                            <Icon size={32} color="var(--mantine-color-teal-6)" />
                                         </Box>
                                         <Title order={3} fw={600} mb="sm" style={{ fontSize: '20px' }}>
                                             {service.name}
@@ -249,11 +234,10 @@ export default function HomePage() {
 
                     <Box ta="center" mt={40}>
                         <Button
+                            color="teal"
                             size="lg"
                             variant="outline"
                             style={{
-                                borderColor: '#D4A574',
-                                color: '#D4A574',
                                 fontSize: '16px',
                                 padding: '12px 40px'
                             }}
@@ -266,7 +250,7 @@ export default function HomePage() {
             </Box>
 
             {/* Testimonials Section */}
-            <Container size="xl" py={60}>
+            < Container size="xl" py={60} >
                 <Box ta="center" mb={40}>
                     <Title order={2} fw={700} mb="sm" style={{ fontSize: '32px' }}>
                         Khách Hàng Nói Gì
@@ -314,7 +298,7 @@ export default function HomePage() {
                         </Grid.Col>
                     ))}
                 </Grid>
-            </Container>
-        </Box>
+            </Container >
+        </Box >
     );
 }

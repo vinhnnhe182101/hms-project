@@ -17,14 +17,13 @@ export default function BookingPage() {
     const [loading, setLoading] = useState(true);
     const [quantities, setQuantities] = useState({});
 
-    const today = dayjs().hour(14).minute(0).second(0).toDate();
-    const tomorrow = dayjs().add(1, 'day').hour(12).minute(0).second(0).toDate();
+    const today = dayjs().toDate();
+    const tomorrow = dayjs().add(1, 'day').toDate();
 
     const [checkIn, setCheckIn] = useState(today);
     const [checkOut, setCheckOut] = useState(tomorrow);
     const [guests, setGuests] = useState(1);
 
-    // Số đêm
     const nights = checkIn && checkOut
         ? Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)))
         : 1;
@@ -87,7 +86,7 @@ export default function BookingPage() {
     return (
         <Box style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             {/* Header */}
-            <Box style={{ backgroundColor: '#2c3e50', color: 'white', padding: '50px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '50px 0' }}>
                 <Container size="xl">
                     <Title order={1} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }} mb={8}>
                         Đặt Phòng
@@ -105,9 +104,9 @@ export default function BookingPage() {
                     <Grid.Col span={{ base: 12, md: 8 }}>
                         <Card shadow="sm" radius="md" withBorder padding={0} style={{ overflow: 'hidden' }}>
                             {/* Table header */}
-                            <Box style={{ backgroundColor: '#2c3e50', padding: '14px 20px' }}>
+                            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', padding: '14px 20px' }}>
                                 <Group gap="sm">
-                                    <IconBuilding size={18} color="#D4A574" />
+                                    <IconBuilding size={18} color="var(--mantine-color-teal-3)" />
                                     <Text fw={700} style={{ color: 'white', fontSize: '16px' }}>
                                         ĐẶT PHÒNG
                                     </Text>
@@ -115,7 +114,7 @@ export default function BookingPage() {
                             </Box>
 
                             {loading ? (
-                                <Center py={80}><Loader color="#D4A574" size="lg" /></Center>
+                                <Center py={80}><Loader color="teal" size="lg" /></Center>
                             ) : (
                                 <>
                                     <Table striped highlightOnHover withColumnBorders style={{ fontSize: '14px' }}>
@@ -148,7 +147,7 @@ export default function BookingPage() {
                                                     <Table.Tr
                                                         key={room.id}
                                                         style={{
-                                                            backgroundColor: qty > 0 ? '#fff9f0' : undefined,
+                                                            backgroundColor: qty > 0 ? 'var(--mantine-color-teal-0)' : undefined,
                                                             transition: 'background 0.2s'
                                                         }}
                                                     >
@@ -169,7 +168,7 @@ export default function BookingPage() {
 
                                                         {/* Price */}
                                                         <Table.Td style={{ padding: '16px 12px', textAlign: 'center' }}>
-                                                            <Text fw={700} c="#D4A574" style={{ fontSize: '15px' }}>
+                                                            <Text fw={700} color="teal.6" style={{ fontSize: '15px' }}>
                                                                 {formatPrice(room.basePrice)}
                                                             </Text>
                                                             <Text size="xs" c="dimmed">VNĐ / đêm</Text>
@@ -201,7 +200,7 @@ export default function BookingPage() {
                                                                         input: {
                                                                             textAlign: 'center',
                                                                             fontWeight: 600,
-                                                                            borderColor: qty > 0 ? '#D4A574' : undefined,
+                                                                            borderColor: qty > 0 ? 'var(--mantine-color-teal-6)' : undefined,
                                                                         }
                                                                     }}
                                                                 />
@@ -218,17 +217,17 @@ export default function BookingPage() {
                                         style={{
                                             padding: '16px 20px',
                                             borderTop: '2px solid #e9ecef',
-                                            backgroundColor: totalPrice > 0 ? '#fff9f0' : '#f8f9fa'
+                                            backgroundColor: totalPrice > 0 ? 'var(--mantine-color-teal-0)' : '#f8f9fa'
                                         }}
                                     >
                                         <Group justify="space-between" align="center">
                                             <Group gap={6}>
-                                                <IconCoin size={18} color="#D4A574" />
+                                                <IconCoin size={18} color="teal" />
                                                 <Text fw={600} style={{ fontSize: '15px' }}>
                                                     Tổng thành tiền:
                                                 </Text>
                                             </Group>
-                                            <Text fw={800} c="#D4A574" style={{ fontSize: '20px' }}>
+                                            <Text fw={800} color="teal.6" style={{ fontSize: '20px' }}>
                                                 {totalPrice > 0 ? `${formatPrice(totalPrice)} VNĐ` : '—'}
                                             </Text>
                                         </Group>
@@ -253,7 +252,7 @@ export default function BookingPage() {
                             style={{ position: 'sticky', top: '24px', overflow: 'hidden' }}
                         >
                             {/* Card header */}
-                            <Box style={{ backgroundColor: '#2c3e50', padding: '14px 20px' }}>
+                            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', padding: '14px 20px' }}>
                                 <Text fw={700} style={{ color: 'white', fontSize: '16px', letterSpacing: '0.5px' }}>
                                     THÔNG TIN
                                 </Text>
@@ -273,9 +272,9 @@ export default function BookingPage() {
                                         }}
                                         minDate={new Date()}
                                         valueFormat="DD/MM/YYYY HH:mm"
-                                        leftSection={<IconCalendar size={16} color="#D4A574" />}
+                                        leftSection={<IconCalendar size={16} color="teal" />}
                                         styles={{
-                                            input: { borderColor: '#D4A574', fontWeight: 500 },
+                                            input: { borderColor: 'var(--mantine-color-teal-6)', fontWeight: 500 },
                                         }}
                                         clearable={false}
                                     />
@@ -295,9 +294,9 @@ export default function BookingPage() {
                                         }}
                                         minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
                                         valueFormat="DD/MM/YYYY HH:mm"
-                                        leftSection={<IconCalendar size={16} color="#D4A574" />}
+                                        leftSection={<IconCalendar size={16} color="teal" />}
                                         styles={{
-                                            input: { borderColor: '#D4A574', fontWeight: 500 },
+                                            input: { borderColor: 'var(--mantine-color-teal-6)', fontWeight: 500 },
                                         }}
                                         clearable={false}
                                     />
@@ -313,8 +312,8 @@ export default function BookingPage() {
                                         onChange={setGuests}
                                         min={1}
                                         max={999}
-                                        leftSection={<IconUsers size={16} color="#D4A574" />}
-                                        styles={{ input: { borderColor: '#D4A574' } }}
+                                        leftSection={<IconUsers size={16} color="teal" />}
+                                        styles={{ input: { borderColor: 'var(--mantine-color-teal-6)' } }}
                                         clampBehavior="strict"
                                     />
                                 </Box>
@@ -325,10 +324,10 @@ export default function BookingPage() {
                                 {hasSelection && (
                                     <Box
                                         style={{
-                                            backgroundColor: '#fff9f0',
+                                            backgroundColor: 'var(--mantine-color-teal-0)',
                                             borderRadius: 8,
                                             padding: '12px 14px',
-                                            border: '1px solid #D4A574'
+                                            border: '1px solid var(--mantine-color-teal-2)'
                                         }}
                                     >
                                         <Text size="sm" fw={600} mb={8}>Phòng đã chọn:</Text>
@@ -338,7 +337,7 @@ export default function BookingPage() {
                                                 .map(r => (
                                                     <Group key={r.id} justify="space-between">
                                                         <Text size="xs" c="dimmed">{r.name} × {quantities[r.id]}</Text>
-                                                        <Text size="xs" fw={600} c="#D4A574">
+                                                        <Text size="xs" fw={600} color="teal.6">
                                                             {formatPrice(quantities[r.id] * r.basePrice * nights)} VNĐ
                                                         </Text>
                                                     </Group>
@@ -352,8 +351,8 @@ export default function BookingPage() {
                                     size="lg"
                                     disabled={!hasSelection}
                                     onClick={handleContinue}
+                                    color="teal"
                                     style={{
-                                        backgroundColor: hasSelection ? '#D4A574' : undefined,
                                         fontSize: '16px',
                                         fontWeight: 600,
                                         padding: '14px',

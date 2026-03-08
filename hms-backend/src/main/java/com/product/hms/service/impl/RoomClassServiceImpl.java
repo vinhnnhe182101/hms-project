@@ -44,6 +44,13 @@ public class RoomClassServiceImpl implements RoomClassService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<RoomClassResponse> getAllRoomClasses(Pageable pageable) {
+        return roomClassRepository.findRoomClassSummaryWithoutDate(pageable)
+                .map(this::mapSummaryToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RoomClassDetailResponse getRoomClassDetail(Long id) {
         List<Object[]> rows = roomClassRepository.findDetailById(id);
         if (rows.isEmpty()) {

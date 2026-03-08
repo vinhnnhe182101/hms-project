@@ -47,6 +47,20 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
                                         @Param("statuses") List<ReservationStatus> statuses,
                                         Pageable pageable);
 
+    @Query("""
+            SELECT rc.id,
+                   rc.name,
+                   rc.standardCapacity,
+                   rc.basePrice,
+                   COUNT(r.id)
+            FROM RoomClassEntity rc
+            LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
+            WHERE rc.isActive = true
+            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.basePrice
+            ORDER BY rc.id ASC
+            """)
+    Page<Object[]> findRoomClassSummaryWithoutDate(Pageable pageable);
+
     // ===== DETAIL =====
 
     /**
