@@ -9,13 +9,14 @@ import com.product.hms.dto.response.UserResponseDTO;
 import com.product.hms.enums.Role;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
     UserResponseDTO createUser(UserRequestDTO request);
 
     UserResponseDTO updateUser(Long id, UserRequestDTO request);
-import java.util.Map;
+
 
     UserResponseDTO getUserById(Long id);
 
@@ -36,7 +37,7 @@ import java.util.Map;
     List<StaffResponseDTO> getAllStaff();
 
     void deleteStaff(Long id);
-public interface UserService extends UserDetailsService {
+
     UserEntity processOAuth2User(Map<String, Object> attributes, String provider);
     boolean existsByEmail(String email);
     UserEntity findByEmail(String email);
