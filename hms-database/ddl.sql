@@ -129,7 +129,7 @@ CREATE TABLE `reservation`
     `expected_check_in`  DATETIME        NOT NULL,
     `expected_check_out` DATETIME        NOT NULL,
     `status`             VARCHAR(50)     NOT NULL COMMENT 'Reservation status: PENDING_DEPOSIT | CONFIRMED | CANCELLED | IN_HOUSE | CHECKED_OUT | FINISHED',
-    `total_deposit`      DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `total_deposit`      DECIMAL(12, 2)  NOT NULL DEFAULT 0 COMMENT 'Remaining deposit available for deduction',
     `number_of_members`  INT             NOT NULL DEFAULT 1,
     `note`               TEXT            NULL,
     `created_at`         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -156,6 +156,7 @@ CREATE TABLE `reservation_room`
         COMMENT 'Allocation status: PENDING | ASSIGNED | CHECKED_IN | CHECKED_OUT | CANCELLED',
     `number_of_people` INT             NOT NULL DEFAULT 1 COMMENT 'Number of people for this allocation',
     `price_at_booking` DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    `actual_check_in`  DATETIME        NULL,
     `actual_check_out` DATETIME        NULL,
     `is_active`        TINYINT(1)      NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
     PRIMARY KEY (`id`),
@@ -578,3 +579,4 @@ CREATE TABLE `refund_request`
             ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+

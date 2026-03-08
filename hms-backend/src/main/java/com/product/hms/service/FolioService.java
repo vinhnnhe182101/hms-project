@@ -1,6 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.entity.ReservationRoomEntity;
+import com.product.hms.entity.ServiceBookingEntity;
 
 import java.math.BigDecimal;
 
@@ -22,4 +23,19 @@ public interface FolioService {
      * @param cancellationAmount deposit amount that is not refunded
      */
     void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount);
+
+    void applyEarlyCheckInFee(ReservationRoomEntity allocation, BigDecimal feeAmount);
+
+    void applyLateCheckOutFee(ReservationRoomEntity allocation, BigDecimal feeAmount);
+
+    /**
+     * Sync folio charge for service booking creation/update.
+     * If service item exists, update it; otherwise create a new one.
+     */
+    void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount);
+
+    /**
+     * Cancel service charge and adjust folio totals when service booking is canceled.
+     */
+    void cancelServiceCharge(ServiceBookingEntity serviceBooking);
 }

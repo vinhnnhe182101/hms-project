@@ -5,7 +5,8 @@ import com.product.hms.dto.request.RoomClassQuantityRequest;
 import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
-import com.product.hms.repository.ReservationRoomAllocationRepository;
+import com.product.hms.enums.ReservationRoomStatus;
+import com.product.hms.repository.ReservationRoomRepository;
 import com.product.hms.service.RoomAllocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class RoomAllocationServiceImpl implements RoomAllocationService {
-    private final ReservationRoomAllocationRepository reservationRoomAllocationRepository;
+    private final ReservationRoomRepository reservationRoomRepository;
 
     @Override
     public List<ReservationRoomEntity> createRoomAllocations(
@@ -33,8 +34,9 @@ public class RoomAllocationServiceImpl implements RoomAllocationService {
             allocation.setRoomClassEntity(roomClass);
             allocation.setNumberOfPeople(roomClassQuantity.numberOfPeople());
             allocation.setPriceAtBooking(roomClass.getBasePrice());
+            allocation.setStatus(ReservationRoomStatus.PENDING);
             allocation.setIsActive(true);
-            ReservationRoomEntity savedAllocation = reservationRoomAllocationRepository.save(allocation);
+            ReservationRoomEntity savedAllocation = reservationRoomRepository.save(allocation);
             allocations.add(savedAllocation);
         }
         return allocations;
@@ -42,11 +44,11 @@ public class RoomAllocationServiceImpl implements RoomAllocationService {
 
     @Override
     public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation) {
-        return reservationRoomAllocationRepository.findByReservationEntity(reservation);
+        return reservationRoomRepository.findByReservationEntity(reservation);
     }
 
     @Override
     public void deleteAllocationsByReservation(ReservationEntity reservation) {
-        reservationRoomAllocationRepository.deleteByReservationEntity(reservation);
+        reservationRoomRepository.deleteByReservationEntity(reservation);
     }
 }

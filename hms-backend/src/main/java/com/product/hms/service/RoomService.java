@@ -1,6 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.dto.response.RoomClassAvailabilityResponse;
+import com.product.hms.dto.response.RoomClassAvailableRoomsResponse;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -18,5 +19,18 @@ public interface RoomService {
      * @return List of RoomClassAvailabilityResponse containing room class info and available room counts
      */
     List<RoomClassAvailabilityResponse> getAvailableRooms(Timestamp checkInDate, Timestamp checkOutDate);
-}
 
+    /**
+     * Get available physical rooms grouped by room class for manual assignment.
+     */
+    List<RoomClassAvailableRoomsResponse> getAvailableRoomsForAssignment(Timestamp checkInDate, Timestamp checkOutDate);
+
+    /**
+     * Get available physical rooms for one room class.
+     */
+    List<com.product.hms.dto.response.AvailableRoomResponse> getAvailableRoomsByRoomClassIdForAssignment(
+            Long roomClassId,
+            Timestamp checkInDate,
+            Timestamp checkOutDate
+    );
+}

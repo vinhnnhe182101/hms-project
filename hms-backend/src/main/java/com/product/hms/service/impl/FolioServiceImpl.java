@@ -2,6 +2,7 @@ package com.product.hms.service.impl;
 
 import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.ReservationRoomEntity;
+import com.product.hms.entity.ServiceBookingEntity;
 import com.product.hms.enums.FolioStatus;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
@@ -21,7 +22,7 @@ public class FolioServiceImpl implements FolioService {
 
     private FolioEntity createFolio(ReservationRoomEntity allocation, BigDecimal depositAmount) {
         FolioEntity folio = new FolioEntity();
-        folio.setReservationRoomAllocation(allocation);
+        folio.setReservationRoom(allocation);
         folio.setTotalCharges(depositAmount);
         folio.setTotalPaid(BigDecimal.ZERO);
         folio.setBalance(depositAmount);
@@ -38,7 +39,7 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void createRefundItem(ReservationRoomEntity allocation, BigDecimal refundAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoomAllocation(allocation)
+        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
@@ -55,7 +56,7 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoomAllocation(allocation)
+        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
@@ -64,5 +65,78 @@ public class FolioServiceImpl implements FolioService {
         // Create cancellation fee item (no balance change, just record the fee)
         folioItemService.createCancellationFeeItem(folio, cancellationAmount);
         // Balance remains the same (customer forfeits deposit)
+    }
+
+    @Override
+    public void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount) {
+        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
+                ));
+
+        folioItemService.findActiveByServiceBooking(serviceBooking)
+                .ifPresentOrElse(
+                        item -> folioItemService.updateServiceChargeItem(item, serviceBooking.getQuantity(), chargeAmount),
+                        () -> folioItemService.createServiceChargeItem(folio, serviceBooking, chargeAmount)
+                );
+
+        recalculateFolioTotals(folio);
+    }
+
+    @Override
+    public void cancelServiceCharge(ServiceBookingEntity serviceBooking) {
+        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
+                ));
+
+        folioItemService.findActiveByServiceBooking(serviceBooking).ifPresent(item -> {
+            folioItemService.voidServiceChargeItem(item);
+            recalculateFolioTotals(folio);
+        });
+    }
+
+    @Override
+    public void applyEarlyCheckInFee(ReservationRoomEntity allocation, BigDecimal feeAmount) {
+        if (feeAmount == null || feeAmount.signum() <= 0) {
+            return;
+        }
+
+        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "Folio not found for allocation ID: " + allocation.getId()
+                ));
+
+        folioItemService.createEarlyCheckInFeeItem(folio, feeAmount);
+        recalculateFolioTotals(folio);
+    }
+
+    @Override
+    public void applyLateCheckOutFee(ReservationRoomEntity allocation, BigDecimal feeAmount) {
+        if (feeAmount == null || feeAmount.signum() <= 0) {
+            return;
+        }
+
+        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "Folio not found for allocation ID: " + allocation.getId()
+                ));
+
+        folioItemService.createLateCheckOutFeeItem(folio, feeAmount);
+        recalculateFolioTotals(folio);
+    }
+
+    /**
+     * Recalculate folio totals from all active folio items to avoid cumulative delta errors.
+     */
+    private void recalculateFolioTotals(FolioEntity folio) {
+        BigDecimal totalCharges = folioItemService.calculateTotalCharges(folio);
+        folio.setTotalCharges(totalCharges);
+        folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
+        folioRepository.save(folio);
     }
 }

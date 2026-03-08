@@ -23,7 +23,7 @@ public class FolioEntity {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "reservation_room_id", nullable = false)
-    private ReservationRoomEntity reservationRoomAllocation;
+    private ReservationRoomEntity reservationRoom;
 
     @ColumnDefault("0.00")
     @Column(name = "total_charges", nullable = false, precision = 12, scale = 2)

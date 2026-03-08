@@ -1,7 +1,9 @@
 package com.product.hms.enums;
 
 import com.product.hms.entity.converter.base.core.DbValueEnum;
+import lombok.Getter;
 
+@Getter
 public enum PaymentTransactionStatus implements DbValueEnum {
     PENDING("PENDING"),
     SUCCESS("SUCCESS"),
@@ -13,11 +15,4 @@ public enum PaymentTransactionStatus implements DbValueEnum {
     PaymentTransactionStatus(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
-    }
 }
-
-

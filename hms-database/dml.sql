@@ -93,9 +93,9 @@ VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00',
 -- 7) RESERVATION ROOM (per room slot)
 INSERT INTO `reservation_room`
 (`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `number_of_people`, `price_at_booking`,
- `actual_check_out`, `is_active`)
-VALUES (1, 1, 2, 3, 'ASSIGNED', 3, 1200000.00, NULL, 1), -- Deluxe 201: John + child + 1 guest total 3 people
-       (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, NULL, 1);
+ `actual_check_in`, `actual_check_out`, `is_active`)
+VALUES (1, 1, 2, 3, 'ASSIGNED', 3, 1200000.00, NULL, NULL, 1), -- Deluxe 201: John + child + 1 guest total 3 people
+       (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, NULL, NULL, 1);
 -- Standard 101: Anna 1 person
 
 -- 8) ROOM OCCUPANT (attached to reservation_room)

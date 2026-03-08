@@ -1,7 +1,9 @@
 package com.product.hms.enums;
 
 import com.product.hms.entity.converter.base.core.DbValueEnum;
+import lombok.Getter;
 
+@Getter
 public enum FolioItemType implements DbValueEnum {
     ROOM_CHARGE("ROOM_CHARGE"),
     SERVICE_CHARGE("SERVICE_CHARGE"),
@@ -16,10 +18,5 @@ public enum FolioItemType implements DbValueEnum {
 
     FolioItemType(String dbValue) {
         this.dbValue = dbValue;
-    }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
     }
 }
