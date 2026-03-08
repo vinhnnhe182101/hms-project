@@ -1,0 +1,7 @@
+package com.product.hms.exception;
+
+public class BadRequest extends RuntimeException {
+    public BadRequest(String message) {
+        super(message);
+    }
+}
