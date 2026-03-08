@@ -32,7 +32,7 @@ public class FolioItemEntity {
     @Column(name = "type", nullable = false, length = 50)
     private FolioItemType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "service_booking_id")
     private ServiceBookingEntity serviceBookingEntity;
