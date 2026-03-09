@@ -10,6 +10,20 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity đại diện cho việc đặt dịch vụ của khách trong quá trình lưu trú.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID đặt dịch vụ</li>
+ *   <li>{@link #reservationRoomEntity} - Đặt phòng liên quan</li>
+ *   <li>{@link #serviceEntity} - Dịch vụ liên quan</li>
+ *   <li>{@link #quantity} - Số lượng dịch vụ</li>
+ *   <li>{@link #status} - Trạng thái đặt dịch vụ {@link com.product.hms.enums.ServiceBookingStatus}</li>
+ *   <li>{@link #priceAtBooking} - Giá tại thời điểm đặt</li>
+ *   <li>{@link #isActive} - Đặt dịch vụ còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

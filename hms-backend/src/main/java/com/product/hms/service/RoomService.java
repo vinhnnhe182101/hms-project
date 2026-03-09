@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.response.AvailableRoomResponse;
 import com.product.hms.dto.response.RoomClassAvailabilityResponse;
 import com.product.hms.dto.response.RoomClassAvailableRoomsResponse;
 import com.product.hms.dto.response.RoomMatrixResponse;
@@ -13,42 +14,49 @@ import java.util.List;
 public interface RoomService {
 
     /**
-     * Get available rooms by room class for a given date range
+     * Lấy thông tin về số lượng phòng trống theo từng hạng phòng cho khoảng thời gian từ check-in đến check-out.
      *
-     * @param checkInDate  the check-in date
-     * @param checkOutDate the check-out date
-     * @return List of RoomClassAvailabilityResponse containing room class info and available room counts
+     * @param checkInDate  Ngày giờ check-in dự kiến
+     * @param checkOutDate Ngày giờ check-out dự kiến
+     * @return Danh sách RoomClassAvailabilityResponse, mỗi phần tử chứa thông tin về một hạng phòng và số lượng phòng trống thuộc hạng đó.
      */
     List<RoomClassAvailabilityResponse> getAvailableRooms(Timestamp checkInDate, Timestamp checkOutDate);
 
     /**
-     * Get available physical rooms grouped by room class for manual assignment.
+     * Lấy thông tin về các phòng trống theo từng hạng phòng cho khoảng thời gian từ check-in đến check-out.
+     *
+     * @param checkInDate  Ngày giờ check-in dự kiến
+     * @param checkOutDate Ngày giờ check-out dự kiến
+     * @return Danh sách RoomClassAvailableRoomsResponse, mỗi phần tử chứa thông tin về một hạng phòng và danh sách các phòng trống thuộc hạng đó.
      */
     List<RoomClassAvailableRoomsResponse> getAvailableRoomsForAssignment(Timestamp checkInDate, Timestamp checkOutDate);
 
     /**
-     * Get available physical rooms for one room class.
+     * Lấy thông tin về các phòng trống thuộc một hạng phòng cụ thể cho khoảng thời gian từ check-in đến check-out.
+     *
+     * @param roomClassId  ID của hạng phòng cần lấy thông tin
+     * @param checkInDate  Ngày giờ check-in dự kiến
+     * @param checkOutDate Ngày giờ check-out dự kiến
+     * @return Danh sách AvailableRoomResponse chứa id và số phòng
      */
-    List<com.product.hms.dto.response.AvailableRoomResponse> getAvailableRoomsByRoomClassIdForAssignment(
+    List<AvailableRoomResponse> getAvailableRoomsByRoomClassIdForAssignment(
             Long roomClassId,
             Timestamp checkInDate,
             Timestamp checkOutDate
     );
 
     /**
-     * Get all available floors from active rooms.
-     * Floors are extracted from room numbers and sorted numerically.
+     * Lấy tất cả các tầng có phòng trống từ các phòng đang hoạt động.
      *
-     * @return List of floor strings sorted numerically (e.g., ["1", "2", "3", "12"])
+     * @return Danh sách các tầng có phòng trống (ví dụ: ["1", "2", "3", "12"])
      */
     List<String> getAvailableFloors();
 
     /**
-     * Get room status matrix for a specific floor.
-     * Rooms are sorted by room number in ascending order.
+     * Lấy ma trận trạng thái phòng cho một tầng cụ thể.
      *
-     * @param floor the floor identifier (e.g., "1", "12"). If null or blank, uses first available floor.
-     * @return List of RoomMatrixResponse containing room information for the specified floor
+     * @param floor là định danh tầng (ví dụ: "1", "12").
+     * @return Danh sách RoomMatrixResponse chứa thông tin về các phòng trên tầng đã chỉ định.
      */
     List<RoomMatrixResponse> getRoomStatusMatrixByFloor(String floor);
 }

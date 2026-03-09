@@ -8,6 +8,17 @@ import org.hibernate.annotations.ColumnDefault;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho loại tài sản trong khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID loại tài sản</li>
+ *   <li>{@link #name} - Tên loại tài sản</li>
+ *   <li>{@link #description} - Mô tả</li>
+ *   <li>{@link #isActive} - Loại tài sản còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

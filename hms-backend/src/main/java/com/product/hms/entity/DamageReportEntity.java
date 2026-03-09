@@ -9,6 +9,21 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity đại diện cho báo cáo hư hỏng tài sản/phòng.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID báo cáo</li>
+ *   <li>{@link #roomEntity} - Phòng liên quan</li>
+ *   <li>{@link #reportedByStaffEntity} - Nhân viên báo cáo</li>
+ *   <li>{@link #reservationEntity} - Đơn đặt phòng liên quan (nếu có)</li>
+ *   <li>{@link #quantity} - Số lượng hư hỏng</li>
+ *   <li>{@link #penaltyAmount} - Tiền phạt</li>
+ *   <li>{@link #status} - Trạng thái xử lý</li>
+ *   <li>{@link #isActive} - Báo cáo còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -11,6 +11,20 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho nhân viên khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID nhân viên</li>
+ *   <li>{@link #userEntity} - Tài khoản liên kết</li>
+ *   <li>{@link #department} - Phòng ban</li>
+ *   <li>{@link #fullName} - Họ tên</li>
+ *   <li>{@link #phoneNumber} - Số điện thoại</li>
+ *   <li>{@link #status} - Trạng thái nhân viên</li>
+ *   <li>{@link #isActive} - Nhân viên còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

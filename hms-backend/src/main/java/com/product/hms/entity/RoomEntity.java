@@ -9,6 +9,18 @@ import org.hibernate.annotations.ColumnDefault;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho phòng trong khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID phòng</li>
+ *   <li>{@link #roomNumber} - Số phòng</li>
+ *   <li>{@link #roomClassEntity} - Loại phòng</li>
+ *   <li>{@link #status} - Trạng thái phòng {@link com.product.hms.enums.RoomStatus}</li>
+ *   <li>{@link #isActive} - Phòng có active không</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -41,7 +53,7 @@ public class RoomEntity {
     private List<HousekeepingTaskEntity> housekeepingTaskEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
-    private List<ReservationRoomEntity> reservationRoomAllocationEntities = new ArrayList<>();
+    private List<ReservationRoomEntity> reservationRoomEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomEntity")
     private List<RoomAssetEntity> roomAssetEntities = new ArrayList<>();

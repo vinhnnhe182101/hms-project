@@ -22,33 +22,33 @@ public class RoomAllocationServiceImpl implements RoomAllocationService {
 
     @Override
     public List<ReservationRoomEntity> createRoomAllocations(
-            ReservationEntity reservation,
-            ReservationRequest request,
+            ReservationEntity reservationEntity,
+            ReservationRequest reservationRequest,
             Map<Long, RoomClassEntity> roomClassById
     ) {
         List<ReservationRoomEntity> allocations = new ArrayList<>();
-        for (RoomClassQuantityRequest roomClassQuantity : request.roomClassQuantities()) {
+        for (RoomClassQuantityRequest roomClassQuantity : reservationRequest.roomClassQuantities()) {
             RoomClassEntity roomClass = roomClassById.get(roomClassQuantity.roomClassId());
-            ReservationRoomEntity allocation = new ReservationRoomEntity();
-            allocation.setReservationEntity(reservation);
-            allocation.setRoomClassEntity(roomClass);
-            allocation.setNumberOfPeople(roomClassQuantity.numberOfPeople());
-            allocation.setPriceAtBooking(roomClass.getBasePrice());
-            allocation.setStatus(ReservationRoomStatus.PENDING);
-            allocation.setIsActive(true);
-            ReservationRoomEntity savedAllocation = reservationRoomRepository.save(allocation);
+            ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
+            reservationRoomEntity.setReservationEntity(reservationEntity);
+            reservationRoomEntity.setRoomClassEntity(roomClass);
+            reservationRoomEntity.setNumberOfPeople(roomClassQuantity.numberOfPeople());
+            reservationRoomEntity.setPriceAtBooking(roomClass.getBasePrice());
+            reservationRoomEntity.setStatus(ReservationRoomStatus.PENDING);
+            reservationRoomEntity.setIsActive(true);
+            ReservationRoomEntity savedAllocation = reservationRoomRepository.save(reservationRoomEntity);
             allocations.add(savedAllocation);
         }
         return allocations;
     }
 
     @Override
-    public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation) {
-        return reservationRoomRepository.findByReservationEntity(reservation);
+    public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservationEntity) {
+        return reservationRoomRepository.findByReservationEntity(reservationEntity);
     }
 
     @Override
-    public void deleteAllocationsByReservation(ReservationEntity reservation) {
-        reservationRoomRepository.deleteByReservationEntity(reservation);
+    public void deleteAllocationsByReservation(ReservationEntity reservationEntity) {
+        reservationRoomRepository.deleteByReservationEntity(reservationEntity);
     }
 }

@@ -20,9 +20,16 @@ public class FolioServiceImpl implements FolioService {
     private final FolioRepository folioRepository;
     private final FolioItemService folioItemService;
 
-    private FolioEntity createFolio(ReservationRoomEntity allocation, BigDecimal depositAmount) {
+    /**
+     * Tạo folio mới khi có đặt cọc phòng, tạo mới vì lúc này chưa có bất kỳ charge nào phát sinh, chỉ có deposit.
+     *
+     * @param reservationRoomEntity
+     * @param depositAmount
+     * @return
+     */
+    private FolioEntity createFolio(ReservationRoomEntity reservationRoomEntity, BigDecimal depositAmount) {
         FolioEntity folio = new FolioEntity();
-        folio.setReservationRoom(allocation);
+        folio.setReservationRoomEntity(reservationRoomEntity);
         folio.setTotalCharges(depositAmount);
         folio.setTotalPaid(BigDecimal.ZERO);
         folio.setBalance(depositAmount);
@@ -32,61 +39,66 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void createFolioWithDepositItem(ReservationRoomEntity allocation, BigDecimal depositAmount) {
-        FolioEntity savedFolio = createFolio(allocation, depositAmount);
+    public void createFolioWithDepositItem(ReservationRoomEntity reservationRoomEntity, BigDecimal depositAmount) {
+        FolioEntity savedFolio = createFolio(reservationRoomEntity, depositAmount);
         folioItemService.createFolioItemForDeposit(savedFolio, depositAmount);
     }
 
     @Override
-    public void createRefundItem(ReservationRoomEntity allocation, BigDecimal refundAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+    public void createRefundItem(ReservationRoomEntity reservationRoomEntity, BigDecimal refundAmount) {
+        // STEP 1: Tìm folio dựa vào reservation room
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoomEntity)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Folio not found for allocation ID: " + allocation.getId()
+                        "Folio not found for reservationRoomEntity ID: " + reservationRoomEntity.getId()
                 ));
 
-        // Create refund item (negative amount)
+        // STEP 2: Tạo folio item cho refund (số tiền âm)
         folioItemService.createRefundItem(folio, refundAmount);
 
-        // Update folio balance (reduce by refund amount)
+        // STEP 3: Cập nhật tổng charges và balance của folio
         folio.setTotalCharges(folio.getTotalCharges().subtract(refundAmount));
         folio.setBalance(folio.getBalance().subtract(refundAmount));
         folioRepository.save(folio);
     }
 
     @Override
-    public void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+    public void createCancellationFeeItem(ReservationRoomEntity reservationRoomEntity, BigDecimal cancellationAmount) {
+        // STEP 1: Tìm folio dựa vào reservation room
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoomEntity)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Folio not found for allocation ID: " + allocation.getId()
+                        "Folio not found for reservationRoomEntity ID: " + reservationRoomEntity.getId()
                 ));
 
-        // Create cancellation fee item (no balance change, just record the fee)
+        // STEP 2: Tạo folio item cho cancellation fee (số tiền dương)
         folioItemService.createCancellationFeeItem(folio, cancellationAmount);
-        // Balance remains the same (customer forfeits deposit)
     }
 
     @Override
     public void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+        // STEP 1: Tìm folio dựa vào reservation room của service booking
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(serviceBooking.getReservationRoomEntity())
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
                 ));
 
+        // STEP 2: Tìm folio item đang active cho service booking này
+        // TODO: Nên chuyển về chỉ update total price của folio item
         folioItemService.findActiveByServiceBooking(serviceBooking)
                 .ifPresentOrElse(
                         item -> folioItemService.updateServiceChargeItem(item, serviceBooking.getQuantity(), chargeAmount),
                         () -> folioItemService.createServiceChargeItem(folio, serviceBooking, chargeAmount)
                 );
 
+        // STEP 3: Tính lại tổng charges và balance của folio để tránh lỗi cộng dồn delta
         recalculateFolioTotals(folio);
     }
 
     @Override
     public void cancelServiceCharge(ServiceBookingEntity serviceBooking) {
-        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(serviceBooking.getReservationRoomEntity())
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
@@ -99,15 +111,15 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void applyEarlyCheckInFee(ReservationRoomEntity allocation, BigDecimal feeAmount) {
+    public void applyEarlyCheckInFee(ReservationRoomEntity reservationRoomEntity, BigDecimal feeAmount) {
         if (feeAmount == null || feeAmount.signum() <= 0) {
             return;
         }
 
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoomEntity)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Folio not found for allocation ID: " + allocation.getId()
+                        "Folio not found for reservationRoomEntity ID: " + reservationRoomEntity.getId()
                 ));
 
         folioItemService.createEarlyCheckInFeeItem(folio, feeAmount);
@@ -115,15 +127,15 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void applyLateCheckOutFee(ReservationRoomEntity allocation, BigDecimal feeAmount) {
+    public void applyLateCheckOutFee(ReservationRoomEntity reservationRoomEntity, BigDecimal feeAmount) {
         if (feeAmount == null || feeAmount.signum() <= 0) {
             return;
         }
 
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoomEntity)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Folio not found for allocation ID: " + allocation.getId()
+                        "Folio not found for reservationRoomEntity ID: " + reservationRoomEntity.getId()
                 ));
 
         folioItemService.createLateCheckOutFeeItem(folio, feeAmount);
@@ -131,12 +143,12 @@ public class FolioServiceImpl implements FolioService {
     }
 
     /**
-     * Recalculate folio totals from all active folio items to avoid cumulative delta errors.
+     * Tính lại tổng phí và số tiền còn nợ của folioEntity sau khi có sự thay đổi về folioEntity item
      */
-    private void recalculateFolioTotals(FolioEntity folio) {
-        BigDecimal totalCharges = folioItemService.calculateTotalCharges(folio);
-        folio.setTotalCharges(totalCharges);
-        folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
-        folioRepository.save(folio);
+    private void recalculateFolioTotals(FolioEntity folioEntity) {
+        BigDecimal totalCharges = folioItemService.calculateTotalCharges(folioEntity);
+        folioEntity.setTotalCharges(totalCharges);
+        folioEntity.setBalance(totalCharges.subtract(folioEntity.getTotalPaid()));
+        folioRepository.save(folioEntity);
     }
 }

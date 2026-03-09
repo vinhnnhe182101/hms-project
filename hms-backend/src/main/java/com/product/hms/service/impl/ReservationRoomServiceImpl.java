@@ -46,7 +46,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 ));
 
         // Get folio
-        FolioEntity folio = folioRepository.findByReservationRoom(reservationRoom)
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoom)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + reservationRoomId
@@ -175,7 +175,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
 
         ReservationEntity reservation = reservationRoom.getReservationEntity();
 
-        FolioEntity folio = folioRepository.findByReservationRoom(reservationRoom)
+        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoom)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + reservationRoomId
@@ -230,7 +230,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
 
         boolean allPaid = allRooms.stream().allMatch(room -> {
-            FolioEntity folio = folioRepository.findByReservationRoom(room).orElse(null);
+            FolioEntity folio = folioRepository.findByReservationRoomEntity(room).orElse(null);
             return folio != null && folio.getBalance().signum() <= 0;
         });
 

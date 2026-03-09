@@ -9,6 +9,19 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 
+/**
+ * Entity đại diện cho lịch làm việc của nhân viên.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID lịch làm việc</li>
+ *   <li>{@link #staffEntity} - Nhân viên</li>
+ *   <li>{@link #shiftEntity} - Ca làm việc</li>
+ *   <li>{@link #workDate} - Ngày làm việc</li>
+ *   <li>{@link #status} - Trạng thái lịch</li>
+ *   <li>{@link #isActive} - Lịch còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -11,17 +11,25 @@ import java.util.List;
 public interface ReservationRoomRepository extends JpaRepository<ReservationRoomEntity, Long> {
 
     /**
-     * Find all allocations for a reservation
+     * Tìm kiếm tất cả các ReservationRoomEntity theo ReservationEntity
+     *
+     * @param reservationEntity đối tượng ReservationEntity cần tìm kiếm
+     * @return Danh sách các ReservationRoomEntity
      */
     List<ReservationRoomEntity> findByReservationEntity(ReservationEntity reservationEntity);
 
     /**
-     * Delete all allocations for a reservation.
+     * Xóa tất cả các ReservationRoomEntity theo ReservationEntity
+     *
+     * @param reservationEntity đối tượng ReservationEntity cần xóa
      */
     void deleteByReservationEntity(ReservationEntity reservationEntity);
 
     /**
-     * Find all active allocations by reservation ID for check-in purposes.
+     * Tìm kiếm tất cả các ReservationRoomEntity theo id của ReservationEntity và isActive = true
+     *
+     * @param reservationId id của ReservationEntity cần tìm kiếm
+     * @return Danh sách các ReservationRoomEntity thỏa mãn điều kiện
      */
     List<ReservationRoomEntity> findByReservationEntity_IdAndIsActiveTrue(Long reservationId);
 }

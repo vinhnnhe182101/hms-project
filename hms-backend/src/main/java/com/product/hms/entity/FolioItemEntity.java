@@ -13,6 +13,22 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho khoản mục chi tiết trong hóa đơn (folio).
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID khoản mục</li>
+ *   <li>{@link #folioEntity} - Hóa đơn liên quan</li>
+ *   <li>{@link #type} - Loại khoản mục {@link com.product.hms.enums.FolioItemType}</li>
+ *   <li>{@link #serviceBookingEntity} - Dịch vụ liên quan (nếu có)</li>
+ *   <li>{@link #description} - Mô tả khoản mục</li>
+ *   <li>{@link #quantity} - Số lượng</li>
+ *   <li>{@link #totalPrice} - Tổng tiền khoản mục</li>
+ *   <li>{@link #status} - Trạng thái khoản mục {@link com.product.hms.enums.FolioItemStatus}</li>
+ *   <li>{@link #paymentAllocationEntities} - Danh sách phân bổ thanh toán</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -9,6 +9,12 @@ import java.util.List;
 
 @Repository
 public interface RoomOccupantRepository extends JpaRepository<RoomOccupantEntity, Long> {
-    List<RoomOccupantEntity> findByReservationRoomEntityAndIsActiveTrue(ReservationRoomEntity reservationRoom);
+    /**
+     * Tìm kiếm danh sách RoomOccupantEntity theo ReservationRoomEntity và isActive = true.
+     *
+     * @param reservationRoomEntity đối tượng ReservationRoomEntity cần tìm kiếm
+     * @return Danh sách RoomOccupantEntity thỏa mãn điều kiện
+     */
+    List<RoomOccupantEntity> findByReservationRoomEntityAndIsActiveTrue(ReservationRoomEntity reservationRoomEntity);
 }
 
