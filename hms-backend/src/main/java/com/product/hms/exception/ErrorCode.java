@@ -60,6 +60,9 @@ public enum ErrorCode {
     INSUFFICIENT_PAYMENT("INSUFFICIENT_PAYMENT", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_DEPOSIT("INSUFFICIENT_DEPOSIT", HttpStatus.BAD_REQUEST),
 
+    // Task & Housekeeping Domain
+    TASK_NOT_FOUND("TASK_NOT_FOUND", HttpStatus.NOT_FOUND),
+
     // Utilities / Technical Errors
     INVALID_PAGE_PARAMS("INVALID_PAGE_PARAMS", HttpStatus.BAD_REQUEST),
     PAGE_NOT_FOUND("PAGE_NOT_FOUND", HttpStatus.NOT_FOUND),

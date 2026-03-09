@@ -1,6 +1,7 @@
 package com.product.hms.repository;
 
 import com.product.hms.entity.StaffEntity;
+import com.product.hms.enums.Department;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +14,9 @@ public interface StaffRepository extends JpaRepository<StaffEntity, Long> {
     Optional<StaffEntity> findByUserEntityId(Long userId);
 
     List<StaffEntity> findAllByOrderByIdAsc();
+
+    /**
+     * Find all active staff members by department
+     */
+    List<StaffEntity> findByDepartmentAndIsActiveTrue(Department department);
 }
