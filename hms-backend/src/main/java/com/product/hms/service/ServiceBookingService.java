@@ -12,11 +12,11 @@ public interface ServiceBookingService {
     /**
      * Tao một booking dịch vụ mới cho một reservation room. Chỉ được phép khi trạng thái của reservation là CHECKED_IN.
      *
-     * @param reservationRoomId là id của reservation room mà booking dịch vụ sẽ được tạo cho nó
-     * @param request           là đối tượng chứa thông tin chi tiết về booking dịch vụ cần tạo, bao gồm id của dịch vụ và số lượng
+     * @param reservationRoomId     là id của reservation room mà booking dịch vụ sẽ được tạo cho nó
+     * @param serviceBookingRequest là đối tượng chứa thông tin chi tiết về booking dịch vụ cần tạo, bao gồm id của dịch vụ và số lượng
      * @return ServiceBookingResponse chứa thông tin về booking dịch vụ đã được tạo
      */
-    ServiceBookingResponse createServiceBooking(Long reservationRoomId, ServiceBookingRequest request);
+    ServiceBookingResponse createServiceBooking(Long reservationRoomId, ServiceBookingRequest serviceBookingRequest);
 
     /**
      * Cập nhật một booking dịch vụ (chỉ được phép khi trạng thái là PENDING).

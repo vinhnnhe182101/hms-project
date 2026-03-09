@@ -109,12 +109,12 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationValidationSupport.validateCancellationAllowed(reservation);
         boolean isEligibleForRefund = ReservationValidationSupport.isRefundEligible(reservation);
 
-        List<ReservationRoomEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
-        for (ReservationRoomEntity allocation : allocations) {
+        List<ReservationRoomEntity> reservationRoomEntities = roomAllocationService.getAllocationsByReservation(reservation);
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
             if (isEligibleForRefund) {
-                folioService.createRefundItem(allocation, reservation.getTotalDeposit());
+                folioService.createRefundItem(reservationRoomEntity, reservation.getTotalDeposit());
             } else {
-                folioService.createCancellationFeeItem(allocation, reservation.getTotalDeposit());
+                folioService.createCancellationFeeItem(reservationRoomEntity, reservation.getTotalDeposit());
             }
         }
 
@@ -162,34 +162,34 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private void applyEarlyCheckInFees(ReservationEntity reservation) {
-        List<ReservationRoomEntity> allocations = reservationRoomRepository
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomRepository
                 .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
 
-        for (ReservationRoomEntity allocation : allocations) {
-            BigDecimal fee = calculateEarlyCheckInFee(allocation, reservation.getExpectedCheckIn());
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
+            BigDecimal fee = calculateEarlyCheckInFee(reservationRoomEntity, reservation.getExpectedCheckIn());
             if (fee.signum() > 0) {
-                folioService.applyEarlyCheckInFee(allocation, fee);
+                folioService.applyEarlyCheckInFee(reservationRoomEntity, fee);
             }
         }
     }
 
-    private BigDecimal calculateEarlyCheckInFee(ReservationRoomEntity allocation, Timestamp expectedCheckIn) {
-        if (allocation.getActualCheckIn() == null || expectedCheckIn == null) {
+    private BigDecimal calculateEarlyCheckInFee(ReservationRoomEntity reservationRoomEntity, Timestamp expectedCheckIn) {
+        if (reservationRoomEntity.getActualCheckIn() == null || expectedCheckIn == null) {
             return BigDecimal.ZERO;
         }
 
-        Instant actualCheckIn = allocation.getActualCheckIn();
+        Instant actualCheckIn = reservationRoomEntity.getActualCheckIn();
         Instant expected = expectedCheckIn.toInstant();
         if (!actualCheckIn.isBefore(expected)) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal rate = determineEarlyCheckInRate(actualCheckIn, expectedCheckIn);
-        if (rate.signum() <= 0 || allocation.getPriceAtBooking() == null) {
+        if (rate.signum() <= 0 || reservationRoomEntity.getPriceAtBooking() == null) {
             return BigDecimal.ZERO;
         }
 
-        return allocation.getPriceAtBooking().multiply(rate).setScale(2, RoundingMode.HALF_UP);
+        return reservationRoomEntity.getPriceAtBooking().multiply(rate).setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal determineEarlyCheckInRate(Instant actualCheckIn, Timestamp expectedCheckIn) {
@@ -218,14 +218,14 @@ public class ReservationServiceImpl implements ReservationService {
             Map<Long, RoomClassEntity> roomClassById,
             BigDecimal depositAmount
     ) {
-        List<ReservationRoomEntity> allocations = roomAllocationService.createRoomAllocations(
+        List<ReservationRoomEntity> reservationRoomEntities = roomAllocationService.createRoomAllocations(
                 reservation,
                 request,
                 roomClassById
         );
 
-        for (ReservationRoomEntity allocation : allocations) {
-            folioService.createFolioWithDepositItem(allocation, depositAmount);
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
+            folioService.createFolioWithDepositItem(reservationRoomEntity, depositAmount);
         }
     }
 

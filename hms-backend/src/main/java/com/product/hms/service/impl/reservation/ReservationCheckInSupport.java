@@ -28,30 +28,30 @@ public final class ReservationCheckInSupport {
             ReservationRoomRepository reservationRoomRepository,
             RoomRepository roomRepository
     ) {
-        List<ReservationRoomEntity> allocations = reservationRoomRepository
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomRepository
                 .findByReservationEntity_IdAndIsActiveTrue(reservationId);
 
-        if (allocations.isEmpty()) {
+        if (reservationRoomEntities.isEmpty()) {
             throw new BusinessException(
                     ErrorCode.RESERVATION_ROOM_ASSIGNMENT_REQUIRED,
-                    "Reservation has no active room allocations for check-in"
+                    "Reservation has no active room reservationRoomEntities for check-in"
             );
         }
 
-        Map<Long, Long> roomIdByAllocationId = extractManualAssignmentMap(reservationId, request, allocations);
-        executeAssignment(allocations, roomIdByAllocationId, Boolean.TRUE.equals(request.autoAssign()), roomRepository);
+        Map<Long, Long> roomIdByAllocationId = extractManualAssignmentMap(reservationId, request, reservationRoomEntities);
+        executeAssignment(reservationRoomEntities, roomIdByAllocationId, Boolean.TRUE.equals(request.autoAssign()), roomRepository);
 
-        roomRepository.saveAll(allocations.stream().map(ReservationRoomEntity::getRoomEntity).toList());
-        reservationRoomRepository.saveAll(allocations);
+        roomRepository.saveAll(reservationRoomEntities.stream().map(ReservationRoomEntity::getRoomEntity).toList());
+        reservationRoomRepository.saveAll(reservationRoomEntities);
     }
 
     private static Map<Long, Long> extractManualAssignmentMap(
             Long reservationId,
             ReservationCheckInRequest request,
-            List<ReservationRoomEntity> allocations
+            List<ReservationRoomEntity> reservationRoomEntities
     ) {
         Map<Long, Long> roomIdByAllocationId = new HashMap<>();
-        Set<Long> validAllocationIds = allocations.stream()
+        Set<Long> validAllocationIds = reservationRoomEntities.stream()
                 .map(ReservationRoomEntity::getId)
                 .collect(Collectors.toSet());
 
@@ -85,25 +85,25 @@ public final class ReservationCheckInSupport {
     }
 
     private static void executeAssignment(
-            List<ReservationRoomEntity> allocations,
+            List<ReservationRoomEntity> reservationRoomEntities,
             Map<Long, Long> roomIdByAllocationId,
             boolean autoAssign,
             RoomRepository roomRepository
     ) {
         Set<Long> usedRoomIds = new HashSet<>();
 
-        for (ReservationRoomEntity allocation : allocations) {
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
             RoomEntity room = resolveRoomForAllocation(
-                    allocation,
-                    roomIdByAllocationId.get(allocation.getId()),
+                    reservationRoomEntity,
+                    roomIdByAllocationId.get(reservationRoomEntity.getId()),
                     autoAssign,
                     usedRoomIds,
                     roomRepository
             );
 
-            allocation.setRoomEntity(room);
-            allocation.setStatus(ReservationRoomStatus.CHECKED_IN);
-            allocation.setActualCheckIn(Instant.now());
+            reservationRoomEntity.setRoomEntity(room);
+            reservationRoomEntity.setStatus(ReservationRoomStatus.CHECKED_IN);
+            reservationRoomEntity.setActualCheckIn(Instant.now());
 
             room.setStatus(RoomStatus.OCCUPIED);
             usedRoomIds.add(room.getId());
@@ -111,7 +111,7 @@ public final class ReservationCheckInSupport {
     }
 
     private static RoomEntity resolveRoomForAllocation(
-            ReservationRoomEntity allocation,
+            ReservationRoomEntity reservationRoomEntity,
             Long manualRoomId,
             boolean autoAssign,
             Set<Long> usedRoomIds,
@@ -123,19 +123,19 @@ public final class ReservationCheckInSupport {
                             ErrorCode.ROOM_NOT_FOUND,
                             "Room not found with ID: " + manualRoomId
                     ));
-            validateRoomAssignable(allocation, room, usedRoomIds);
+            validateRoomAssignable(reservationRoomEntity, room, usedRoomIds);
             return room;
         }
 
         if (!autoAssign) {
             throw new BusinessException(
                     ErrorCode.RESERVATION_ROOM_ASSIGNMENT_REQUIRED,
-                    "Missing room assignment for reservationRoomId: " + allocation.getId()
+                    "Missing room assignment for reservationRoomId: " + reservationRoomEntity.getId()
             );
         }
 
         List<RoomEntity> availableRooms = roomRepository.findByRoomClassEntity_IdAndStatusAndIsActiveTrueOrderByIdAsc(
-                allocation.getRoomClassEntity().getId(),
+                reservationRoomEntity.getRoomClassEntity().getId(),
                 RoomStatus.AVAILABLE
         );
 
@@ -144,18 +144,18 @@ public final class ReservationCheckInSupport {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INSUFFICIENT_AVAILABLE_ROOMS,
-                        "No available room for room class ID: " + allocation.getRoomClassEntity().getId()
+                        "No available room for room class ID: " + reservationRoomEntity.getRoomClassEntity().getId()
                 ));
 
-        validateRoomAssignable(allocation, room, usedRoomIds);
+        validateRoomAssignable(reservationRoomEntity, room, usedRoomIds);
         return room;
     }
 
-    private static void validateRoomAssignable(ReservationRoomEntity allocation, RoomEntity room, Set<Long> usedRoomIds) {
+    private static void validateRoomAssignable(ReservationRoomEntity reservationRoomEntity, RoomEntity room, Set<Long> usedRoomIds) {
         if (usedRoomIds.contains(room.getId())) {
             throw new BadRequestException(
                     ErrorCode.INVALID_REQUEST,
-                    "Room is assigned to multiple allocations in one check-in request: " + room.getId()
+                    "Room is assigned to multiple reservationRooms in one check-in request: " + room.getId()
             );
         }
 
@@ -167,10 +167,10 @@ public final class ReservationCheckInSupport {
             throw new BusinessException(ErrorCode.ROOM_NOT_AVAILABLE, "Room is not available: " + room.getId());
         }
 
-        if (!room.getRoomClassEntity().getId().equals(allocation.getRoomClassEntity().getId())) {
+        if (!room.getRoomClassEntity().getId().equals(reservationRoomEntity.getRoomClassEntity().getId())) {
             throw new BusinessException(
                     ErrorCode.ROOM_CLASS_MISMATCH,
-                    "Room class mismatch for reservationRoomId: " + allocation.getId()
+                    "Room class mismatch for reservationRoomId: " + reservationRoomEntity.getId()
             );
         }
     }

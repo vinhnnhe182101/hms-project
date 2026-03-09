@@ -8,6 +8,7 @@ import com.product.hms.entity.RoomClassEntity;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Nên chuyển qua ReservationRoomService vì RoomAllocation nghe có vẻ không rõ
 public interface RoomAllocationService {
     /**
      * Tạo các bản ghi ReservationRoomEntity dựa trên thông tin đặt phòng và số lượng phòng theo từng loại phòng được cung cấp trong request.
