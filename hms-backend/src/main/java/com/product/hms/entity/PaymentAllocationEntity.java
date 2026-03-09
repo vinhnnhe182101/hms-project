@@ -9,6 +9,18 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity đại diện cho phân bổ thanh toán vào các khoản mục hóa đơn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID phân bổ</li>
+ *   <li>{@link #paymentTransactionEntity} - Giao dịch thanh toán liên quan</li>
+ *   <li>{@link #folioItemEntity} - Khoản mục hóa đơn liên quan</li>
+ *   <li>{@link #amountApplied} - Số tiền phân bổ</li>
+ *   <li>{@link #isActive} - Phân bổ còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -9,6 +9,21 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.sql.Timestamp;
 
+/**
+ * Entity đại diện cho công việc vệ sinh phòng khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID công việc</li>
+ *   <li>{@link #roomEntity} - Phòng liên quan</li>
+ *   <li>{@link #assigneeEntity} - Nhân viên được giao</li>
+ *   <li>{@link #taskType} - Loại công việc</li>
+ *   <li>{@link #status} - Trạng thái công việc</li>
+ *   <li>{@link #assignedAt} - Thời điểm giao việc</li>
+ *   <li>{@link #completedAt} - Thời điểm hoàn thành</li>
+ *   <li>{@link #isActive} - Công việc còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

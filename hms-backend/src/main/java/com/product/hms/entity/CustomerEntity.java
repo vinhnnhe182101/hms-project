@@ -10,6 +10,22 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho khách hàng của khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID khách hàng</li>
+ *   <li>{@link #fullName} - Họ tên</li>
+ *   <li>{@link #phoneNumber} - Số điện thoại</li>
+ *   <li>{@link #identityCard} - Số CMND/CCCD</li>
+ *   <li>{@link #email} - Email</li>
+ *   <li>{@link #type} - Loại khách hàng</li>
+ *   <li>{@link #guardianEntity} - Người bảo hộ (nếu có)</li>
+ *   <li>{@link #userEntity} - Tài khoản người dùng liên kết</li>
+ *   <li>{@link #isActive} - Khách hàng còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

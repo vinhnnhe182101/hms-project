@@ -13,6 +13,21 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Entity đại diện cho thông tin đặt phòng cụ thể trong một đơn đặt phòng.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID đặt phòng chi tiết</li>
+ *   <li>{@link #reservationEntity} - Đơn đặt phòng cha</li>
+ *   <li>{@link #roomClassEntity} - Loại phòng đặt</li>
+ *   <li>{@link #roomEntity} - Phòng thực tế</li>
+ *   <li>{@link #priceAtBooking} - Giá tại thời điểm đặt</li>
+ *   <li>{@link #numberOfPeople} - Số người ở</li>
+ *   <li>{@link #status} - Trạng thái đặt phòng {@link com.product.hms.enums.ReservationRoomStatus}</li>
+ *   <li>{@link #isActive} - Đặt phòng còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

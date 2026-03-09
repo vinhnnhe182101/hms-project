@@ -5,6 +5,20 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+/**
+ * Entity đại diện cho tài khoản người dùng hệ thống.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID tài khoản</li>
+ *   <li>{@link #email} - Email đăng nhập</li>
+ *   <li>{@link #password} - Mật khẩu</li>
+ *   <li>{@link #role} - Vai trò</li>
+ *   <li>{@link #provider} - Nhà cung cấp xác thực</li>
+ *   <li>{@link #providerId} - ID nhà cung cấp</li>
+ *   <li>{@link #isActive} - Tài khoản còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

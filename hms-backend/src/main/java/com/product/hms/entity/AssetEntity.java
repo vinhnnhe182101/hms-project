@@ -9,6 +9,20 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho tài sản trong khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID tài sản</li>
+ *   <li>{@link #categoryEntity} - Loại tài sản</li>
+ *   <li>{@link #name} - Tên tài sản</li>
+ *   <li>{@link #totalQuantity} - Tổng số lượng</li>
+ *   <li>{@link #availableQuantity} - Số lượng còn lại</li>
+ *   <li>{@link #price} - Giá trị tài sản</li>
+ *   <li>{@link #isActive} - Tài sản còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

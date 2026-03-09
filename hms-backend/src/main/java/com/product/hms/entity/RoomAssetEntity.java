@@ -8,6 +8,19 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+/**
+ * Entity đại diện cho tài sản gắn với phòng khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID tài sản phòng</li>
+ *   <li>{@link #roomEntity} - Phòng liên quan</li>
+ *   <li>{@link #assetEntity} - Tài sản liên quan</li>
+ *   <li>{@link #quantity} - Số lượng</li>
+ *   <li>{@link #status} - Trạng thái tài sản {@link com.product.hms.enums.RoomAssetStatus}</li>
+ *   <li>{@link #isActive} - Tài sản phòng còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
