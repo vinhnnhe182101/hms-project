@@ -130,7 +130,7 @@ Mantine gợi ý:
 
 ### 4.5 Icons
 - Dùng 1 bộ icon thống nhất (Tabler Icons là lựa chọn phù hợp vì Mantine hay dùng).
-- Màu icon theo semantic (xóa đỏ, s���a primary, xem gray/blue).
+- Màu icon theo semantic (xóa đỏ, sửa primary, xem gray/blue).
 
 ---
 

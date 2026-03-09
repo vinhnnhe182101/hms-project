@@ -7,6 +7,7 @@ import com.product.hms.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepos
 import com.product.hms.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.product.hms.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
