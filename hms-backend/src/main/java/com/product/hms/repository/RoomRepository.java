@@ -69,4 +69,9 @@ public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRep
             Long roomClassId,
             RoomStatus status
     );
+
+    /**
+     * Fetch all active rooms for floor matrix display
+     */
+    List<RoomEntity> findByIsActiveTrue();
 }
