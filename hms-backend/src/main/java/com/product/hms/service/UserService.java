@@ -37,8 +37,9 @@ public interface UserService {
 
     List<StaffResponseDTO> getAllStaff();
     void deleteStaff(Long id);
-    UserDetails loadUserByUsername(String email);
-    UserEntity processOAuth2User(Map<String, Object> attributes, String provider);
-    boolean existsByEmail(String email);
     UserEntity findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    UserEntity processOAuth2User(Map<String, Object> attributes, String provider);
 }
