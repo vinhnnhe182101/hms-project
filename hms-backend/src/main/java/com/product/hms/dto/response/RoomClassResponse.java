@@ -3,14 +3,14 @@ package com.product.hms.dto.response;
 import java.math.BigDecimal;
 
 /**
- * Response DTO for room class information
+ * DTO phản hồi thông tin loại phòng.
  *
- * @param id               Room class ID
- * @param name             Room class name
- * @param basePrice        Base price per night
- * @param standardCapacity Standard number of guests
- * @param maxCapacity      Maximum number of guests allowed
- * @param extraPersonFee   Additional fee per extra person
+ * @param id               ID loại phòng
+ * @param name             Tên loại phòng
+ * @param basePrice        Giá cơ bản mỗi đêm
+ * @param standardCapacity Sức chứa tiêu chuẩn
+ * @param maxCapacity      Sức chứa tối đa
+ * @param extraPersonFee   Phụ phí mỗi người vượt chuẩn
  */
 public record RoomClassResponse(
         Long id,
@@ -21,6 +21,3 @@ public record RoomClassResponse(
         BigDecimal extraPersonFee
 ) {
 }
-
-
-

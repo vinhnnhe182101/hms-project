@@ -1,10 +1,10 @@
 package com.product.hms.dto.request;
 
 /**
- * Room assignment payload for one reservation-room during check-in.
+ * DTO gán phòng cho từng allocation khi check-in.
  *
- * @param reservationRoomId reservation room id
- * @param roomId            physical room id to assign
+ * @param reservationRoomId ID allocation đặt phòng
+ * @param roomId            ID phòng thực tế sẽ gán
  */
 public record ReservationRoomCheckInRequest(
         Long reservationRoomId,

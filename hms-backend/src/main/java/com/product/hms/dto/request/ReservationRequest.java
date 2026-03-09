@@ -4,14 +4,14 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * DTO for reservation operations (create and update)
+ * DTO cho thao tác đặt phòng (tạo mới hoặc cập nhật)
  *
- * @param customerRequest     Customer payload (existing via customerId, or new customer details)
- * @param roomClassQuantities List of room class quantities (allows duplicate room classes with different numberOfPeople)
- * @param checkInDate         Expected check-in date
- * @param checkOutDate        Expected check-out date
- * @param numberOfMembers     Total number of guests
- * @param note                Additional notes or special requests
+ * @param customerRequest     Thông tin khách hàng (có thể là khách cũ qua customerId hoặc khách mới)
+ * @param roomClassQuantities Danh sách loại phòng và số lượng (cho phép lặp loại phòng với số người khác nhau)
+ * @param checkInDate         Ngày nhận phòng dự kiến
+ * @param checkOutDate        Ngày trả phòng dự kiến
+ * @param numberOfMembers     Tổng số khách
+ * @param note                Ghi chú hoặc yêu cầu đặc biệt
  */
 public record ReservationRequest(
         CustomerRequest customerRequest,

@@ -4,18 +4,18 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * Response DTO for reservation information.
+ * DTO phản hồi thông tin đơn đặt phòng.
  *
- * @param bookingId       Reservation ID
- * @param bookingCode     Unique reservation code
- * @param customer        Full customer information (avoid extra fetch on frontend)
- * @param allocations     List of room class allocations with IDs (not merged, each entry is separate)
- * @param checkInDate     Expected check-in date
- * @param checkOutDate    Expected check-out date
- * @param status          Reservation status (CONFIRMED, CHECKED_IN, etc.)
- * @param numberOfMembers Total number of guests
- * @param note            Additional notes for the reservation
- * @param createdAt       Timestamp when reservation was created
+ * @param bookingId       ID đơn đặt phòng
+ * @param bookingCode     Mã đặt phòng duy nhất
+ * @param customer        Thông tin khách hàng đầy đủ
+ * @param allocations     Danh sách phân bổ loại phòng (không gộp, mỗi entry là một allocation riêng)
+ * @param checkInDate     Ngày nhận phòng dự kiến
+ * @param checkOutDate    Ngày trả phòng dự kiến
+ * @param status          Trạng thái đơn đặt phòng (CONFIRMED, CHECKED_IN, ...)
+ * @param numberOfMembers Tổng số khách
+ * @param note            Ghi chú cho đơn đặt phòng
+ * @param createdAt       Thời điểm tạo đơn
  */
 public record ReservationResponse(
         Long bookingId,
@@ -30,4 +30,3 @@ public record ReservationResponse(
         Timestamp createdAt
 ) {
 }
-
