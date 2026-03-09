@@ -8,10 +8,10 @@ import com.product.hms.dto.response.CustomerResponse;
 public interface CustomerService {
 
     /**
-     * Find customer by identity card number
+     * Tìm kiếm khách hàng theo số chứng minh nhân dân (identity card number).
      *
-     * @param identityCard the identity card number
-     * @return CustomerResponse containing customer information
+     * @param identityCard Số chứng minh nhân dân của khách hàng
+     * @return Thông tin khách hàng nếu tìm thấy, null nếu không tìm thấy
      */
     CustomerResponse findCustomerByIdentityCard(String identityCard);
 }
