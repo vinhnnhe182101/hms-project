@@ -1,7 +1,7 @@
 package com.product.hms.api.controller.admin;
 
-import com.product.hms.dto.RoomTypeCreateDTO;
-import com.product.hms.dto.RoomTypeResponseDTO;
+import com.product.hms.dto.request.RoomTypeCreateDTO;
+import com.product.hms.dto.response.RoomTypeResponseDTO;
 import com.product.hms.service.RoomTypeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class AdminRoomTypeController {
     @PutMapping("/{id}")
     public ResponseEntity<RoomTypeResponseDTO> update(
             @PathVariable Long id,
-            @Valid @RequestBody RoomTypeCreateDTO dto) {
+            @RequestBody RoomTypeCreateDTO dto) {
         return ResponseEntity.ok(roomTypeService.update(id, dto));
     }
 
