@@ -94,8 +94,8 @@ public class FolioItemServiceImpl implements FolioItemService {
     }
 
     @Override
-    public BigDecimal calculateTotalCharges(FolioEntity folio) {
-        List<FolioItemEntity> activeItems = folioItemRepository.findByFolioEntity_IdAndIsActiveTrue(folio.getId());
+    public BigDecimal calculateTotalCharges(FolioEntity folioEntity) {
+        List<FolioItemEntity> activeItems = folioItemRepository.findByFolioEntity_IdAndIsActiveTrue(folioEntity.getId());
         return activeItems.stream()
                 .map(FolioItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

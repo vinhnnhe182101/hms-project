@@ -9,5 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface FolioRepository extends JpaRepository<FolioEntity, Long> {
-    Optional<FolioEntity> findByReservationRoom(ReservationRoomEntity allocation);
+
+    /**
+     * Tìm kiếm FolioEntity theo ReservationRoomEntity.
+     *
+     * @param reservationRoomEntity đối tượng ReservationRoomEntity cần tìm kiếm
+     * @return Optional chứa FolioEntity nếu tìm thấy, hoặc Optional.empty() nếu không tìm thấy
+     */
+    Optional<FolioEntity> findByReservationRoomEntity(ReservationRoomEntity reservationRoomEntity);
 }

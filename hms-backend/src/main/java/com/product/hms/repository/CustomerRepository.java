@@ -11,13 +11,15 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> {
 
     /**
-     * Find customer by identity card number
+     * Tìm kiếm khách hàng theo số chứng minh nhân dân (identity card number).
      *
-     * @param identityCard the identity card number
-     * @return Optional containing the customer if found
+     * @param identityCard số chứng minh nhân dân của khách hàng
+     * @return Optional chứa CustomerEntity nếu tìm thấy, hoặc Optional.empty() nếu không tìm thấy
      */
     Optional<CustomerEntity> findByIdentityCard(String identityCard);
+
     Optional<CustomerEntity> findByUserEntity(UserEntity userEntity);
+
     Optional<CustomerEntity> findByEmail(String email);
 }
 
