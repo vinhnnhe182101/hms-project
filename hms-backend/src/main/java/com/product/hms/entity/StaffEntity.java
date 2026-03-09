@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.Department;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,8 +40,9 @@ public class StaffEntity {
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "department", length = 100)
-    private String department;
+    private Department department;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;
