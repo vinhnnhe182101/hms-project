@@ -12,9 +12,9 @@ public interface RoomOccupantRepository extends JpaRepository<RoomOccupantEntity
     /**
      * Tìm kiếm danh sách RoomOccupantEntity theo ReservationRoomEntity và isActive = true.
      *
-     * @param reservationRoom đối tượng ReservationRoomEntity cần tìm kiếm
+     * @param reservationRoomEntity đối tượng ReservationRoomEntity cần tìm kiếm
      * @return Danh sách RoomOccupantEntity thỏa mãn điều kiện
      */
-    List<RoomOccupantEntity> findByReservationRoomEntityAndIsActiveTrue(ReservationRoomEntity reservationRoom);
+    List<RoomOccupantEntity> findByReservationRoomEntityAndIsActiveTrue(ReservationRoomEntity reservationRoomEntity);
 }
 

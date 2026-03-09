@@ -32,8 +32,8 @@ public interface ServiceBookingRepository extends JpaRepository<ServiceBookingEn
      * Kiểm tra sự tồn tại của ServiceBookingEntity theo ReservationRoomEntity và ServiceBookingStatus.
      *
      * @param reservationRoomEntity đối tượng ReservationRoomEntity cần tìm kiếm
-     * @param status                trạng thái ServiceBookingStatus cần tìm kiếm
+     * @param serviceBookingStatus  trạng thái ServiceBookingStatus cần tìm kiếm
      * @return true nếu tồn tại ít nhất một ServiceBookingEntity thỏa mãn điều kiện, ngược lại trả về false
      */
-    boolean existsByReservationRoomEntityAndStatus(ReservationRoomEntity reservationRoomEntity, ServiceBookingStatus status);
+    boolean existsByReservationRoomEntityAndStatus(ReservationRoomEntity reservationRoomEntity, ServiceBookingStatus serviceBookingStatus);
 }
