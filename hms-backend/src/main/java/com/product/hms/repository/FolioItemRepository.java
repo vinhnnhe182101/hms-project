@@ -7,4 +7,3 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FolioItemRepository extends JpaRepository<FolioItemEntity, Long> {
 }
-

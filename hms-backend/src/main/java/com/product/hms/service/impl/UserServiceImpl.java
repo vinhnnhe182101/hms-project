@@ -4,19 +4,24 @@ import com.product.hms.dto.request.StaffRequestDTO;
 import com.product.hms.dto.request.UserRequestDTO;
 import com.product.hms.dto.response.StaffResponseDTO;
 import com.product.hms.dto.response.UserResponseDTO;
+import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.StaffEntity;
 import com.product.hms.entity.UserEntity;
 import com.product.hms.enums.Role;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
+import com.product.hms.exception.ResourceNotFoundException;
+import com.product.hms.repository.CustomerRepository;
 import com.product.hms.repository.StaffRepository;
 import com.product.hms.repository.UserRepository;
 import com.product.hms.service.UserService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,10 +29,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
+    private final CustomerRepository customerRepository;
 
-    public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository) {
+    public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository, CustomerRepository customerRepository) {
         this.userRepository = userRepository;
         this.staffRepository = staffRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Override
@@ -165,6 +172,7 @@ public class UserServiceImpl implements UserService {
         staffRepository.save(entity);
     }
 
+
     private void mapUserRequestToEntity(UserRequestDTO request, UserEntity entity) {
         entity.setEmail(request.getEmail());
         entity.setRole(request.getRole() != null ? request.getRole().name() : entity.getRole());
@@ -219,5 +227,46 @@ public class UserServiceImpl implements UserService {
                 .userId(userId)
                 .email(email)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public UserEntity processOAuth2User(Map<String, Object> attributes, String provider) {
+        String email = (String) attributes.get("email");
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    UserEntity newUser = new UserEntity();
+                    newUser.setEmail(email);
+                    newUser.setProvider(provider);
+                    newUser.setProviderId((String) attributes.get("sub"));
+                    newUser.setRole(Role.CUSTOMER.name());
+                    newUser.setIsActive(true);
+
+                    UserEntity savedUser = userRepository.save(newUser);
+
+                    // Create customer for OAuth2 user
+                    CustomerEntity customer = new CustomerEntity();
+                    customer.setUserEntity(savedUser);
+                    customer.setEmail(savedUser.getEmail());
+                    customer.setFullName((String) attributes.get("name"));
+                    customer.setIsActive(true);
+                    customerRepository.save(customer);
+
+                    return savedUser;
+                });
+
+        return user;
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public UserEntity findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 }

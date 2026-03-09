@@ -12,11 +12,6 @@ public enum FolioStatus implements DbValueEnum {
     FolioStatus(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
-    }
 }
 
 

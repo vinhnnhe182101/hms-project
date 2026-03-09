@@ -17,9 +17,4 @@ public enum FolioItemType implements DbValueEnum {
     FolioItemType(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
-    }
 }

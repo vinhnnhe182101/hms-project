@@ -13,11 +13,4 @@ public enum PaymentTransactionType implements DbValueEnum {
     PaymentTransactionType(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
     }
-}
-
-

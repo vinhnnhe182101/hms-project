@@ -1,5 +1,6 @@
 package com.product.hms.api;
 
+import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.service.ReservationService;
@@ -52,6 +53,18 @@ public class ReservationApi {
     @DeleteMapping("/{reservationId}")
     public ResponseEntity<ReservationResponse> cancelReservation(@PathVariable Long reservationId) {
         ReservationResponse response = reservationService.cancelReservation(reservationId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Check in a reservation.
+     */
+    @PostMapping("/{reservationId}/check-in")
+    public ResponseEntity<ReservationResponse> checkInReservation(
+            @PathVariable Long reservationId,
+            @RequestBody ReservationCheckInRequest request
+    ) {
+        ReservationResponse response = reservationService.checkInReservation(reservationId, request);
         return ResponseEntity.ok(response);
     }
 }

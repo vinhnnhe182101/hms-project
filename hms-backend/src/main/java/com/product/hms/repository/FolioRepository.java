@@ -9,5 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface FolioRepository extends JpaRepository<FolioEntity, Long> {
-    Optional<FolioEntity> findByReservationRoomAllocation(ReservationRoomEntity allocation);
 }

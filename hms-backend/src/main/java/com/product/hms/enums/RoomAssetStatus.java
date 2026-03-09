@@ -11,9 +11,4 @@ public enum RoomAssetStatus implements DbValueEnum {
     RoomAssetStatus(String dbValue) {
         this.dbValue = dbValue;
     }
-
-    @Override
-    public String getDbValue() {
-        return dbValue;
-    }
 }

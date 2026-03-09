@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.response.ReservationResponse;
 
@@ -33,4 +34,13 @@ public interface ReservationService {
      * @return ReservationResponse with CANCELED status
      */
     ReservationResponse cancelReservation(Long reservationId);
+
+    /**
+     * Check in a reservation and assign physical rooms for each reservation room.
+     *
+     * @param reservationId reservation id
+     * @param request       check-in payload (manual assignment and/or auto assign)
+     * @return updated reservation response in IN_HOUSE status
+     */
+    ReservationResponse checkInReservation(Long reservationId, ReservationCheckInRequest request);
 }
