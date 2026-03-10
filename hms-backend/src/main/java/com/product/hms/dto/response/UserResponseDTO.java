@@ -1,7 +1,11 @@
 package com.product.hms.dto.response;
 
 import com.product.hms.enums.Role;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter

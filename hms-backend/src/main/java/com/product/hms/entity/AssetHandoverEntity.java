@@ -7,6 +7,19 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.sql.Timestamp;
 
+/**
+ * Entity đại diện cho việc bàn giao tài sản cho nhân viên.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID bàn giao</li>
+ *   <li>{@link #staffEntity} - Nhân viên nhận</li>
+ *   <li>{@link #assetEntity} - Tài sản được bàn giao</li>
+ *   <li>{@link #quantity} - Số lượng bàn giao</li>
+ *   <li>{@link #handoverDate} - Ngày bàn giao</li>
+ *   <li>{@link #isActive} - Bàn giao còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -29,7 +42,7 @@ public class AssetHandoverEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "handover_date", nullable = false)
     private Timestamp handoverDate;
 

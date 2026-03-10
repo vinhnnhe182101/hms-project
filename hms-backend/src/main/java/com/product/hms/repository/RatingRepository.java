@@ -15,8 +15,8 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
 
     @Query("SELECT r FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
-            "JOIN res.reservationRoomAllocationEntities rra " +
-            "WHERE rra.roomClassEntity.id = :roomClassId " +
+            "JOIN res.reservationRoomEntities rr " +
+            "WHERE rr.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
             "AND r.isActive = true " +
             "ORDER BY r.reviewDate DESC")
@@ -24,8 +24,8 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
 
     @Query("SELECT r FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
-            "JOIN res.reservationRoomAllocationEntities rra " +
-            "WHERE rra.roomClassEntity.id = :roomClassId " +
+            "JOIN res.reservationRoomEntities rr " +
+            "WHERE rr.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
             "AND r.isActive = true " +
             "AND r.rating = :rating " +
@@ -37,24 +37,24 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
 
     @Query("SELECT AVG(r.rating) FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
-            "JOIN res.reservationRoomAllocationEntities rra " +
-            "WHERE rra.roomClassEntity.id = :roomClassId " +
+            "JOIN res.reservationRoomEntities rr " +
+            "WHERE rr.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
             "AND r.isActive = true")
     Double getAverageRatingByRoomClassId(@Param("roomClassId") Long roomClassId);
 
     @Query("SELECT COUNT(r) FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
-            "JOIN res.reservationRoomAllocationEntities rra " +
-            "WHERE rra.roomClassEntity.id = :roomClassId " +
+            "JOIN res.reservationRoomEntities rr " +
+            "WHERE rr.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
             "AND r.isActive = true")
     Long countPublicRatingsByRoomClassId(@Param("roomClassId") Long roomClassId);
 
     @Query("SELECT r.rating, COUNT(r) FROM RatingEntity r " +
             "JOIN r.reservationEntity res " +
-            "JOIN res.reservationRoomAllocationEntities rra " +
-            "WHERE rra.roomClassEntity.id = :roomClassId " +
+            "JOIN res.reservationRoomEntities rr " +
+            "WHERE rr.roomClassEntity.id = :roomClassId " +
             "AND r.isPublic = true " +
             "AND r.isActive = true " +
             "GROUP BY r.rating")

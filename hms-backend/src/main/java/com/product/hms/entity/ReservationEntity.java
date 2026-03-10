@@ -11,6 +11,22 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho đơn đặt phòng khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID đơn đặt phòng</li>
+ *   <li>{@link #code} - Mã code đặt phòng</li>
+ *   <li>{@link #customerEntity} - Khách hàng đặt phòng</li>
+ *   <li>{@link #expectedCheckIn} - Thời gian dự kiến nhận phòng</li>
+ *   <li>{@link #expectedCheckOut} - Thời gian dự kiến trả phòng</li>
+ *   <li>{@link #status} - Trạng thái đơn đặt phòng {@link com.product.hms.enums.ReservationStatus}</li>
+ *   <li>{@link #totalDeposit} - Tổng tiền cọc</li>
+ *   <li>{@link #numberOfMembers} - Số thành viên</li>
+ *   <li>{@link #isActive} - Đơn đặt phòng còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -51,7 +67,7 @@ public class ReservationEntity {
     @Column(name = "note")
     private String note;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
@@ -65,10 +81,7 @@ public class ReservationEntity {
     private List<RatingEntity> ratingEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "reservationEntity")
-    private List<ReservationRoomAllocationEntity> reservationRoomAllocationEntities = new ArrayList<>();
-
-    @OneToMany(mappedBy = "reservationEntity")
-    private List<ServiceBookingEntity> serviceBookingEntities = new ArrayList<>();
+    private List<ReservationRoomEntity> reservationRoomEntities = new ArrayList<>();
 
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)

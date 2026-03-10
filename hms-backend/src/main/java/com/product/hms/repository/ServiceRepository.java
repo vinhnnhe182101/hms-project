@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<ServiceEntity, Long> {
-
-
     Page<ServiceEntity> findByServiceCategory(ServiceCategory serviceCategory, Pageable pageable);
 }
+

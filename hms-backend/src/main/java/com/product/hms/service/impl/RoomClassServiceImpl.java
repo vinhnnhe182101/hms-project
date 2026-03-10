@@ -16,11 +16,9 @@ import com.product.hms.enums.ReservationStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Base64;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import com.product.hms.repository.RoomRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -29,17 +27,32 @@ public class RoomClassServiceImpl implements RoomClassService {
     private final RoomClassRepository roomClassRepository;
     private final RoomImgRepository roomImgRepository;
     private final RatingRepository ratingRepository;
+    private final RoomRepository roomRepository;
 
     @Override
     @Transactional(readOnly = true)
     public Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable) {
-        List<ReservationStatus> statuses = List.of(
-                ReservationStatus.PENDING_DEPOSIT,
-                ReservationStatus.CONFIRMED,
-                ReservationStatus.IN_HOUSE
-        );
-        return roomClassRepository.findRoomClassSummary(checkIn, checkOut, statuses, pageable)
-                .map(this::mapSummaryToResponse);
+        // Lấy danh sách room class summary
+        Page<Object[]> summaryPage = roomClassRepository.findRoomClassSummaryWithoutDate(pageable);
+        
+        // Lấy số lượng phòng trống thực tế từ RoomRepository (custom query)
+        Map<Long, Integer> availableCounts = roomRepository.countAvailableRoomsByRoomClass(checkIn, checkOut);
+
+        return summaryPage.map(row -> {
+            Long roomClassId = ((Number) row[0]).longValue();
+            Double avgRating = ratingRepository.getAverageRatingByRoomClassId(roomClassId);
+            Long availableRooms = availableCounts.getOrDefault(roomClassId, 0).longValue();
+            
+            return RoomClassResponse.builder()
+                    .id(roomClassId)
+                    .name((String) row[1])
+                    .standardCapacity(((Number) row[2]).intValue())
+                    .basePrice((BigDecimal) row[3])
+                    .primaryImage(buildPrimaryImage(roomClassId))
+                    .totalRooms(availableRooms)
+                    .averageRating(avgRating != null ? avgRating : 0.0)
+                    .build();
+        });
     }
 
     @Override
@@ -112,7 +125,7 @@ public class RoomClassServiceImpl implements RoomClassService {
                 .basePrice((BigDecimal) row[3])
                 .primaryImage(buildPrimaryImage(roomClassId))
                 .totalRooms(row[4] != null ? ((Number) row[4]).longValue() : 0L)
-                .averageRating(avgRating)
+                .averageRating(avgRating != null ? avgRating : 0.0)
                 .build();
     }
 

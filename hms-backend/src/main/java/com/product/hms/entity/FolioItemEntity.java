@@ -1,5 +1,7 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.FolioItemStatus;
+import com.product.hms.enums.FolioItemType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +13,22 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho khoản mục chi tiết trong hóa đơn (folio).
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID khoản mục</li>
+ *   <li>{@link #folioEntity} - Hóa đơn liên quan</li>
+ *   <li>{@link #type} - Loại khoản mục {@link com.product.hms.enums.FolioItemType}</li>
+ *   <li>{@link #serviceBookingEntity} - Dịch vụ liên quan (nếu có)</li>
+ *   <li>{@link #description} - Mô tả khoản mục</li>
+ *   <li>{@link #quantity} - Số lượng</li>
+ *   <li>{@link #totalPrice} - Tổng tiền khoản mục</li>
+ *   <li>{@link #status} - Trạng thái khoản mục {@link com.product.hms.enums.FolioItemStatus}</li>
+ *   <li>{@link #paymentAllocationEntities} - Danh sách phân bổ thanh toán</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -26,10 +44,11 @@ public class FolioItemEntity {
     @JoinColumn(name = "folio_id", nullable = false)
     private FolioEntity folioEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50)
-    private String type;
+    private FolioItemType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "service_booking_id")
     private ServiceBookingEntity serviceBookingEntity;
@@ -47,8 +66,9 @@ public class FolioItemEntity {
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private FolioItemStatus status;
 
     @OneToMany(mappedBy = "folioItemEntity")
     private List<PaymentAllocationEntity> paymentAllocationEntities = new ArrayList<>();

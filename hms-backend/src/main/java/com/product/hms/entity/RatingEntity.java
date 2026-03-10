@@ -9,6 +9,21 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.sql.Timestamp;
 
+/**
+ * Entity đại diện cho đánh giá của khách hàng về dịch vụ/phòng.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID đánh giá</li>
+ *   <li>{@link #reservationEntity} - Đơn đặt phòng liên quan</li>
+ *   <li>{@link #customerEntity} - Khách hàng đánh giá</li>
+ *   <li>{@link #rating} - Điểm đánh giá</li>
+ *   <li>{@link #comment} - Nhận xét</li>
+ *   <li>{@link #reviewDate} - Ngày đánh giá</li>
+ *   <li>{@link #isPublic} - Công khai đánh giá</li>
+ *   <li>{@link #isActive} - Đánh giá còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -36,7 +51,7 @@ public class RatingEntity {
     @Column(name = "comment")
     private String comment;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "review_date", nullable = false)
     private Timestamp reviewDate;
 

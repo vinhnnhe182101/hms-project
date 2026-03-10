@@ -13,16 +13,24 @@ hms-frontend/*
 !hms-frontend/tsconfig.node.json
 !hms-frontend/vite.config.ts
 
-
 !hms-backend
 hms-backend/*
 !hms-backend/config/
 !hms-backend/pom.xml
 !hms-backend/src/
+hms-backend/src/main/resources/logback-spring.xml
 
 !hms-database
 hms-database/*
 !hms-database/ddl.sql
 !hms-database/dml.sql
+
+!.github/
+!.github/copilot-instructions.md
+!business_rules.md
+!coding_guildlines.md
+!lessons.md
+!styles_guildelines.md
+!todo.md
 
 !.gitignore

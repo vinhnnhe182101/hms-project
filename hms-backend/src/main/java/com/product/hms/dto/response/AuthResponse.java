@@ -1,19 +1,10 @@
 package com.product.hms.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
+@Data
 public class AuthResponse {
-    private Long customerId;
-    private String fullName;
-    private String email;
-    private String phoneNumber;
-    private String identityCard;
-    private String role;
+    private String token;
 }

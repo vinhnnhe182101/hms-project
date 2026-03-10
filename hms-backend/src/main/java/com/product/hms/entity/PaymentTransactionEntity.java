@@ -12,6 +12,24 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho giao dịch thanh toán của hóa đơn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID giao dịch</li>
+ *   <li>{@link #folioEntity} - Hóa đơn liên quan</li>
+ *   <li>{@link #code} - Mã giao dịch</li>
+ *   <li>{@link #transactionReference} - Tham chiếu giao dịch</li>
+ *   <li>{@link #paymentMethod} - Phương thức thanh toán</li>
+ *   <li>{@link #amount} - Số tiền giao dịch</li>
+ *   <li>{@link #type} - Loại giao dịch</li>
+ *   <li>{@link #status} - Trạng thái giao dịch</li>
+ *   <li>{@link #createdAt} - Thời điểm tạo</li>
+ *   <li>{@link #handledByEntity} - Nhân viên xử lý</li>
+ *   <li>{@link #paymentAllocationEntities} - Danh sách phân bổ thanh toán</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -46,7 +64,7 @@ public class PaymentTransactionEntity {
     @Column(name = "status", nullable = false, length = 50)
     private String status;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 

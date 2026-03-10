@@ -9,9 +9,21 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Entity đại diện cho việc đặt dịch vụ của khách trong quá trình lưu trú.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID đặt dịch vụ</li>
+ *   <li>{@link #reservationRoomEntity} - Đặt phòng liên quan</li>
+ *   <li>{@link #serviceEntity} - Dịch vụ liên quan</li>
+ *   <li>{@link #quantity} - Số lượng dịch vụ</li>
+ *   <li>{@link #status} - Trạng thái đặt dịch vụ {@link com.product.hms.enums.ServiceBookingStatus}</li>
+ *   <li>{@link #priceAtBooking} - Giá tại thời điểm đặt</li>
+ *   <li>{@link #isActive} - Đặt dịch vụ còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -24,18 +36,12 @@ public class ServiceBookingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "reservation_id", nullable = false)
-    private ReservationEntity reservationEntity;
+    @JoinColumn(name = "reservation_room_id", nullable = false)
+    private ReservationRoomEntity reservationRoomEntity;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity serviceEntity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "allocation_id")
-    private ReservationRoomAllocationEntity allocationEntity;
-
 
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
@@ -49,12 +55,8 @@ public class ServiceBookingEntity {
     @Column(name = "price_at_booking", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtBooking;
 
-    @OneToMany(mappedBy = "serviceBookingEntity")
-    private List<FolioItemEntity> folioItemEntities = new ArrayList<>();
 
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
-
 }

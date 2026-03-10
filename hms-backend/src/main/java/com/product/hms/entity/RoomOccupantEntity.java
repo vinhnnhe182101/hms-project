@@ -7,6 +7,18 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+/**
+ * Entity đại diện cho người ở thực tế trong phòng khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID người ở</li>
+ *   <li>{@link #reservationRoomEntity} - Đặt phòng cụ thể</li>
+ *   <li>{@link #customerEntity} - Khách hàng lưu trú</li>
+ *   <li>{@link #role} - Vai trò của người ở</li>
+ *   <li>{@link #isActive} - Trạng thái hoạt động</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -19,8 +31,8 @@ public class RoomOccupantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "allocation_id", nullable = false)
-    private ReservationRoomAllocationEntity allocationEntity;
+    @JoinColumn(name = "reservation_room_id", nullable = false)
+    private ReservationRoomEntity reservationRoomEntity;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)

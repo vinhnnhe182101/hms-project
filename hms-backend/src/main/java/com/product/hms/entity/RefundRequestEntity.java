@@ -10,6 +10,23 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
+/**
+ * Entity đại diện cho yêu cầu hoàn tiền của khách hàng.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID yêu cầu hoàn tiền</li>
+ *   <li>{@link #paymentTransactionEntity} - Giao dịch thanh toán liên quan</li>
+ *   <li>{@link #amount} - Số tiền hoàn</li>
+ *   <li>{@link #reason} - Lý do hoàn tiền</li>
+ *   <li>{@link #rejectReason} - Lý do từ chối (nếu có)</li>
+ *   <li>{@link #status} - Trạng thái yêu cầu</li>
+ *   <li>{@link #requestedByEntity} - Nhân viên yêu cầu</li>
+ *   <li>{@link #approvedByEntity} - Nhân viên duyệt</li>
+ *   <li>{@link #createdAt} - Thời điểm tạo</li>
+ *   <li>{@link #updatedAt} - Thời điểm cập nhật</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -38,7 +55,8 @@ public class RefundRequestEntity {
     private String rejectReason;
 
     @ColumnDefault("'PENDING'")
-    @Column(name = "status", nullable = false, length = 50)
+    @Lob
+    @Column(name = "status", nullable = false)
     private String status;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -50,11 +68,11 @@ public class RefundRequestEntity {
     @JoinColumn(name = "approved_by")
     private StaffEntity approvedByEntity;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP(6)")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
 

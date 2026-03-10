@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class JwtResponse {
-    @Builder.Default
-    private String token = "";
-    @Builder.Default
+    private String token;
     private String type = "Bearer";
     private Long id;
     private String email;

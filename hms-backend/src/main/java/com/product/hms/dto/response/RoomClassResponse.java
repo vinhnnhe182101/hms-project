@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 
 @Data
@@ -12,15 +11,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomClassResponse {
-
     private Long id;
     private String name;
-    private Integer standardCapacity;
     private BigDecimal basePrice;
-
+    private Integer standardCapacity;
+    private Integer maxCapacity;
+    private BigDecimal extraPersonFee;
     private RoomImgResponse primaryImage;
-
     private Long totalRooms;
     private Double averageRating;
 }
-
