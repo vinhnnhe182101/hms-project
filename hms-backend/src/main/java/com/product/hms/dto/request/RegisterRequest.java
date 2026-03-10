@@ -13,7 +13,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 1, message = "Password must be at least 6 characters")
     private String password;
 
     @NotBlank(message = "Full name is required")
@@ -21,6 +21,9 @@ public class RegisterRequest {
 
     @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone number must be 10-11 digits")
     private String phoneNumber;
+
+    @Pattern(regexp = "^[0-9]{9,12}$", message = "Identity card must be 9-12 digits")
+    private String identityCard;
 
     private String role = "CUSTOMER";
 }
