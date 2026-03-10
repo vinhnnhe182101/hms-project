@@ -23,7 +23,7 @@ export const getRoomClassList = async (page = 0, size = 9, checkIn = null, check
         const params = { page, size };
         if (checkIn) params.checkIn = checkIn;
         if (checkOut) params.checkOut = checkOut;
-        const response = await api.get('/room-classes', { params });
+        const response = await api.get('/home/room-classes', { params });
         return response.data;
     } catch (error) {
         console.error('Error fetching room class list:', error);
@@ -42,7 +42,7 @@ export const getRoomClassList = async (page = 0, size = 9, checkIn = null, check
  */
 export const getRoomClassDetail = async (id) => {
     try {
-        const response = await api.get(`/room-classes/${id}`);
+        const response = await api.get(`/home/room-classes/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching room class detail (id=${id}):`, error);
@@ -59,7 +59,7 @@ export const getRoomClassDetail = async (id) => {
  */
 export const getOtherRoomClasses = async (id) => {
     try {
-        const response = await api.get(`/room-classes/${id}/others`);
+        const response = await api.get(`/home/room-classes/${id}/others`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching other room classes (exclude id=${id}):`, error);

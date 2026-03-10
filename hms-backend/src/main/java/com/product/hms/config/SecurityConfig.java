@@ -70,10 +70,6 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/api/v1/home/**",
-                                "/api/v1/room-classes/**",
-                                "/api/v1/services/**",
-                                "/api/v1/ratings/**",
-                                "/api/v1/room-images/**",
                                 "/oauth2/**",
                                 "/login/oauth2/**"
                         ).permitAll()

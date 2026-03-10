@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/v1/ratings';
+const API_URL = 'http://localhost:8080/api/v1/home/ratings';
 
 export const getRoomClassRatings = async (roomClassId, page = 0, size = 5, rating = null) => {
     try {

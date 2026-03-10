@@ -12,7 +12,7 @@ const api = axios.create({
 
 export const getAllServices = async (page = 0, size = 50) => {
     try {
-        const response = await api.get('/services', { params: { page, size } });
+        const response = await api.get('/home/services', { params: { page, size } });
         return response.data;
     } catch (error) {
         console.error('Error fetching all services:', error);
@@ -28,7 +28,7 @@ export const getAllServices = async (page = 0, size = 50) => {
  */
 export const getServicesByCategory = async (category, page = 0, size = 50) => {
     try {
-        const response = await api.get('/services/by-category', {
+        const response = await api.get('/home/services/by-category', {
             params: { category, page, size }
         });
         return response.data;
