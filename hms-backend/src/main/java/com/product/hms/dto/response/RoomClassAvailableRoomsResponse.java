@@ -3,10 +3,10 @@ package com.product.hms.dto.response;
 import java.util.List;
 
 /**
- * Response DTO for available physical rooms grouped by room class.
+ * DTO phản hồi danh sách phòng vật lý còn trống theo từng loại phòng.
  *
- * @param roomClass      room class details
- * @param availableRooms available physical rooms for this class
+ * @param roomClass      Thông tin loại phòng
+ * @param availableRooms Danh sách phòng vật lý còn trống của loại này
  */
 public record RoomClassAvailableRoomsResponse(
         RoomClassResponse roomClass,

@@ -1,11 +1,11 @@
 package com.product.hms.dto.response;
 
 /**
- * Response DTO after checking out a room
+ * DTO phản hồi sau khi trả phòng.
  *
- * @param reservationRoomId Reservation room ID that was checked out
- * @param status            New status (should be CHECKED_OUT)
- * @param message           Success message
+ * @param reservationRoomId ID allocation phòng đã trả
+ * @param status            Trạng thái mới (CHECKED_OUT)
+ * @param message           Thông báo thành công
  */
 public record ReservationRoomCheckOutResponse(
         Long reservationRoomId,

@@ -1,13 +1,13 @@
 package com.product.hms.dto.request;
 
 /**
- * Request DTO for customer information
+ * DTO yêu cầu cho thông tin khách hàng
  *
- * @param customerId   Existing customer ID (optional)
- * @param identityCard Customer identity card number
- * @param fullName     Customer full name
- * @param phoneNumber  Customer phone number
- * @param email        Customer email address
+ * @param customerId   ID khách hàng đã tồn tại (tùy chọn)
+ * @param identityCard Số CMND/CCCD của khách hàng
+ * @param fullName     Họ tên khách hàng
+ * @param phoneNumber  Số điện thoại khách hàng
+ * @param email        Địa chỉ email khách hàng
  */
 public record CustomerRequest(
         Long customerId,

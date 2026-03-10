@@ -1,16 +1,13 @@
 package com.product.hms.dto.response;
 
 /**
- * Response DTO for room class availability information
+ * DTO phản hồi thông tin số lượng phòng còn trống theo loại phòng.
  *
- * @param roomClass      Room class details
- * @param availableRooms Number of available rooms for this class
+ * @param roomClass      Thông tin loại phòng
+ * @param availableRooms Số lượng phòng còn trống của loại này
  */
 public record RoomClassAvailabilityResponse(
         RoomClassResponse roomClass,
         Integer availableRooms
 ) {
 }
-
-
-

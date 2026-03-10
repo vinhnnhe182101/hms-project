@@ -1,10 +1,10 @@
 package com.product.hms.dto.response;
 
 /**
- * Response DTO for room occupant information
+ * DTO phản hồi thông tin người ở trong phòng.
  *
- * @param customer Customer information
- * @param role     Role in the room (e.g., "PRIMARY", "COMPANION")
+ * @param customer Thông tin khách hàng
+ * @param role     Vai trò trong phòng (ví dụ: "PRIMARY", "COMPANION")
  */
 public record RoomOccupantResponse(
         CustomerResponse customer,
