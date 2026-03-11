@@ -43,7 +43,7 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
     @Override
     public List<ActiveAllocationResponseDTO> getActiveAllocationsByCustomer(Long customerId) {
-        List<ReservationStatus> statuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.IN_HOUSE);
+        List<ReservationStatus> statuses = List.of(ReservationStatus.IN_HOUSE);
         List<ReservationRoomEntity> allocations = reservationRoomRepository.findActiveAllocationsByCustomer(customerId, statuses);
 
         return allocations.stream().map(a -> {
@@ -102,6 +102,9 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
         ServiceBookingEntity serviceBooking = buildServiceBooking(reservationRoom, service, serviceBookingRequest);
         ServiceBookingEntity saved = serviceBookingRepository.save(serviceBooking);
+
+        BigDecimal chargeAmount = service.getPrice().multiply(BigDecimal.valueOf(serviceBookingRequest.quantity()));
+        folioService.updateServiceCharge(saved, chargeAmount);
 
         return buildResponse(saved);
     }

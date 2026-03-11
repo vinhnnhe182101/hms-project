@@ -4,7 +4,7 @@ import { Carousel } from '@mantine/carousel';
 import { IconToolsKitchen2, IconSwimming, IconSparkles } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import '@mantine/carousel/styles.css';
-import { getHomeData } from '../../apis/homeApi';
+import { getHomeData } from '../../apis/customer/homeApi';
 
 export default function HomePage() {
     const navigate = useNavigate();

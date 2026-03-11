@@ -3,6 +3,7 @@ package com.product.hms.service;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.request.BookingRequestDTO; // Added this
+import com.product.hms.dto.response.BookingResponseDTO;
 import com.product.hms.dto.response.ReservationResponse;
 
 /**
@@ -44,5 +45,5 @@ public interface ReservationService {
      */
     ReservationResponse checkInReservation(Long reservationId, ReservationCheckInRequest request);
 
-    Long createBooking(BookingRequestDTO request);
+    BookingResponseDTO createBooking(BookingRequestDTO request);
 }

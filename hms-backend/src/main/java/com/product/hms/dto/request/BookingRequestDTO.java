@@ -16,7 +16,7 @@ public class BookingRequestDTO {
 
     @Data
     public static class RoomBookingRequest {
-        private Long id; // This is the roomClassId
+        private Long id; 
         private String name;
         private Integer quantity;
         private BigDecimal pricePerNight;
@@ -25,7 +25,7 @@ public class BookingRequestDTO {
 
     @Data
     public static class CustomerRequest {
-        private Long customerId;   // nếu đã đăng nhập, ưu tiên dùng cái này
+        private Long customerId;   
         private String name;
         private String phone;
         private String identityCard;

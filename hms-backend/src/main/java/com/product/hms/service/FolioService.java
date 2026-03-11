@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.ServiceBookingEntity;
 
@@ -7,6 +8,7 @@ import java.math.BigDecimal;
 
 public interface FolioService {
     void createFolioWithDepositItem(ReservationRoomEntity allocation, BigDecimal depositAmount);
+    FolioEntity createFolioForBooking(ReservationRoomEntity allocation, BigDecimal totalAmount);
 
     /**
      * Tạo một folio item cho khoản hoàn tiền (refund) khi khách hàng hủy đặt phòng.

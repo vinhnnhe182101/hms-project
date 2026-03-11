@@ -43,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BadRequest("User not found"));
 
         String fullName = getUserFullName(user);
+        Long customerId = user.getCustomerEntity() != null ? user.getCustomerEntity().getId() : null;
 
         return JwtResponse.builder()
                 .token(jwt)
@@ -51,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole())
                 .fullName(fullName)
                 .provider(user.getProvider())
+                .customerId(customerId)
                 .build();
     }
 
@@ -96,6 +98,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(savedUser.getRole())
                 .fullName(registerRequest.getFullName())
                 .provider(savedUser.getProvider())
+                .customerId(savedUser.getCustomerEntity() != null ? savedUser.getCustomerEntity().getId() : null)
                 .build();
     }
 

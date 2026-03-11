@@ -47,6 +47,9 @@ public class VnPayUtil {
         String createDate = LocalDateTime.now().format(DATE_TIME_FORMATTER);
         vnpParams.put("vnp_CreateDate", createDate);
 
+        String expireDate = LocalDateTime.now().plusMinutes(15).format(DATE_TIME_FORMATTER);
+        vnpParams.put("vnp_ExpireDate", expireDate);
+
         return buildUrlWithSignature(vnpParams);
     }
 
@@ -127,7 +130,7 @@ public class VnPayUtil {
 
     public String hmacSHA512(String key, String data) {
         try {
-            if (key == null || data == null) {
+            if (key == null || key.isBlank() || data == null) {
                 return "";
             }
             Mac hmac512 = Mac.getInstance("HmacSHA512");

@@ -5,6 +5,8 @@ import com.product.hms.enums.ReservationStatus;
 import com.product.hms.enums.RoomStatus;
 import com.product.hms.repository.custom.RoomRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -14,6 +16,28 @@ import java.util.Optional;
 
 @Repository
 public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRepositoryCustom {
+
+    @Query("""
+            SELECT r FROM RoomEntity r
+            WHERE r.roomClassEntity.id = :roomClassId
+              AND r.isActive = true
+              AND r.id NOT IN (
+                  SELECT alloc.roomEntity.id
+                  FROM ReservationRoomEntity alloc
+                  JOIN alloc.reservationEntity res
+                  WHERE alloc.roomEntity IS NOT NULL
+                    AND res.expectedCheckIn < :checkOut
+                    AND res.expectedCheckOut > :checkIn
+                    AND res.status IN :statuses
+                    AND alloc.isActive = true
+                    AND res.isActive = true
+                    AND r.isActive = true
+              )
+            """)
+    List<RoomEntity> findAvailableRoomsByClass(@Param("roomClassId") Long roomClassId,
+                                               @Param("checkIn")Timestamp checkIn,
+                                               @Param("checkOut") Timestamp checkOut,
+                                               @Param("statuses") List<ReservationStatus> statuses);
 
     /**
      * Đếm số lượng phòng còn trống theo từng loại phòng (room class) trong khoảng thời gian chỉ định.

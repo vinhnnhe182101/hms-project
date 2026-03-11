@@ -1,6 +1,7 @@
 package com.product.hms.api;
 
 import com.product.hms.dto.request.BookingRequestDTO;
+import com.product.hms.dto.response.BookingResponseDTO;
 import com.product.hms.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,8 @@ public class HomeReservationApi {
     @PostMapping("/booking")
     public ResponseEntity<?> createBooking(@RequestBody BookingRequestDTO request) {
         try {
-            Long reservationId = reservationService.createBooking(request);
-            return ResponseEntity.ok().body("{\"message\": \"Booking created successfully\", \"reservationId\": " + reservationId + "}");
+            BookingResponseDTO response = reservationService.createBooking(request);
+            return ResponseEntity.ok().body(response);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown Error"));

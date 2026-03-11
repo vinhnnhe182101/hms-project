@@ -10,6 +10,7 @@ import com.product.hms.enums.FolioItemStatus;
 import com.product.hms.enums.PaymentMethod;
 import com.product.hms.enums.PaymentTransactionStatus;
 import com.product.hms.enums.PaymentTransactionType;
+import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.repository.FolioItemRepository;
@@ -157,6 +158,16 @@ public class PaymentServiceImpl implements PaymentService {
                     folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
 
                     folioRepository.save(folio);
+                    
+                    if (folio.getReservationRoomEntity() != null 
+                            && folio.getReservationRoomEntity().getReservationEntity() != null) {
+                        var res = folio.getReservationRoomEntity().getReservationEntity();
+                        if (ReservationStatus.PENDING_DEPOSIT.equals(res.getStatus())) {
+                           res.setStatus(ReservationStatus.CONFIRMED);
+                           // NOTE: Do ReservationEntity dc quản lý bằng Hibernate session nếu Transaction,
+                           // thay đổi này sẽ dc flush tự động. Nếu không chắc, nên autowired reservationRepo vào lưu lại
+                        }
+                    }
                 }
             } else {
                 transaction.setStatus(PaymentTransactionStatus.FAILED.getDbValue());

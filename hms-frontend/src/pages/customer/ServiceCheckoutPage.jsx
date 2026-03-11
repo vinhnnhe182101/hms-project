@@ -5,13 +5,13 @@ import {
     Select, Box, NumberInput, ActionIcon, Anchor, Loader, Center, Alert
 } from '@mantine/core';
 import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle } from '@tabler/icons-react';
-import { useAuth } from '../../context/AuthContext';
-import { getActiveAllocations, createServiceBookings } from '../../apis/serviceBookingApi';
+import { useAuth } from '../../hooks/useAuth';
+import { getActiveAllocations, createServiceBookings } from '../../apis/customer/serviceBookingApi';
 
 export default function ServiceCheckoutPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { customer } = useAuth();
+    const { user: customer } = useAuth();
 
     const cart = location.state?.cart || [];
     const [allocations, setAllocations] = useState(() => {

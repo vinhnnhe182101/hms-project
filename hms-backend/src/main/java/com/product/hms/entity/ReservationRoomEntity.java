@@ -66,6 +66,7 @@ public class ReservationRoomEntity {
     @Column(name = "actual_check_in")
     private Instant actualCheckIn;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private ReservationRoomStatus status;
 

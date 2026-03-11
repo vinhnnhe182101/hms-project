@@ -11,11 +11,15 @@ import com.product.hms.service.FolioItemService;
 import com.product.hms.service.FolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import com.product.hms.constants.Reservation;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FolioServiceImpl implements FolioService {
     private final FolioRepository folioRepository;
     private final FolioItemService folioItemService;
@@ -42,6 +46,27 @@ public class FolioServiceImpl implements FolioService {
     public void createFolioWithDepositItem(ReservationRoomEntity reservationRoomEntity, BigDecimal depositAmount) {
         FolioEntity savedFolio = createFolio(reservationRoomEntity, depositAmount);
         folioItemService.createFolioItemForDeposit(savedFolio, depositAmount);
+    }
+
+    @Override
+    public FolioEntity createFolioForBooking(ReservationRoomEntity reservationRoomEntity, BigDecimal totalAmount) {
+        FolioEntity folio = new FolioEntity();
+        folio.setReservationRoomEntity(reservationRoomEntity);
+        folio.setTotalCharges(totalAmount);
+
+        // totalPaid will be 20% of totalAmount (deposit percentage)
+        BigDecimal totalPaid = totalAmount.multiply(Reservation.DEPOSIT_PERCENTAGE)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        folio.setTotalPaid(totalPaid);
+        folio.setBalance(totalAmount.subtract(totalPaid));
+        folio.setStatus(FolioStatus.OPEN);
+        folio.setIsActive(true);
+        FolioEntity savedFolio = folioRepository.save(folio);
+
+        folioItemService.createRoomChargeItem(savedFolio, totalAmount);
+        
+        return savedFolio;
     }
 
     @Override
@@ -73,6 +98,9 @@ public class FolioServiceImpl implements FolioService {
 
         // STEP 2: Tạo folio item cho cancellation fee (số tiền dương)
         folioItemService.createCancellationFeeItem(folio, cancellationAmount);
+
+        // STEP 3: Cập nhật lại folio totals
+        recalculateFolioTotals(folio);
     }
 
     @Override
@@ -147,8 +175,17 @@ public class FolioServiceImpl implements FolioService {
      */
     private void recalculateFolioTotals(FolioEntity folioEntity) {
         BigDecimal totalCharges = folioItemService.calculateTotalCharges(folioEntity);
+        if (totalCharges == null) {
+            totalCharges = BigDecimal.ZERO;
+        }
+
+        BigDecimal totalPaid = folioEntity.getTotalPaid();
+        if (totalPaid == null) {
+            totalPaid = BigDecimal.ZERO;
+        }
+
         folioEntity.setTotalCharges(totalCharges);
-        folioEntity.setBalance(totalCharges.subtract(folioEntity.getTotalPaid()));
+        folioEntity.setBalance(totalCharges.subtract(totalPaid));
         folioRepository.save(folioEntity);
     }
 }

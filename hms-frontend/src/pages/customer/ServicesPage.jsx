@@ -5,7 +5,7 @@ import {
     Badge, Tabs, Loader, Center, Image, Pagination
 } from '@mantine/core';
 import { IconPlus, IconMinus, IconTrash } from '@tabler/icons-react';
-import { getAllServices, getServicesByCategory } from '../../apis/serviceApi';
+import { getAllServices, getServicesByCategory } from '../../apis/customer/serviceApi';
 
 /**
  * Mapping ServiceCategory (backend enum) → icon + tên tiếng Việt hiển thị

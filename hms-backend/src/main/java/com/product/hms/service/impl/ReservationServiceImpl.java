@@ -1,10 +1,13 @@
 package com.product.hms.service.impl;
 
+import com.product.hms.constants.Reservation;
 import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.response.BookingResponseDTO;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
+import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
@@ -13,6 +16,7 @@ import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.*;
 import com.product.hms.service.FolioService;
+import com.product.hms.service.PaymentService;
 import com.product.hms.service.ReservationService;
 import com.product.hms.service.RoomAllocationService;
 import com.product.hms.service.impl.reservation.ReservationCheckInSupport;
@@ -25,24 +29,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.product.hms.enums.ReservationRoomStatus;
-import com.product.hms.enums.RoomStatus;
 import com.product.hms.entity.RoomEntity;
-import com.product.hms.dto.request.BookingRequestDTO; // Added this
+import com.product.hms.dto.request.BookingRequestDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.UUID;
 
-/**
- * Implementation of ReservationService
- */
+
 @Service
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
@@ -54,6 +51,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final RoomRepository roomRepository;
     private final RoomAllocationService roomAllocationService;
     private final FolioService folioService;
+    private final PaymentService paymentService;
     private final CustomerMapper customerMapper;
 
 
@@ -169,7 +167,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
-    public Long createBooking(BookingRequestDTO request) {
+    public BookingResponseDTO createBooking(BookingRequestDTO request) {
         CustomerEntity customer;
 
         if (request.getCustomer().getCustomerId() != null) {
@@ -200,37 +198,54 @@ public class ReservationServiceImpl implements ReservationService {
                             }));
         }
 
-        BigDecimal totalDeposit = BigDecimal.ZERO;
+
+        ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+        Instant checkInInstant = request.getCheckIn();
+        Instant checkOutInstant = request.getCheckOut();
+
+        LocalDate checkInDate = checkInInstant.atZone(zoneId).toLocalDate();
+        LocalDate checkOutDate = checkOutInstant.atZone(zoneId).toLocalDate();
+
+        long nights = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+        if (nights <= 0) nights = 1;
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
         if (request.getRooms() != null) {
             for (BookingRequestDTO.RoomBookingRequest r : request.getRooms()) {
-                if (r.getTotal() != null) {
-                    totalDeposit = totalDeposit.add(r.getTotal());
-                }
+                BigDecimal pricePerNight = r.getPricePerNight() != null ? r.getPricePerNight() : BigDecimal.ZERO;
+                BigDecimal roomTotal = pricePerNight.multiply(BigDecimal.valueOf(nights)).multiply(BigDecimal.valueOf(r.getQuantity()));
+                totalAmount = totalAmount.add(roomTotal);
             }
         }
+
+        BigDecimal depositAmount = totalAmount.multiply(Reservation.DEPOSIT_PERCENTAGE)
+                .setScale(2, RoundingMode.HALF_UP);
 
         ReservationEntity reservation = new ReservationEntity();
         reservation.setCode("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         reservation.setCustomerEntity(customer);
-        reservation.setExpectedCheckIn(Timestamp.from(request.getCheckIn()));
-        reservation.setExpectedCheckOut(Timestamp.from(request.getCheckOut()));
+        reservation.setExpectedCheckIn(Timestamp.from(checkInInstant));
+        reservation.setExpectedCheckOut(Timestamp.from(checkOutInstant));
         reservation.setStatus(ReservationStatus.PENDING_DEPOSIT);
-        reservation.setTotalDeposit(totalDeposit);
+        reservation.setTotalDeposit(depositAmount);
         reservation.setNumberOfMembers(request.getGuests());
         reservation.setNote(request.getCustomer().getNote());
-        reservation.setCreatedAt(Timestamp.from(Instant.now()));
+        reservation.setCreatedAt(Timestamp.valueOf(LocalDateTime.now(zoneId)));
         reservation.setIsActive(true);
 
         ReservationEntity savedReservation = reservationRepository.save(reservation);
+
+        Long firstFolioId = null;
 
         for (BookingRequestDTO.RoomBookingRequest roomReq : request.getRooms()) {
             RoomClassEntity roomClass = roomClassRepository.findById(roomReq.getId())
                     .orElseThrow(() -> new RuntimeException("Room Class not found: " + roomReq.getId()));
 
-            List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsForPeriodByRoomClassId(
-                    Timestamp.from(request.getCheckIn()), 
-                    Timestamp.from(request.getCheckOut()), 
-                    roomReq.getId()
+            List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsByClass(
+                    roomReq.getId(),
+                    Timestamp.from(checkInInstant),
+                    Timestamp.from(checkOutInstant),
+                    List.of(ReservationStatus.PENDING_DEPOSIT, ReservationStatus.CONFIRMED, ReservationStatus.IN_HOUSE)
             );
 
             if (availableRooms.size() < roomReq.getQuantity()) {
@@ -239,21 +254,42 @@ public class ReservationServiceImpl implements ReservationService {
 
             Collections.shuffle(availableRooms);
 
+            BigDecimal roomPricePerNight = roomReq.getPricePerNight() != null ? roomReq.getPricePerNight() : roomClass.getBasePrice();
+            BigDecimal roomTotalCharge = roomPricePerNight.multiply(BigDecimal.valueOf(nights));
+
             for (int i = 0; i < roomReq.getQuantity(); i++) {
                 ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
                 reservationRoomEntity.setReservationEntity(savedReservation);
                 reservationRoomEntity.setRoomClassEntity(roomClass);
                 reservationRoomEntity.setRoomEntity(availableRooms.get(i));
-                reservationRoomEntity.setPriceAtBooking(roomReq.getPricePerNight() != null ? roomReq.getPricePerNight() : roomClass.getBasePrice());
+                reservationRoomEntity.setPriceAtBooking(roomPricePerNight);
                 reservationRoomEntity.setNumberOfPeople(1);
                 reservationRoomEntity.setStatus(ReservationRoomStatus.ASSIGNED);
                 reservationRoomEntity.setIsActive(true);
                 ReservationRoomEntity savedRoom = reservationRoomRepository.save(reservationRoomEntity);
-                folioService.createFolioWithDepositItem(savedRoom, BigDecimal.ZERO);
+
+                // Create folio with the full room charge and 20% deposit already accounted for
+                FolioEntity createdFolio = folioService.createFolioForBooking(savedRoom, roomTotalCharge);
+                if (firstFolioId == null) {
+                    firstFolioId = createdFolio.getId();
+                }
             }
         }
 
-        return savedReservation.getId();
+        String paymentUrl = null;
+        if (firstFolioId != null && depositAmount.signum() > 0) {
+            // Lấy địa chỉ IP giả (hoặc bạn có thể bổ sung từ HttpServletRequest vào BookingRequestDTO)
+            String clientIp = "127.0.0.1";
+            paymentUrl = paymentService.createVnPayPaymentUrl(firstFolioId, depositAmount, clientIp);
+        }
+
+        return BookingResponseDTO.builder()
+                .reservationId(savedReservation.getId())
+                .reservationCode(savedReservation.getCode())
+                .totalAmount(totalAmount)
+                .depositAmount(depositAmount)
+                .paymentUrl(paymentUrl)
+                .build();
     }
 
     private void applyEarlyCheckInFees(ReservationEntity reservation) {

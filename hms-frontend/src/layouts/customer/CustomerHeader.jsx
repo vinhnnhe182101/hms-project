@@ -1,11 +1,11 @@
 import { Group, Button, Text, Box, Menu, Avatar } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { customer, logout } = useAuth();
+    const { user, logout } = useAuth();
 
     const isActive = (path) => {
         return location.pathname === path;
@@ -78,7 +78,7 @@ export default function Header() {
                     ))}
                 </Group>
 
-                {customer ? (
+                {user ? (
                     <Menu shadow="md" width={180} position="bottom-end">
                         <Menu.Target>
                             <Group gap={10} style={{ cursor: 'pointer' }}>
@@ -87,10 +87,10 @@ export default function Header() {
                                     radius="xl"
                                     size="sm"
                                 >
-                                    {customer.fullName?.charAt(0)?.toUpperCase() || 'K'}
+                                    {user.fullName?.charAt(0)?.toUpperCase() || 'K'}
                                 </Avatar>
                                 <Text fw={600} size="sm" style={{ color: 'var(--mantine-color-gray-8)', maxWidth: 120 }} lineClamp={1}>
-                                    {customer.fullName}
+                                    {user.fullName}
                                 </Text>
                             </Group>
                         </Menu.Target>

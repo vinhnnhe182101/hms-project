@@ -8,7 +8,7 @@ import { DateTimePicker } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { IconUsers, IconBed, IconChevronRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { getRoomClassList } from '../../apis/roomClassApi';
+import { getRoomClassList } from '../../apis/customer/roomClassApi';
 
 export default function RoomsPage() {
     const navigate = useNavigate();

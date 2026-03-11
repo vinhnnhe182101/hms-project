@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of RoomService
@@ -69,10 +70,10 @@ public class RoomServiceImpl implements RoomService {
         );
 
         Map<Long, List<RoomEntity>> roomsByClassId = availableRooms.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
+                .collect(Collectors.groupingBy(
                         room -> room.getRoomClassEntity().getId(),
                         LinkedHashMap::new,
-                        java.util.stream.Collectors.toList()
+                        Collectors.toList()
                 ));
 
         return roomsByClassId.values().stream()
@@ -137,13 +138,7 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
-    /**
-     * Private helper method to extract floor from room number.
-     * Removes the last 2 characters from room number to determine the floor.
-     *
-     * @param roomNumber the room number (e.g., "101", "1205", "5")
-     * @return the floor string (e.g., "1", "12", "1" for short numbers)
-     */
+
     private String extractFloor(String roomNumber) {
         if (roomNumber == null || roomNumber.length() <= 2) {
             return "1";

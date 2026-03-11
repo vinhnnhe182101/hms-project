@@ -7,7 +7,7 @@ import {
 import { DateTimePicker } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { IconUsers, IconBuilding, IconCalendar, IconCoin } from '@tabler/icons-react';
-import { getRoomClassList } from '../../apis/roomClassApi';
+import { getRoomClassList } from '../../apis/customer/roomClassApi';
 import { useNavigate } from 'react-router-dom';
 import '@mantine/dates/styles.css';
 

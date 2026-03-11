@@ -19,4 +19,5 @@ public class JwtResponse {
     private String role;
     private String fullName;
     private String provider;
+    private Long customerId;
 }

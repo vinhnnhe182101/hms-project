@@ -6,13 +6,14 @@ import {
 } from '@mantine/core';
 import { IconUser, IconPhone, IconIdBadge, IconCalendar, IconUsers, IconCoin, IconArrowLeft, IconInfoCircle, IconLogin } from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import { createBooking } from '../../apis/reservationApi';
-import { useAuth } from '../../context/AuthContext';
+import { createBooking } from '../../apis/customer/reservationApi';
+import { authApi } from '../../apis/auth/authApi';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function CheckoutPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { customer } = useAuth();
+    const { user: customer } = useAuth();
 
     const bookingData = location.state;
 
@@ -24,11 +25,21 @@ export default function CheckoutPage() {
 
     // Tự động điền thông tin từ customer đã đăng nhập
     useEffect(() => {
-        if (customer) {
-            if (customer.fullName) setName(customer.fullName);
-            if (customer.phoneNumber) setPhone(customer.phoneNumber);
-            if (customer.identityCard) setIdentityCard(customer.identityCard);
-        }
+        if (!customer) return;
+
+        // Điền ngay fullName từ context (luôn có)
+        if (customer.fullName) setName(customer.fullName);
+
+        // Gọi API /me để lấy phoneNumber và identityCard mới nhất từ DB
+        authApi.getMyProfile()
+            .then(res => {
+                const profile = res.data;
+                if (profile?.phoneNumber) setPhone(profile.phoneNumber);
+                if (profile?.identityCard) setIdentityCard(profile.identityCard);
+            })
+            .catch(() => {
+                // Nếu API lỗi thì bỏ qua, user tự nhập
+            });
     }, [customer]);
 
     if (!bookingData) {
@@ -44,6 +55,7 @@ export default function CheckoutPage() {
 
 
     const totalPrice = rooms.reduce((sum, r) => sum + r.total, 0);
+    const depositPrice = totalPrice * 0.2;
 
     const formatPrice = (price) =>
         new Intl.NumberFormat('vi-VN').format(price || 0);
@@ -77,9 +89,15 @@ export default function CheckoutPage() {
                 }
             };
 
-            await createBooking(bookingPayload);
-            alert('Đặt phòng thành công! Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.');
-            navigate('/');
+            const response = await createBooking(bookingPayload);
+            
+            if (response.paymentUrl) {
+                // Chuyển hướng người dùng qua trang VNPAY để trả tiền
+                window.location.href = response.paymentUrl;
+            } else {
+                alert(`Đặt phòng thành công! Mã đặt phòng: ${response.reservationCode}.\n\nVui lòng liên hệ khách sạn để chuẩn bị thanh toán tiền cọc ${new Intl.NumberFormat('vi-VN').format(response.depositAmount)} VNĐ (20%).`);
+                navigate('/');
+            }
         } catch (error) {
             console.error('Lỗi khi đặt phòng:', error);
             const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.';
@@ -236,6 +254,16 @@ export default function CheckoutPage() {
                                         {formatPrice(totalPrice)} VNĐ
                                     </Text>
                                 </Group>
+
+                                <Group justify="space-between" align="center" mt={4}>
+                                    <Text size="sm" fw={600}>Tiền đặt cọc (20%):</Text>
+                                    <Text size="lg" fw={700} color="orange.7">
+                                        {formatPrice(depositPrice)} VNĐ
+                                    </Text>
+                                </Group>
+                                <Text size="xs" c="dimmed" ta="right">
+                                    Vui lòng thanh toán tiền cọc để xác nhận đặt phòng
+                                </Text>
 
                                 <Button
                                     fullWidth

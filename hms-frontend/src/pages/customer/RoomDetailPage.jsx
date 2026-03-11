@@ -5,8 +5,8 @@ import {
     Card, Badge, Tabs, Loader, Center, Pagination, Textarea, Rating, Avatar, TextInput, Select
 } from '@mantine/core';
 import { IconUsers, IconCoin, IconChevronRight, IconBed } from '@tabler/icons-react';
-import { getRoomClassDetail, getOtherRoomClasses } from '../../apis/roomClassApi';
-import { getRoomClassRatings } from '../../apis/ratingApi';
+import { getRoomClassDetail, getOtherRoomClasses } from '../../apis/customer/roomClassApi';
+import { getRoomClassRatings } from '../../apis/customer/ratingApi';
 
 export default function RoomDetailPage() {
     const { id } = useParams();

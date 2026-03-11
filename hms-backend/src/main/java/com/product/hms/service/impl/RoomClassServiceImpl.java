@@ -32,27 +32,13 @@ public class RoomClassServiceImpl implements RoomClassService {
     @Override
     @Transactional(readOnly = true)
     public Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable) {
-        // Lấy danh sách room class summary
-        Page<Object[]> summaryPage = roomClassRepository.findRoomClassSummaryWithoutDate(pageable);
-        
-        // Lấy số lượng phòng trống thực tế từ RoomRepository (custom query)
-        Map<Long, Integer> availableCounts = roomRepository.countAvailableRoomsByRoomClass(checkIn, checkOut);
-
-        return summaryPage.map(row -> {
-            Long roomClassId = ((Number) row[0]).longValue();
-            Double avgRating = ratingRepository.getAverageRatingByRoomClassId(roomClassId);
-            Long availableRooms = availableCounts.getOrDefault(roomClassId, 0).longValue();
-            
-            return RoomClassResponse.builder()
-                    .id(roomClassId)
-                    .name((String) row[1])
-                    .standardCapacity(((Number) row[2]).intValue())
-                    .basePrice((BigDecimal) row[3])
-                    .primaryImage(buildPrimaryImage(roomClassId))
-                    .totalRooms(availableRooms)
-                    .averageRating(avgRating != null ? avgRating : 0.0)
-                    .build();
-        });
+        List<ReservationStatus> statuses = List.of(
+                ReservationStatus.PENDING_DEPOSIT,
+                ReservationStatus.CONFIRMED,
+                ReservationStatus.IN_HOUSE
+        );
+        return roomClassRepository.findRoomClassSummary(checkIn, checkOut, statuses, pageable)
+                .map(this::mapSummaryToResponse);
     }
 
     @Override
