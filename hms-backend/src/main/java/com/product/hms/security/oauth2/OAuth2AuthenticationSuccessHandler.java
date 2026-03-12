@@ -1,6 +1,7 @@
 package com.product.hms.security.oauth2;
 
 import com.product.hms.entity.UserEntity;
+import com.product.hms.repository.UserRepository;
 import com.product.hms.security.JwtTokenProvider;
 import com.product.hms.service.UserService;
 import jakarta.servlet.ServletException;
@@ -25,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${app.frontend-url}")
@@ -50,7 +51,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         Authentication authentication) {
         OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
 
-        UserEntity user = userService.findByEmail(principal.getEmail());
+        UserEntity user = userRepository.findByEmail(principal.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + principal.getEmail()));
 
         String token = tokenProvider.generateToken(user);
 
