@@ -1,4 +1,4 @@
-import { Title, Paper, Grid, Card, Text, SimpleGrid } from '@mantine/core';
+import {Title, Paper, Grid, Card, Text, SimpleGrid, Group} from '@mantine/core';
 import {
     IconHotelService,
     IconUsers,

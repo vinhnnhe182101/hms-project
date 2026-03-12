@@ -1,3 +1,4 @@
+// src/hooks/useAuth.jsx
 import { useState, useEffect, createContext, useContext } from 'react';
 import { authApi } from '../apis/authApi';
 import { jwtDecode } from 'jwt-decode';
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Chỉ check token khi load app
+    // Check token on load
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
 
@@ -71,20 +72,25 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const register = async (userData) => {
+        try {
+            const response = await authApi.register(userData);
+            return {
+                success: true,
+                message: response.data?.message || 'Registration successful',
+                data: response.data?.data
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Registration failed',
+            };
+        }
+    };
+
     const logout = () => {
-        console.log('Logout - Starting...');
-
-        // Xóa token
         localStorage.removeItem('accessToken');
-        console.log('Logout - Token removed');
-
-        // Xóa user state
         setUser(null);
-        console.log('Logout - User state cleared');
-
-
-        // Redirect về home
-        console.log('Logout - Redirecting to home');
         window.location.href = '/';
     };
 
@@ -96,8 +102,6 @@ export const AuthProvider = ({ children }) => {
     const getDashboardPath = (user) => {
         if (!user) return '/';
 
-        console.log(user.role)
-
         switch (user.role) {
             case 'ADMIN':
                 return '/admin';
@@ -105,6 +109,8 @@ export const AuthProvider = ({ children }) => {
                 return '/housekeeping';
             case 'CUSTOMER':
                 return '/';
+            case 'RECEPTIONIST':
+                return '/receptionist';
             default:
                 return '/';
         }
@@ -115,6 +121,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         getDashboardPath,
         hasRole,

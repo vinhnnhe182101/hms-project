@@ -1,3 +1,4 @@
+// src/components/auth/RegisterForm.jsx
 import { useState } from 'react';
 import {
     TextInput,
@@ -11,28 +12,26 @@ import {
     Group,
     Box,
     Stepper,
-    Select,
+    Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { IconAlertCircle } from '@tabler/icons-react';
 
 export function RegisterForm() {
     const { register } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [active, setActive] = useState(0);
+    const [error, setError] = useState(null);
 
     const form = useForm({
         initialValues: {
-            // Account info
             email: '',
             password: '',
             confirmPassword: '',
-            role: 'CUSTOMER',
-
-            // Personal info
             fullName: '',
             phoneNumber: '',
             identityCard: '',
@@ -42,22 +41,35 @@ export function RegisterForm() {
             password: (value) => (value.length < 6 ? 'Password must be at least 6 characters' : null),
             confirmPassword: (value, values) =>
                 value !== values.password ? 'Passwords do not match' : null,
-            fullName: (value) => (value.length < 2 ? 'Name is too short' : null),
-            phoneNumber: (value) => {
-                if (!value) return null;
-                return (/^\d{10,11}$/.test(value) ? null : 'Phone number must be 10-11 digits');
-            },
-            identityCard: (value) => {
-                if (!value) return null;
-                return (/^\d{9,12}$/.test(value) ? null : 'Identity card must be 9-12 digits');
-            },
+            fullName: (value) => null, // Tạm thời không validate
+            phoneNumber: () => null,
+            identityCard: () => null,
         },
     });
 
     const nextStep = () => {
         if (active === 0) {
-            const { hasErrors } = form.validate(['email', 'password', 'confirmPassword']);
-            if (!hasErrors) setActive(1);
+            // Validate chỉ 3 field step 1
+            const emailError = form.validateField('email');
+            const passwordError = form.validateField('password');
+            const confirmError = form.validateField('confirmPassword');
+
+            console.log('Step 1 validation:', {
+                email: emailError,
+                password: passwordError,
+                confirm: confirmError
+            });
+
+            // Nếu không có lỗi thì next
+            if (!emailError.hasError && !passwordError.hasError && !confirmError.hasError) {
+                setActive(1);
+            } else {
+                notifications.show({
+                    title: 'Validation Error',
+                    message: 'Please check your information',
+                    color: 'red'
+                });
+            }
         }
     };
 
@@ -65,6 +77,7 @@ export function RegisterForm() {
 
     const handleSubmit = async (values) => {
         setLoading(true);
+        setError(null);
 
         const userData = {
             email: values.email,
@@ -72,8 +85,10 @@ export function RegisterForm() {
             fullName: values.fullName,
             phoneNumber: values.phoneNumber,
             identityCard: values.identityCard,
-            role: values.role,
+            // role mặc định là CUSTOMER, không cần gửi
         };
+
+        console.log('Submitting registration:', userData);
 
         const result = await register(userData);
         setLoading(false);
@@ -84,8 +99,13 @@ export function RegisterForm() {
                 message: result.message || 'Registration successful! Please login.',
                 color: 'green',
             });
-            navigate('/login');
+
+            // Chuyển về login sau 1.5s
+            setTimeout(() => {
+                navigate('/login');
+            }, 1500);
         } else {
+            setError(result.error);
             notifications.show({
                 title: 'Error',
                 message: result.error || 'Registration failed',
@@ -98,8 +118,21 @@ export function RegisterForm() {
         <Box style={{ maxWidth: 500 }} mx="auto">
             <Paper radius="md" p="xl" withBorder>
                 <Title order={2} ta="center" mb="lg">
-                    Create Account
+                    Create Customer Account
                 </Title>
+
+                {error && (
+                    <Alert
+                        icon={<IconAlertCircle size={16} />}
+                        title="Registration Failed"
+                        color="red"
+                        mb="md"
+                        withCloseButton
+                        onClose={() => setError(null)}
+                    >
+                        {error}
+                    </Alert>
+                )}
 
                 <Stepper active={active} onStepClick={setActive} mb="xl">
                     <Stepper.Step label="Account" description="Create account">
@@ -122,16 +155,9 @@ export function RegisterForm() {
                                 placeholder="Confirm your password"
                                 {...form.getInputProps('confirmPassword')}
                             />
-                            <Select
-                                label="Account Type"
-                                placeholder="Select account type"
-                                data={[
-                                    { value: 'CUSTOMER', label: 'Customer' },
-                                    { value: 'ADMIN', label: 'Administrator' },
-                                    { value: 'HOUSEKEEPING', label: 'Housekeeping Staff' },
-                                ]}
-                                {...form.getInputProps('role')}
-                            />
+                            <Text size="sm" c="dimmed" fs="italic">
+                                Note: You are registering as a Customer. Staff accounts are created by Admin.
+                            </Text>
                         </Stack>
                     </Stepper.Step>
 
@@ -157,7 +183,12 @@ export function RegisterForm() {
                         </Stack>
                     </Stepper.Step>
                     <Stepper.Completed>
-                        Completed! Click register to create your account.
+                        <Stack align="center" gap="md">
+                            <Text size="lg" fw={500}>All set!</Text>
+                            <Text c="dimmed" ta="center">
+                                Click register to create your customer account.
+                            </Text>
+                        </Stack>
                     </Stepper.Completed>
                 </Stepper>
 

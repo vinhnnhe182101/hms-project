@@ -13,6 +13,7 @@ import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
+import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 
 function BookingDetailPage() {
     return null;
@@ -27,7 +28,7 @@ export const router = createBrowserRouter([
         ],
     },
     {
-        path: '/auth',
+        path: '/',
         element: <AuthLayout />,
         children: [
             { path: 'login', element: <LoginPage /> },
@@ -81,6 +82,16 @@ export const router = createBrowserRouter([
         children: [
             { index: true, element: <MobileTasksPage /> },
             { path: 'tasks', element: <MobileTasksPage /> },
+        ],
+    },
+    {
+        path: '/receptionist',
+        element: (
+            <ProtectedRoute>
+                <RecepDashboardPage />
+            </ProtectedRoute>
+        ),
+        children: [
         ],
     },
     {

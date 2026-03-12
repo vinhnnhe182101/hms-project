@@ -71,7 +71,7 @@ export default function HomePage() {
                                 size="lg"
                                 variant="outline"
                                 color="white"
-                                onClick={() => navigate('/auth/register')}
+                                onClick={() => navigate('/register')}
                             >
                                 Sign Up for Exclusive Deals
                             </Button>
@@ -196,7 +196,7 @@ export default function HomePage() {
                             <Button
                                 size="lg"
                                 variant="light"
-                                onClick={() => navigate('/auth/register')}
+                                onClick={() => navigate('/register')}
                             >
                                 Create Account
                             </Button>
