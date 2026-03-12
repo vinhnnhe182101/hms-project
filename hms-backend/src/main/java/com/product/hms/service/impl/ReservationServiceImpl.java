@@ -3,6 +3,7 @@ package com.product.hms.service.impl;
 import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.ReservationSearchFilter;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
@@ -15,12 +16,15 @@ import com.product.hms.repository.*;
 import com.product.hms.service.FolioService;
 import com.product.hms.service.ReservationService;
 import com.product.hms.service.ReservationRoomService;
+import com.product.hms.service.ReservationSearchService;
 import com.product.hms.service.impl.reservation.ReservationCheckInSupport;
 import com.product.hms.service.impl.reservation.ReservationPricingSupport;
 import com.product.hms.service.impl.reservation.ReservationResponseSupport;
 import com.product.hms.service.impl.reservation.ReservationValidationSupport;
 import com.product.hms.utils.RandomUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +53,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRoomService reservationRoomService;
     private final FolioService folioService;
     private final CustomerMapper customerMapper;
+    private final ReservationSearchService reservationSearchService;
 
 
     @Override
@@ -159,6 +164,13 @@ public class ReservationServiceImpl implements ReservationService {
                 reservationRoomService,
                 customerMapper
         );
+    }
+
+    @Override
+    public Page<ReservationResponse> search(ReservationSearchFilter filter, Pageable pageable) {
+        // Delegate to ReservationSearchServiceImpl (composition or autowired)
+        // Nếu muốn tối ưu, inject ReservationSearchService và gọi search
+        return reservationSearchService.search(filter, pageable);
     }
 
     private void applyEarlyCheckInFees(ReservationEntity reservation) {
