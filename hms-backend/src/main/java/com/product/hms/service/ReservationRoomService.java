@@ -1,6 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.dto.request.PaymentRequest;
+import com.product.hms.dto.request.RoomChangeRequest;
 import com.product.hms.dto.response.PaymentResponse;
 import com.product.hms.dto.response.ReservationRoomCheckOutResponse;
 import com.product.hms.dto.response.ReservationRoomFolioResponse;
@@ -40,4 +41,11 @@ public interface ReservationRoomService {
      */
     // TODO: Cần thêm service xử lý khi khách hàng thanh toán tiền mặt tại quầy. Lễ tân sẽ Mark As Paid cho các mục folio đã chọn.
     PaymentResponse processPayment(Long reservationRoomId, PaymentRequest request);
+
+    /**
+     * Chuyển phòng cho khách đã check-in.
+     * @param reservationRoomId ID của reservation room cần chuyển phòng
+     * @param request Thông tin chuyển phòng
+     */
+    void changeRoom(Long reservationRoomId, RoomChangeRequest request);
 }

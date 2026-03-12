@@ -7,6 +7,7 @@ import com.product.hms.entity.FolioEntity;
 import java.math.BigDecimal;
 import java.util.Map;
 
+// TODO: Thêm một Schedule để tự chuyển payment thành CANCELED nếu sau một khoảng thời gian nhất định
 public interface PaymentService {
 
     /**
@@ -40,13 +41,21 @@ public interface PaymentService {
     Map<String, String> processVnPayIpn(Map<String, String> params);
 
     /**
-     * Xử lý thanh toán cho một folio.
-     * Tạo giao dịch thanh toán và phân bổ thanh toán cho các mục folio chưa thanh toán.
-     * Cập nhật số dư folio và đánh dấu các mục là PAID khi đã thanh toán đầy đủ.
+     * Đánh dấu là payment đã được thanh toán trong trường hợp khách hàng trả tiền mặt
      *
-     * @param folio   folio cần thanh toán
-     * @param request chi tiết thanh toán
+     * @param paymentTransactionId ID của giao dịch thanh toán cần được đánh dấu là đã thanh toán
+     * @return PaymentResponse với thông tin về giao dịch thanh toán đã được cập nhật trạng thái thành công và số dư còn lại sau khi thanh toán
+     */
+    PaymentResponse markAsPaid(Long paymentTransactionId);
+
+    /**
+     * Xử lý thanh toán cho một folioEntity.
+     * Tạo giao dịch thanh toán và phân bổ thanh toán cho các mục folioEntity chưa thanh toán.
+     * Cập nhật số dư folioEntity và đánh dấu các mục là PAID khi đã thanh toán đầy đủ.
+     *
+     * @param folioEntity    folioEntity cần thanh toán
+     * @param paymentRequest chi tiết thanh toán
      * @return PaymentResponse với thông tin thanh toán và số dư còn lại
      */
-    PaymentResponse processPaymentForFolio(FolioEntity folio, PaymentRequest request);
+    PaymentResponse processPaymentForFolio(FolioEntity folioEntity, PaymentRequest paymentRequest);
 }

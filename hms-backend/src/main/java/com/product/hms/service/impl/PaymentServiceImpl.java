@@ -6,17 +6,18 @@ import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.FolioItemEntity;
 import com.product.hms.entity.PaymentAllocationEntity;
 import com.product.hms.entity.PaymentTransactionEntity;
-import com.product.hms.enums.FolioItemStatus;
 import com.product.hms.enums.PaymentMethod;
 import com.product.hms.enums.PaymentTransactionStatus;
 import com.product.hms.enums.PaymentTransactionType;
-import com.product.hms.exception.BadRequestException;
-import com.product.hms.exception.ErrorCode;
 import com.product.hms.repository.FolioItemRepository;
 import com.product.hms.repository.FolioRepository;
 import com.product.hms.repository.PaymentAllocationRepository;
 import com.product.hms.repository.PaymentTransactionRepository;
+import com.product.hms.service.FolioItemService;
+import com.product.hms.service.FolioService;
+import com.product.hms.service.PaymentAllocationService;
 import com.product.hms.service.PaymentService;
+import com.product.hms.service.impl.payment.PaymentValidationSupport;
 import com.product.hms.utils.VnPayUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final FolioItemRepository folioItemRepository;
     private final PaymentAllocationRepository paymentAllocationRepository;
     private final VnPayUtil vnPayUtil;
+    private final PaymentAllocationService paymentAllocationService;
+    private final FolioService folioService;
+    private final FolioItemService folioItemService;
 
     @Value("${vnpay.return-url:http://localhost:8080/api/v1/payment/vnpay-ipn}")
     private String vnPayReturnUrl;
@@ -176,115 +180,117 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public PaymentResponse markAsPaid(Long paymentTransactionId) {
+        // STEP 1: Kiểm tra payment transaction
+        PaymentTransactionEntity paymentTransactionEntity = PaymentValidationSupport.validatePaymentTransactionExistence(paymentTransactionId, paymentTransactionRepository);
+        PaymentValidationSupport.validatePaymentTransactionNotCompleted(paymentTransactionEntity);
+        PaymentValidationSupport.validatePaymentTransactionMethod(paymentTransactionEntity, PaymentMethod.CASH);
+
+        // STEP 2: Cập nhật trạng thái của payment transaction thành SUCCESS
+        paymentTransactionEntity.setStatus(PaymentTransactionStatus.SUCCESS.getDbValue());
+        paymentTransactionRepository.save(paymentTransactionEntity);
+
+        // STEP 3: Đánh dấu các folio item liên quan đến payment allocation là PAID
+        List<FolioItemEntity> items = paymentTransactionEntity.getPaymentAllocationEntities().stream()
+                .map(PaymentAllocationEntity::getFolioItemEntity)
+                .toList();
+        folioItemService.markItemsAsPaid(items);
+
+        // STEP 4: Cập nhật tổng đã trả và số dư của folio qua service
+        FolioEntity folio = paymentTransactionEntity.getFolioEntity();
+        if (folio != null) {
+            BigDecimal paidAmount = paymentTransactionEntity.getAmount() != null ? paymentTransactionEntity.getAmount() : BigDecimal.ZERO;
+            folioService.addPaidAmount(folio, paidAmount);
+        }
+
+        return new PaymentResponse(
+                paymentTransactionEntity.getId(),
+                paymentTransactionEntity.getCode(),
+                paymentTransactionEntity.getPaymentMethod(),
+                paymentTransactionEntity.getAmount(),
+                BigDecimal.ZERO, // depositAmount
+                paymentTransactionEntity.getAmount(), // cashCollected
+                paymentTransactionEntity.getStatus(),
+                null, // paymentUrl
+                paymentTransactionEntity.getCreatedAt()
+        );
+    }
+
+    @Override
     @Transactional
-    public PaymentResponse processPaymentForFolio(FolioEntity folio, PaymentRequest request) {
-        if (request.folioItemIds() == null || request.folioItemIds().isEmpty()) {
-            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Folio item IDs must not be empty");
-        }
+    public PaymentResponse processPaymentForFolio(FolioEntity folioEntity, PaymentRequest paymentRequest) {
+        // STEP 1: Kiểm tra tính hợp lệ của request
+        BigDecimal depositAmount = PaymentValidationSupport.validateDepositAmountNegative(paymentRequest.depositAmount());
+        PaymentValidationSupport.validateFolioItemIdsNullOrEmpty(paymentRequest.folioItemIds());
 
-        BigDecimal depositAmount = request.depositAmount() != null ? request.depositAmount() : BigDecimal.ZERO;
-        if (depositAmount.signum() < 0) {
-            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Deposit amount must be >= 0");
-        }
+        List<FolioItemEntity> selectedFolioItemEntities = PaymentValidationSupport.validateFolioItemsExistence(paymentRequest.folioItemIds(), folioItemRepository);
 
-        List<FolioItemEntity> selectedItems = folioItemRepository.findAllById(request.folioItemIds());
-        if (selectedItems.size() != request.folioItemIds().size()) {
-            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Some folio items not found");
-        }
+        PaymentValidationSupport.validateFolioItemsBelongToFolio(folioEntity, selectedFolioItemEntities);
+        PaymentValidationSupport.validateFolioItemNotPaid(selectedFolioItemEntities);
 
-        for (FolioItemEntity item : selectedItems) {
-            if (!item.getFolioEntity().getId().equals(folio.getId())) {
-                throw new BadRequestException(
-                        ErrorCode.INVALID_REQUEST,
-                        "Folio item " + item.getId() + " does not belong to this folio"
-                );
-            }
-            if (item.getStatus() != FolioItemStatus.UNPAID) {
-                throw new BadRequestException(
-                        ErrorCode.INVALID_REQUEST,
-                        "Folio item " + item.getId() + " is not in UNPAID status"
-                );
-            }
-        }
+        BigDecimal selectedItemsTotalPrice = PaymentValidationSupport.validateDepositAmountNotExceedTotal(selectedFolioItemEntities, depositAmount);
+        BigDecimal cashCollected = selectedItemsTotalPrice.subtract(depositAmount);
 
-        BigDecimal selectedItemsTotal = selectedItems.stream()
-                .map(FolioItemEntity::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        PaymentMethod paymentMethod = PaymentValidationSupport.validatePaymentMethodExistence(paymentRequest.paymentMethod());
 
-        if (depositAmount.compareTo(selectedItemsTotal) > 0) {
-            throw new BadRequestException(
-                    ErrorCode.INVALID_REQUEST,
-                    "Deposit amount cannot exceed selected folio items total"
-            );
-        }
+        // STEP 2: Tạo payment transaction
+        PaymentTransactionEntity paymentTransactionEntity = cretePaymentTransaction(folioEntity, paymentMethod, cashCollected);
 
-        BigDecimal cashCollected = selectedItemsTotal.subtract(depositAmount);
+        // STEP 3: Tạo payment allocation cho từng folio item đã chọn
+        paymentAllocationService.createPaymentAllocation(paymentTransactionEntity, selectedFolioItemEntities);
 
-        PaymentMethod paymentMethod;
-        try {
-            paymentMethod = PaymentMethod.valueOf(request.paymentMethod());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Invalid payment method: " + request.paymentMethod());
-        }
+        // TODO: Cần xem xét lại vì dù method nào cũng sẽ cần gọi api để đánh dấu đã thanh toán thành công, lúc đó với cập nhật tổng đã trả và số dư.
+//        BigDecimal newBalance = folioEntity.getBalance();
+//        if (paymentMethod != PaymentMethod.VNPAY) {
+//            BigDecimal newTotalPaid = folioEntity.getTotalPaid().add(selectedItemsTotalPrice);
+//            newBalance = folioEntity.getTotalCharges().subtract(newTotalPaid);
+//            folioEntity.setTotalPaid(newTotalPaid);
+//            folioEntity.setBalance(newBalance);
+//            folioRepository.save(folioEntity);
+//        }
 
-        PaymentTransactionEntity transaction = new PaymentTransactionEntity();
-        transaction.setFolioEntity(folio);
-        transaction.setCode(generateTransactionCode());
-        transaction.setPaymentMethod(paymentMethod.getDbValue());
-        transaction.setAmount(cashCollected);
-        transaction.setType(PaymentTransactionType.PAYMENT.getDbValue());
-        transaction.setStatus(paymentMethod == PaymentMethod.VNPAY
-                ? PaymentTransactionStatus.PENDING.getDbValue()
-                : PaymentTransactionStatus.SUCCESS.getDbValue());
-        transaction.setCreatedAt(Timestamp.from(Instant.now()));
-        transaction.setIsActive(true);
-        paymentTransactionRepository.save(transaction);
-
-        for (FolioItemEntity item : selectedItems) {
-            PaymentAllocationEntity allocation = new PaymentAllocationEntity();
-            allocation.setPaymentTransactionEntity(transaction);
-            allocation.setFolioItemEntity(item);
-            allocation.setAmountApplied(item.getTotalPrice());
-            allocation.setIsActive(true);
-            paymentAllocationRepository.save(allocation);
-
-            if (paymentMethod != PaymentMethod.VNPAY) {
-                item.setStatus(FolioItemStatus.PAID);
-                folioItemRepository.save(item);
-            }
-        }
-
-        BigDecimal newBalance = folio.getBalance();
-        if (paymentMethod != PaymentMethod.VNPAY) {
-            BigDecimal newTotalPaid = folio.getTotalPaid().add(selectedItemsTotal);
-            newBalance = folio.getTotalCharges().subtract(newTotalPaid);
-            folio.setTotalPaid(newTotalPaid);
-            folio.setBalance(newBalance);
-            folioRepository.save(folio);
-        }
-
+        // STEP 4: Nếu là VNPAY thì tạo URL thanh toán
         String paymentUrl = null;
         if (paymentMethod == PaymentMethod.VNPAY) {
             paymentUrl = createVnPaymentUrlByPaymentTransactionId(
-                    transaction.getId(),
-                    request.clientIp()
+                    paymentTransactionEntity.getId(),
+                    paymentRequest.clientIp()
             );
         }
 
         return new PaymentResponse(
-                transaction.getId(),
-                transaction.getCode(),
+                paymentTransactionEntity.getId(),
+                paymentTransactionEntity.getCode(),
                 paymentMethod.getDbValue(),
-                selectedItemsTotal,
+                selectedItemsTotalPrice,
                 depositAmount,
                 cashCollected,
-                transaction.getStatus(),
-                newBalance,
+                paymentTransactionEntity.getStatus(),
                 paymentUrl,
-                transaction.getCreatedAt()
+                paymentTransactionEntity.getCreatedAt()
         );
     }
 
+    private PaymentTransactionEntity cretePaymentTransaction(FolioEntity folioEntity, PaymentMethod paymentMethod, BigDecimal cashCollected) {
+        PaymentTransactionEntity paymentTransactionEntity = new PaymentTransactionEntity();
+        paymentTransactionEntity.setFolioEntity(folioEntity);
+        paymentTransactionEntity.setCode(generateTransactionCode());
+        paymentTransactionEntity.setPaymentMethod(paymentMethod.getDbValue());
+        paymentTransactionEntity.setAmount(cashCollected);
+        paymentTransactionEntity.setType(PaymentTransactionType.PAYMENT.getDbValue());
+        paymentTransactionEntity.setStatus(PaymentTransactionStatus.PENDING.getDbValue());
+        paymentTransactionEntity.setCreatedAt(Timestamp.from(Instant.now()));
+        paymentTransactionEntity.setIsActive(true);
+        paymentTransactionRepository.save(paymentTransactionEntity);
+        return paymentTransactionEntity;
+    }
+
+    /**
+     * Đảm bảo client IP không null hoặc blank để tránh lỗi khi gọi VNPAY API. Nếu client IP không hợp lệ, mặc định trả về "".
+     *
+     * @param clientIp địa chỉ IP của client, có thể null hoặc blank
+     * @return client IP hợp lệ, nếu input không hợp lệ sẽ trả về ""
+     */
     private String safeClientIp(String clientIp) {
         return (clientIp == null || clientIp.isBlank()) ? "127.0.0.1" : clientIp;
     }

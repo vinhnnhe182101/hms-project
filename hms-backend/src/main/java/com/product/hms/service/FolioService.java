@@ -2,6 +2,7 @@ package com.product.hms.service;
 
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.ServiceBookingEntity;
+import com.product.hms.entity.FolioEntity;
 
 import java.math.BigDecimal;
 
@@ -55,4 +56,23 @@ public interface FolioService {
      * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
      */
     void cancelServiceCharge(ServiceBookingEntity serviceBooking);
+
+    /**
+     * Cộng thêm số tiền đã trả vào folio, cập nhật totalPaid và balance.
+     * @param folio folio cần cập nhật
+     * @param paidAmount số tiền đã trả thêm
+     */
+    void addPaidAmount(FolioEntity folio, BigDecimal paidAmount);
+
+    /**
+     * Xử lý tạo FolioItem điều chỉnh khi đổi phòng.
+     * @param reservationRoom reservationRoom cũ
+     * @param newRoom phòng mới
+     * @param changeFee số tiền điều chỉnh
+     */
+    void handleRoomChangeAdjustment(
+        com.product.hms.entity.ReservationRoomEntity reservationRoom,
+        com.product.hms.entity.RoomEntity newRoom,
+        java.math.BigDecimal changeFee
+    );
 }

@@ -29,17 +29,22 @@ public class RoomAllocationServiceImpl implements RoomAllocationService {
         List<ReservationRoomEntity> allocations = new ArrayList<>();
         for (RoomClassQuantityRequest roomClassQuantity : reservationRequest.roomClassQuantities()) {
             RoomClassEntity roomClass = roomClassById.get(roomClassQuantity.roomClassId());
-            ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
-            reservationRoomEntity.setReservationEntity(reservationEntity);
-            reservationRoomEntity.setRoomClassEntity(roomClass);
-            reservationRoomEntity.setNumberOfPeople(roomClassQuantity.numberOfPeople());
-            reservationRoomEntity.setPriceAtBooking(roomClass.getBasePrice());
-            reservationRoomEntity.setStatus(ReservationRoomStatus.PENDING);
-            reservationRoomEntity.setIsActive(true);
+            ReservationRoomEntity reservationRoomEntity = getReservationRoomEntity(reservationEntity, roomClassQuantity, roomClass);
             ReservationRoomEntity savedAllocation = reservationRoomRepository.save(reservationRoomEntity);
             allocations.add(savedAllocation);
         }
         return allocations;
+    }
+
+    private ReservationRoomEntity getReservationRoomEntity(ReservationEntity reservationEntity, RoomClassQuantityRequest roomClassQuantity, RoomClassEntity roomClass) {
+        ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
+        reservationRoomEntity.setReservationEntity(reservationEntity);
+        reservationRoomEntity.setRoomClassEntity(roomClass);
+        reservationRoomEntity.setNumberOfPeople(roomClassQuantity.numberOfPeople());
+        reservationRoomEntity.setPriceAtBooking(roomClass.getBasePrice());
+        reservationRoomEntity.setStatus(ReservationRoomStatus.PENDING);
+        reservationRoomEntity.setIsActive(true);
+        return reservationRoomEntity;
     }
 
     @Override

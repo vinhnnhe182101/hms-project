@@ -13,7 +13,6 @@ import java.sql.Timestamp;
  * @param depositApplied     Số tiền đặt cọc áp dụng cho thanh toán này
  * @param cashCollected      Số tiền mặt/thẻ thực thu
  * @param status             Trạng thái thanh toán
- * @param remainingBalance   Số dư hóa đơn còn lại sau thanh toán
  * @param paymentUrl         URL chuyển hướng VNPAY (null nếu không phải VNPAY)
  * @param createdAt          Thời điểm thanh toán
  */
@@ -25,7 +24,6 @@ public record PaymentResponse(
         BigDecimal depositApplied,
         BigDecimal cashCollected,
         String status,
-        BigDecimal remainingBalance,
         String paymentUrl,
         Timestamp createdAt
 ) {
