@@ -1,7 +1,7 @@
 package com.product.hms.service;
 
-import com.product.hms.dto.RoomTypeCreateDTO;
-import com.product.hms.dto.RoomTypeResponseDTO;
+import com.product.hms.dto.request.RoomTypeCreateDTO;
+import com.product.hms.dto.response.RoomTypeResponseDTO;
 
 import java.util.List;
 

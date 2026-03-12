@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     @Transactional
-    private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
+    protected OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
         String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
         String provider = registrationId.toUpperCase();
 
@@ -90,7 +90,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     @Transactional
-    private UserEntity registerNewUser(Map<String, Object> attributes, String provider, String email, String name) {
+    protected UserEntity registerNewUser(Map<String, Object> attributes, String provider, String email, String name) {
         // Tạo User
         UserEntity user = new UserEntity();
         user.setEmail(email);
@@ -117,7 +117,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     @Transactional
-    private UserEntity updateExistingUser(UserEntity existingUser, Map<String, Object> attributes, String provider) {
+    protected UserEntity updateExistingUser(UserEntity existingUser, Map<String, Object> attributes, String provider) {
         existingUser.setProvider(provider);
         existingUser.setProviderId((String) attributes.get("sub"));
 

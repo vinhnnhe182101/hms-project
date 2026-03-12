@@ -3,6 +3,7 @@ package com.product.hms.entity;
 import com.product.hms.enums.ServiceCategory;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 
@@ -22,15 +23,15 @@ public class ServiceItem {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ServiceCategory category;
 
-    private boolean active = true;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ColumnDefault("true")
+    private Boolean isActive = true;
 }

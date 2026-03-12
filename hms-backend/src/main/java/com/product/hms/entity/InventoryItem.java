@@ -3,6 +3,7 @@ package com.product.hms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 
@@ -22,22 +23,21 @@ public class InventoryItem {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String unit = "cái";
 
+    @Column(name = "current_stock")
     private Integer currentStock = 0;
 
+    @Column(name = "min_stock_level")
     private Integer minStockLevel = 10;
 
     @Column(precision = 12, scale = 2)
     private BigDecimal costPrice;
 
-    @Column(precision = 12, scale = 2)
-    private BigDecimal sellingPrice;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
-    private ServiceItem service;
+    private ServiceEntity service;
 
-    private boolean active = true;
+    @ColumnDefault("true")
+    private Boolean isActive = true;
 }

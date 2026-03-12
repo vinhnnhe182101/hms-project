@@ -1,4 +1,4 @@
-package com.product.hms.api.controller.admin;
+package com.product.hms.api;
 
 import com.product.hms.dto.request.RoomTypeCreateDTO;
 import com.product.hms.dto.response.RoomTypeResponseDTO;

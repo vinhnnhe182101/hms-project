@@ -6,6 +6,8 @@ import com.product.hms.dto.response.RoomClassAvailabilityResponse;
 import com.product.hms.dto.response.RoomClassAvailableRoomsResponse;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomEntity;
+import com.product.hms.enums.ReservationStatus;
+import com.product.hms.enums.RoomStatus;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
@@ -37,7 +39,10 @@ public class RoomServiceImpl implements RoomService {
 
         Map<Long, Integer> availableRoomsMap = roomRepository.countAvailableRoomsByRoomClass(
                 checkInDate,
-                checkOutDate
+                checkOutDate,
+                RoomStatus.AVAILABLE,
+                ReservationStatus.CONFIRMED,
+                ReservationStatus.IN_HOUSE
         );
 
         // Get all active room classes
@@ -60,7 +65,10 @@ public class RoomServiceImpl implements RoomService {
 
         List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsForPeriod(
                 checkInDate,
-                checkOutDate
+                checkOutDate,
+                RoomStatus.AVAILABLE,
+                ReservationStatus.CONFIRMED,
+                ReservationStatus.IN_HOUSE
         );
 
         Map<Long, List<RoomEntity>> roomsByClassId = availableRooms.stream()
@@ -96,7 +104,10 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.findAvailableRoomsForPeriodByRoomClassId(
                         checkInDate,
                         checkOutDate,
-                        roomClass.getId()
+                        roomClass.getId(),
+                        RoomStatus.AVAILABLE,
+                        ReservationStatus.CONFIRMED,
+                        ReservationStatus.IN_HOUSE
                 )
                 .stream()
                 .map(room -> new AvailableRoomResponse(room.getId(), room.getRoomNumber()))

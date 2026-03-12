@@ -13,4 +13,9 @@ public enum PaymentTransactionStatus implements DbValueEnum {
     PaymentTransactionStatus(String dbValue) {
         this.dbValue = dbValue;
     }
+
+    @Override
+    public String getDbValue() {
+        return "";
     }
+}

@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Slf4j
@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private int jwtExpirationMs;
 
-    private Key key() {
+    private SecretKey key() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
@@ -32,10 +32,10 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .subject(userPrincipal.getUsername())
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key())
                 .compact();
     }
 
@@ -44,26 +44,29 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key())
                 .compact();
     }
 
     public String getEmailFromJWT(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key())
+        Claims claims = Jwts.parser()
+                .verifyWith(key())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.getSubject();
     }
 
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
+            Jwts.parser()
+                    .verifyWith(key())
+                    .build()
+                    .parseSignedClaims(authToken);
             return true;
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token");

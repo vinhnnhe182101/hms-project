@@ -5,7 +5,6 @@ import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.ServiceBookingEntity;
 import com.product.hms.enums.FolioStatus;
 import com.product.hms.exception.BusinessException;
-import com.product.hms.exception.ErrorCode;
 import com.product.hms.repository.FolioRepository;
 import com.product.hms.service.FolioItemService;
 import com.product.hms.service.FolioService;
@@ -39,9 +38,8 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void createRefundItem(ReservationRoomEntity allocation, BigDecimal refundAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findById(allocation.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
                 ));
 
@@ -56,9 +54,8 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findById(allocation.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
                 ));
 
@@ -69,9 +66,8 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount) {
-        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+        FolioEntity folio = folioRepository.findById(serviceBooking.getReservationRoomEntity().getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
                 ));
 
@@ -86,9 +82,8 @@ public class FolioServiceImpl implements FolioService {
 
     @Override
     public void cancelServiceCharge(ServiceBookingEntity serviceBooking) {
-        FolioEntity folio = folioRepository.findByReservationRoom(serviceBooking.getReservationRoomEntity())
+        FolioEntity folio = folioRepository.findById(serviceBooking.getReservationRoomEntity().getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + serviceBooking.getReservationRoomEntity().getId()
                 ));
 
@@ -104,9 +99,8 @@ public class FolioServiceImpl implements FolioService {
             return;
         }
 
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findById(allocation.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
                 ));
 
@@ -120,9 +114,8 @@ public class FolioServiceImpl implements FolioService {
             return;
         }
 
-        FolioEntity folio = folioRepository.findByReservationRoom(allocation)
+        FolioEntity folio = folioRepository.findById(allocation.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for allocation ID: " + allocation.getId()
                 ));
 

@@ -19,4 +19,9 @@ public class RandomUtils {
         }
         return sb.toString();
     }
+
+    public static String generateReservationCode(String rs) {
+        return rs + "-" + generateRandomString(6);
+    }
+
 }

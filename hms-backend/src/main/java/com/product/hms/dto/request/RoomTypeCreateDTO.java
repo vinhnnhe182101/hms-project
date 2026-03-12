@@ -1,4 +1,4 @@
-package com.product.hms.dto;
+package com.product.hms.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class RoomTypeCreateDTO {
-    @NotBlank
     private String name;
 
     @NotNull @PositiveOrZero

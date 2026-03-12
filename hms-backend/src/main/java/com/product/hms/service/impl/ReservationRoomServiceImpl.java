@@ -46,14 +46,13 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 ));
 
         // Get folio
-        FolioEntity folio = folioRepository.findByReservationRoom(reservationRoom)
+        FolioEntity folio = folioRepository.findById(reservationRoom.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + reservationRoomId
                 ));
 
         // Get folio items
-        List<FolioItemEntity> folioItems = folioItemRepository.findByFolioEntityAndIsActiveTrue(folio);
+        List<FolioItemEntity> folioItems = folioItemRepository.findByFolioEntity_IdAndIsActiveTrue(folio.getId());
         List<FolioItemResponse> folioItemResponses = folioItems.stream()
                 .map(item -> new FolioItemResponse(
                         item.getId(),
@@ -107,7 +106,6 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         // Validate reservation is IN_HOUSE
         if (reservation.getStatus() != ReservationStatus.IN_HOUSE) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_CHECKOUT_NOT_ALLOWED,
                     "Check-out only allowed when reservation status is IN_HOUSE. Current: " + reservation.getStatus()
             );
         }
@@ -115,7 +113,6 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         // Validate room is CHECKED_IN
         if (reservationRoom.getStatus() != ReservationRoomStatus.CHECKED_IN) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_NOT_CHECKED_IN,
                     "Room must be in CHECKED_IN status to check out. Room ID: " + reservationRoomId
             );
         }
@@ -127,7 +124,6 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         );
         if (hasPendingServices) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_HAS_PENDING_SERVICES,
                     "Cannot check out room with pending services. Room ID: " + reservationRoomId
             );
         }
@@ -175,22 +171,20 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
 
         ReservationEntity reservation = reservationRoom.getReservationEntity();
 
-        FolioEntity folio = folioRepository.findByReservationRoom(reservationRoom)
+        FolioEntity folio = folioRepository.findById(reservationRoom.getId())
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + reservationRoomId
                 ));
 
         if (folio.getStatus() == FolioStatus.CLOSED) {
             throw new BusinessException(
-                    ErrorCode.FOLIO_ALREADY_CLOSED,
                     "Cannot process payment for closed folio"
             );
         }
 
         BigDecimal depositRequested = request.depositAmount() != null ? request.depositAmount() : BigDecimal.ZERO;
         if (depositRequested.signum() < 0) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Deposit amount must be >= 0");
+            throw new BusinessException("Deposit amount must be >= 0");
         }
 
         BigDecimal depositAvailable = reservation.getTotalDeposit() != null
@@ -199,7 +193,6 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
 
         if (depositRequested.compareTo(depositAvailable) > 0) {
             throw new BusinessException(
-                    ErrorCode.INSUFFICIENT_DEPOSIT,
                     String.format("Insufficient deposit. Available: %s, Requested: %s", depositAvailable, depositRequested)
             );
         }
@@ -230,7 +223,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
 
         boolean allPaid = allRooms.stream().allMatch(room -> {
-            FolioEntity folio = folioRepository.findByReservationRoom(room).orElse(null);
+            FolioEntity folio = folioRepository.findById(room.getId()).orElse(null);
             return folio != null && folio.getBalance().signum() <= 0;
         });
 

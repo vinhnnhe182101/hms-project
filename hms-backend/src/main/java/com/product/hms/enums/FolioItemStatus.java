@@ -15,6 +15,6 @@ public enum FolioItemStatus implements DbValueEnum {
 
     @Override
     public String getDbValue() {
-        return "";
+        return dbValue;
     }
 }

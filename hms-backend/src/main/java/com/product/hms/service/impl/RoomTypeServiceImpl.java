@@ -1,7 +1,7 @@
 package com.product.hms.service.impl;
 
-import com.product.hms.dto.RoomTypeCreateDTO;
-import com.product.hms.dto.RoomTypeResponseDTO;
+import com.product.hms.dto.request.RoomTypeCreateDTO;
+import com.product.hms.dto.response.RoomTypeResponseDTO;
 import com.product.hms.entity.RoomType;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.repository.RoomTypeRepository;
@@ -69,7 +69,7 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     @Override
     public RoomTypeResponseDTO findById(Long id) {
         RoomType entity = roomTypeRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy loại phòng"));
+                .orElseThrow();
         return mapToResponse(entity);
     }
 

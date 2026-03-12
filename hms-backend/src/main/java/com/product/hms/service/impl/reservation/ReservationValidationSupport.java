@@ -53,7 +53,6 @@ public final class ReservationValidationSupport {
         Instant updateDeadline = checkInTime.minus(24, ChronoUnit.HOURS);
         if (!Instant.now().isBefore(updateDeadline)) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_UPDATE_LOCKED,
                     "Reservation cannot be updated within 24 hours before check-in"
             );
         }
@@ -105,7 +104,6 @@ public final class ReservationValidationSupport {
 
             if (!Boolean.TRUE.equals(roomClass.getIsActive())) {
                 throw new BusinessException(
-                        ErrorCode.ROOM_CLASS_INACTIVE,
                         "Room class is not active: " + roomClassId
                 );
             }
@@ -127,7 +125,6 @@ public final class ReservationValidationSupport {
     public static void validateCancellationAllowed(ReservationEntity reservation) {
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_ALREADY_CANCELED,
                     "Reservation is already canceled: " + reservation.getCode()
             );
         }
@@ -135,7 +132,6 @@ public final class ReservationValidationSupport {
         if (reservation.getStatus() != ReservationStatus.CONFIRMED
                 && reservation.getStatus() != ReservationStatus.PENDING_DEPOSIT) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_CANCEL_NOT_ALLOWED,
                     "Cannot cancel reservation with status: " + reservation.getStatus()
             );
         }
@@ -156,7 +152,6 @@ public final class ReservationValidationSupport {
     public static void validateCheckInAllowed(ReservationEntity reservation) {
         if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_CHECKIN_NOT_ALLOWED,
                     "Check-in only allowed when reservation status is CONFIRMED. Current: " + reservation.getStatus()
             );
         }

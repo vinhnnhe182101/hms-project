@@ -33,7 +33,6 @@ public final class ReservationCheckInSupport {
 
         if (allocations.isEmpty()) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_ASSIGNMENT_REQUIRED,
                     "Reservation has no active room allocations for check-in"
             );
         }
@@ -129,7 +128,6 @@ public final class ReservationCheckInSupport {
 
         if (!autoAssign) {
             throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_ASSIGNMENT_REQUIRED,
                     "Missing room assignment for reservationRoomId: " + allocation.getId()
             );
         }
@@ -143,7 +141,6 @@ public final class ReservationCheckInSupport {
                 .filter(candidate -> !usedRoomIds.contains(candidate.getId()))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INSUFFICIENT_AVAILABLE_ROOMS,
                         "No available room for room class ID: " + allocation.getRoomClassEntity().getId()
                 ));
 
@@ -151,7 +148,7 @@ public final class ReservationCheckInSupport {
         return room;
     }
 
-    private static void validateRoomAssignable(ReservationRoomEntity allocation, RoomEntity room, Set<Long> usedRoomIds) {
+    private static void validateRoomAssignable(ReservationRoomEntity allocation, RoomEntity room, Set<Long> usedRoomIds) throws BusinessException {
         if (usedRoomIds.contains(room.getId())) {
             throw new BadRequestException(
                     ErrorCode.INVALID_REQUEST,
@@ -160,16 +157,15 @@ public final class ReservationCheckInSupport {
         }
 
         if (!Boolean.TRUE.equals(room.getIsActive())) {
-            throw new BusinessException(ErrorCode.ROOM_INACTIVE, "Room is inactive: " + room.getId());
+            throw new BusinessException("Room is inactive: " + room.getId());
         }
 
         if (room.getStatus() != RoomStatus.AVAILABLE) {
-            throw new BusinessException(ErrorCode.ROOM_NOT_AVAILABLE, "Room is not available: " + room.getId());
+            throw new BusinessException("Room is not available: " + room.getId());
         }
 
         if (!room.getRoomClassEntity().getId().equals(allocation.getRoomClassEntity().getId())) {
             throw new BusinessException(
-                    ErrorCode.ROOM_CLASS_MISMATCH,
                     "Room class mismatch for reservationRoomId: " + allocation.getId()
             );
         }

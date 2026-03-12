@@ -87,7 +87,6 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
         ReservationStatus status = reservationRoom.getReservationEntity().getStatus();
         if (status != ReservationStatus.IN_HOUSE) {
             throw new BusinessException(
-                    ErrorCode.SERVICE_BOOKING_NOT_ALLOWED,
                     "Service booking only allowed for checked-in reservations. Current status: " + status
             );
         }
@@ -104,7 +103,6 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
     private void validateServiceActive(ServiceEntity service) {
         if (!service.getIsActive()) {
             throw new BusinessException(
-                    ErrorCode.SERVICE_INACTIVE,
                     "Service is not active: " + service.getName()
             );
         }
@@ -189,7 +187,6 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
     private void validateServiceBookingPending(ServiceBookingEntity serviceBooking) {
         if (serviceBooking.getStatus() != ServiceBookingStatus.PENDING) {
             throw new BusinessException(
-                    ErrorCode.SERVICE_BOOKING_NOT_ALLOWED,
                     "Service booking update/cancel only allowed when status is PENDING. Current: " + serviceBooking.getStatus()
             );
         }

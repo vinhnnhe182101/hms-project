@@ -14,4 +14,9 @@ public enum PaymentMethod implements DbValueEnum {
     PaymentMethod(String dbValue) {
         this.dbValue = dbValue;
     }
+
+    @Override
+    public String getDbValue() {
+        return dbValue;
     }
+}

@@ -104,7 +104,6 @@ class ReservationApiIntegrationTest {
         Long reservationId = 10L;
         when(reservationService.updateReservation(eq(reservationId), any()))
                 .thenThrow(new BusinessException(
-                        ErrorCode.RESERVATION_UPDATE_LOCKED,
                         "Reservation cannot be updated within 24 hours before check-in"
                 ));
 
@@ -182,7 +181,7 @@ class ReservationApiIntegrationTest {
     void cancelReservation_AlreadyCanceled_ShouldReturn409() throws Exception {
         Long reservationId = 10L;
         when(reservationService.cancelReservation(reservationId))
-                .thenThrow(new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELED, "Reservation is already canceled"));
+                .thenThrow(new BusinessException("Reservation is already canceled"));
 
         mockMvc.perform(delete("/api/v1/reservations/{reservationId}", reservationId))
                 .andExpect(status().isConflict())

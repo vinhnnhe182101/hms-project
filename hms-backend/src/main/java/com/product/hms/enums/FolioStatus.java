@@ -3,15 +3,18 @@ package com.product.hms.enums;
 import com.product.hms.entity.converter.base.core.DbValueEnum;
 
 public enum FolioStatus implements DbValueEnum {
-    OPEN("OPEN"),
-    LOCKED("LOCKED"),
-    SETTLED("SETTLED");
+    OPEN(),
+    LOCKED(),
+    SETTLED(), CLOSED();
 
-    private final String dbValue;
+    private String dbValue = "";
 
-    FolioStatus(String dbValue) {
+    FolioStatus() {
         this.dbValue = dbValue;
     }
+
+    @Override
+    public String getDbValue() {
+        return dbValue;
+    }
 }
-
-

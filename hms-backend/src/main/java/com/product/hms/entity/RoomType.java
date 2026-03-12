@@ -2,6 +2,7 @@ package com.product.hms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,23 +24,31 @@ public class RoomType {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal basePrice;
 
-    @Column(nullable = false)
+    @Column(name = "standard_capacity", nullable = false)
     private Integer standardCapacity;
 
-    @Column(nullable = false)
+    @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity;
 
-    @Column(precision = 10, scale = 2)
+    @Column(name = "extra_person_fee", precision = 12, scale = 2)
     private BigDecimal extraPersonFee = BigDecimal.ZERO;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    private boolean active = true;
+    @ColumnDefault("true")
+    private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "roomType")
     private List<Room> rooms = new ArrayList<>();
+
+    public boolean isActive() {
+        return isActive != null && isActive;
+    }
+
+    public void setActive(boolean b) {
+
+    }
 }

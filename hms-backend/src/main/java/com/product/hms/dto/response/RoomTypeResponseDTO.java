@@ -1,5 +1,5 @@
 
-package com.product.hms.dto;
+package com.product.hms.dto.response;
 
 import lombok.Data;
 

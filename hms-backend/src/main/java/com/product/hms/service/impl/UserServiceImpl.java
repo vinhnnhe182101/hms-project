@@ -16,7 +16,6 @@ import com.product.hms.repository.CustomerRepository;
 import com.product.hms.repository.StaffRepository;
 import com.product.hms.repository.UserRepository;
 import com.product.hms.service.UserService;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +40,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
+            throw new BusinessException("Email already registered: " + request.getEmail());
         }
         UserEntity entity = new UserEntity();
         mapUserRequestToEntity(request, entity);
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
         UserEntity entity = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
         if (!entity.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
+            throw new BusinessException("Email already registered: " + request.getEmail());
         }
         mapUserRequestToEntity(request, entity);
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
