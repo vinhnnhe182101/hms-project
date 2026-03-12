@@ -2,7 +2,10 @@ package com.product.hms.service;
 
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.ReservationSearchFilter;
 import com.product.hms.dto.response.ReservationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service interface for reservation operations
@@ -42,4 +45,13 @@ public interface ReservationService {
      * @return ReservationResponse chứa thông tin về đặt phòng đã được check-in, với trạng thái IN_HOUSE.
      */
     ReservationResponse checkInReservation(Long reservationId, ReservationCheckInRequest request);
+
+    /**
+     * Search reservations with filter and pagination.
+     *
+     * @param filter  filter DTO (guestName, status, checkInDateFrom, checkInDateTo)
+     * @param pageable Spring Data pageable
+     * @return paged result
+     */
+    Page<ReservationResponse> search(ReservationSearchFilter filter, Pageable pageable);
 }

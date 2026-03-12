@@ -3,7 +3,7 @@ import { CustomerLayout } from '../layouts/customer/CustomerLayout';
 import { AdminLayout } from '../layouts/admin/AdminLayout';
 import { HousekeepingLayout } from '../layouts/housekeeping/HousekeepingLayout';
 import { ProtectedRoute } from './ProtectedRoute';
-import HomePage from '../pages/customer/HơmePage.jsx';
+import HomePage from '../pages/customer/HomePage.jsx';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import AdminDashboardPage from '../pages/admin/DashboardPage';
@@ -13,6 +13,7 @@ import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
+import RoomsPage from "../pages/customer/RoomsPage.jsx";
 import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 
 function BookingDetailPage() {
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
         element: <CustomerLayout />,
         children: [
             { index: true, element: <HomePage /> },
+            { path: 'rooms', element: <RoomsPage /> },
         ],
     },
     {
