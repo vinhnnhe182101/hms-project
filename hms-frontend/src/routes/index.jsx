@@ -13,6 +13,7 @@ import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
+import RoomsPage from "../pages/customer/RoomsPage.jsx";
 
 function BookingDetailPage() {
     return null;
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
         element: <CustomerLayout />,
         children: [
             { index: true, element: <HomePage /> },
+            { path: 'rooms', element: <RoomsPage /> },
         ],
     },
     {
