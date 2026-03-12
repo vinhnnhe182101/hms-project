@@ -236,3 +236,12 @@ VALUES (1, 1, 200000.00, 'Khách đổi lịch, hoàn cọc một phần', NULL,
         1, NULL, '2026-03-02 09:00:00', '2026-03-02 09:00:00', 1);
 
 COMMIT;
+
+INSERT INTO housekeeping_task
+(room_id, assignee_id, task_type, status, assigned_at, is_active)
+VALUES
+    (1, 4, 'CLEANING', 'SCHEDULED', NOW(), 1),
+    (2, 4, 'CLEANING', 'IN_PROGRESS', NOW(), 1),
+    (3, 4, 'INSPECTION', 'SCHEDULED', NOW(), 1),
+    (4, 4, 'MAINTENANCE_SUPPORT', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 1 DAY), 1),
+    (5, 4, 'CLEANING', 'SCHEDULED', NOW(), 1);

@@ -17,4 +17,5 @@ public interface FolioRepository extends JpaRepository<FolioEntity, Long> {
      * @return Optional chứa FolioEntity nếu tìm thấy, hoặc Optional.empty() nếu không tìm thấy
      */
     Optional<FolioEntity> findByReservationRoomEntity(ReservationRoomEntity reservationRoomEntity);
+    Optional<FolioEntity> findByReservationRoomEntityId(Long reservationRoomId);
 }

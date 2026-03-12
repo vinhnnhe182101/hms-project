@@ -36,7 +36,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final FolioRepository folioRepository;
     private final FolioItemRepository folioItemRepository;
-    private final PaymentAllocationRepository paymentAllocationRepository;
     private final VnPayUtil vnPayUtil;
     private final PaymentAllocationService paymentAllocationService;
     private final FolioService folioService;

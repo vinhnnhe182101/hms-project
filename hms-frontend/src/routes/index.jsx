@@ -7,13 +7,16 @@ import HomePage from '../pages/customer/HomePage.jsx';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import AdminDashboardPage from '../pages/admin/DashboardPage';
-import HousekeepingDashboardPage from '../pages/housekeeping/DashboardPage';
 import {AuthLayout} from "../layouts/AuthLayout.jsx";
-import SchedulePage from "../pages/housekeeping/SchedulePage.jsx";
-import TasksPage from "../pages/housekeeping/TasksPage.jsx";
 import OAuth2RedirectPage from "../pages/auth/OAuth2RedirectPage.jsx";
 import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
+import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
+import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
+
+function BookingDetailPage() {
+    return null;
+}
 
 export const router = createBrowserRouter([
     {
@@ -50,6 +53,8 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
+            { path: 'bookings', element: <BookingHistoryPage /> },
+            { path: 'bookings/:id', element: <BookingDetailPage /> },
         ],
     },
     {
@@ -74,9 +79,8 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <HousekeepingDashboardPage /> },
-            { path: 'tasks', element: <TasksPage /> },
-            { path: 'schedule', element: <SchedulePage /> },
+            { index: true, element: <MobileTasksPage /> },
+            { path: 'tasks', element: <MobileTasksPage /> },
         ],
     },
     {

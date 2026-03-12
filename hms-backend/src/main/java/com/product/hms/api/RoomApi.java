@@ -1,10 +1,14 @@
 package com.product.hms.api;
 
+import com.product.hms.dto.request.RoomSearchFilter;
 import com.product.hms.dto.response.AvailableRoomResponse;
 import com.product.hms.dto.response.RoomClassAvailabilityResponse;
 import com.product.hms.dto.response.RoomClassAvailableRoomsResponse;
+import com.product.hms.dto.response.RoomResponse;
 import com.product.hms.service.RoomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +28,15 @@ import java.util.Map;
 public class RoomApi {
 
     private final RoomService roomService;
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<RoomResponse>> search(
+            RoomSearchFilter filter,
+            Pageable pageable
+    ) {
+        Page<RoomResponse> result = roomService.search(filter, pageable);
+        return ResponseEntity.ok(result);
+    }
 
     /**
      * Get available rooms by room class for a given date range

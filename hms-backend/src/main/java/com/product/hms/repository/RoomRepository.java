@@ -5,6 +5,7 @@ import com.product.hms.enums.ReservationStatus;
 import com.product.hms.enums.RoomStatus;
 import com.product.hms.repository.custom.RoomRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRepositoryCustom {
+public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRepositoryCustom, JpaSpecificationExecutor<RoomEntity> {
 
     /**
      * Đếm số lượng phòng còn trống theo từng loại phòng (room class) trong khoảng thời gian chỉ định.
