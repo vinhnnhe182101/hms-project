@@ -6,7 +6,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
     IconUser, IconLogout, IconDashboard, IconCalendarPlus,
-    IconHotelService, IconHome, IconPhone, IconInfoCircle
+    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory
 } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,7 +26,7 @@ export function CustomerHeader() {
         { label: 'Home', icon: IconHome, path: '/' },
         { label: 'Rooms', icon: IconHotelService, path: '/rooms' },
         { label: 'About', icon: IconInfoCircle, path: '/about' },
-        { label: 'Contact', icon: IconPhone, path: '/contact' },
+        { label: 'Booking History', icon: IconHistory, path: '/bookings' },
     ];
 
     const isActivePath = (path) => {
@@ -46,7 +46,7 @@ export function CustomerHeader() {
                             style={{ cursor: 'pointer' }}
                             onClick={() => navigate('/')}
                         >
-                            HMS Hotel
+                            FPTU Hotel
                         </Title>
                     </Group>
 
@@ -78,10 +78,7 @@ export function CustomerHeader() {
                                         </Avatar>
                                         <div style={{ flex: 1 }}>
                                             <Text size="sm" fw={500}>
-                                                {user?.fullName}
-                                            </Text>
-                                            <Text size="xs" c="dimmed">
-                                                {user?.role}
+                                                {user?.email}
                                             </Text>
                                         </div>
                                     </Group>

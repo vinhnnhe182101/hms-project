@@ -1,9 +1,7 @@
 package com.product.hms.service;
 
-import com.product.hms.dto.request.AssignTaskRequest;
-import com.product.hms.dto.request.UpdateTaskRequest;
-import com.product.hms.dto.response.HousekeepingTaskResponse;
-import com.product.hms.dto.response.StaffResponse;
+import com.product.hms.dto.request.*;
+import com.product.hms.dto.response.*;
 
 import java.util.List;
 
@@ -41,4 +39,5 @@ public interface HousekeepingTaskService {
      * Soft delete a housekeeping task
      */
     void deleteTask(Long id);
+
 }

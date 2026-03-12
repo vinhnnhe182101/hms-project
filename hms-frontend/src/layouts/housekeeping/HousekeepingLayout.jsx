@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import { AppShell, Container } from '@mantine/core';
 import { HousekeepingHeader } from './HousekeepingHeader';
-import { HousekeepingSidebar } from './HousekeepingSidebar';
 import { useAuth } from '../../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import {HousekeepingBottomNav} from "./HousekeepingBottomNav.jsx";
 
 export function HousekeepingLayout() {
     const { user, isAuthenticated } = useAuth();
@@ -23,21 +23,26 @@ export function HousekeepingLayout() {
 
     return (
         <AppShell
-            header={{ height: 70 }}
-            navbar={{ width: 300, breakpoint: 'sm' }}
-            padding="md"
+            header={{ height: 60 }}
+            footer={{ height: 70 }} // Thêm footer cho mobile navigation
+            padding={0}
         >
             <AppShell.Header>
                 <HousekeepingHeader />
             </AppShell.Header>
-            <AppShell.Navbar p="md">
-                <HousekeepingSidebar />
-            </AppShell.Navbar>
-            <AppShell.Main>
-                <Container size="lg" py="xl">
+
+            <AppShell.Main style={{
+                paddingBottom: '70px',
+                minHeight: 'calc(100vh - 130px)'
+            }}>
+                <Container size="lg" px="sm" py="md">
                     <Outlet />
                 </Container>
             </AppShell.Main>
+
+            <AppShell.Footer>
+                <HousekeepingBottomNav />
+            </AppShell.Footer>
         </AppShell>
     );
 }
