@@ -7,6 +7,7 @@ import com.product.hms.dto.response.UserResponseDTO;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.StaffEntity;
 import com.product.hms.entity.UserEntity;
+import com.product.hms.enums.Department;
 import com.product.hms.enums.Role;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
@@ -206,7 +207,7 @@ public class UserServiceImpl implements UserService {
     private void mapStaffRequestToEntity(StaffRequestDTO request, StaffEntity entity) {
         entity.setFullName(request.getFullName());
         entity.setPhoneNumber(request.getPhoneNumber());
-        entity.setDepartment(request.getDepartment());
+        entity.setDepartment(Department.valueOf(request.getDepartment()));
         entity.setStatus(request.getStatus());
     }
 
@@ -221,7 +222,7 @@ public class UserServiceImpl implements UserService {
                 .id(e.getId())
                 .fullName(e.getFullName())
                 .phoneNumber(e.getPhoneNumber())
-                .department(e.getDepartment())
+                .department(e.getDepartment().toString())
                 .status(e.getStatus())
                 .isActive(e.getIsActive())
                 .userId(userId)
