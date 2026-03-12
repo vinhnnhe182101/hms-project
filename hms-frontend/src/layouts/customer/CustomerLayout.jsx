@@ -11,18 +11,18 @@ export default function CustomerLayout() {
     return (
         <AppShell
             header={{ height: 70 }}
-            navbar={isAuthenticated ? { width: 280, breakpoint: 'sm' } : undefined}
+            // navbar={isAuthenticated ? { width: 280, breakpoint: 'sm' } : undefined}
             padding={0}
         >
             <AppShell.Header>
                 <Header />
             </AppShell.Header>
 
-            {isAuthenticated && (
+            {/* {isAuthenticated && (
                 <AppShell.Navbar p="md">
                     <CustomerSidebar />
                 </AppShell.Navbar>
-            )}
+            )} */}
 
             <AppShell.Main>
                 <Box style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column' }}>

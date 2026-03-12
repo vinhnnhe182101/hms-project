@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { IconUsers, IconBuilding, IconCalendar, IconCoin } from '@tabler/icons-react';
 import { getRoomClassList } from '../../apis/customer/roomClassApi';
 import { useNavigate } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
 import '@mantine/dates/styles.css';
 
 export default function BookingPage() {
@@ -38,7 +39,6 @@ export default function BookingPage() {
                 const rooms = data?.data || [];
                 setRoomClasses(rooms);
 
-                // Khởi tạo quantities = 0 cho mỗi phòng (reset khi đổi ngày)
                 const initQty = {};
                 rooms.forEach(r => { initQty[r.id] = 0; });
                 setQuantities(initQty);
@@ -68,6 +68,52 @@ export default function BookingPage() {
     const hasSelection = Object.values(quantities).some(q => q > 0);
 
     const handleContinue = () => {
+        // 1. Kiểm tra sức chứa (Guest count vs Max Capacity)
+        let totalMaxCapacity = 0;
+        roomClasses.forEach(room => {
+            const qty = quantities[room.id] || 0;
+            if (qty > 0) {
+                totalMaxCapacity += (room.maxCapacity || room.standardCapacity || 0) * qty;
+                console.log('Total guests:', guests, 'max capacity:', room.maxCapacity);
+            }
+        });
+        
+
+        if (guests > totalMaxCapacity) {
+            notifications.show({
+                title: 'Vượt quá sức chứa',
+                message: `Tổng số khách (${guests}) vượt quá sức chứa tối đa của các phòng đã chọn (${totalMaxCapacity} người). Vui lòng chọn thêm phòng hoặc giảm số khách.`,
+                color: 'red',
+                autoClose: 5000,
+            });
+            return;
+        }
+
+        const now = dayjs();
+        const checkInDayjs = dayjs(checkIn);
+        if (checkInDayjs.isSame(now, 'day')) {
+            if (checkInDayjs.isBefore(now.add(1, 'hour'))) {
+                notifications.show({
+                    title: 'Giờ check-in không hợp lệ',
+                    message: 'Nếu đặt phòng trong hôm nay, giờ check-in phải sau ít nhất 1 giờ so với hiện tại.',
+                    color: 'red',
+                    autoClose: 5000,
+                });
+                return;
+            }
+        }
+
+        const maxLimit = dayjs().add(2, 'month');
+        if (checkInDayjs.isAfter(maxLimit)) {
+             notifications.show({
+                title: 'Ngày không hợp lệ',
+                message: 'Chỉ được phép đặt phòng trong vòng 2 tháng tới.',
+                color: 'red',
+                autoClose: 5000,
+            });
+            return;
+        }
+
         const selected = roomClasses
             .filter(r => (quantities[r.id] || 0) > 0)
             .map(r => ({
@@ -271,6 +317,7 @@ export default function BookingPage() {
                                             }
                                         }}
                                         minDate={new Date()}
+                                        maxDate={dayjs().add(2, 'month').toDate()}
                                         valueFormat="DD/MM/YYYY HH:mm"
                                         leftSection={<IconCalendar size={16} color="teal" />}
                                         styles={{
@@ -293,6 +340,7 @@ export default function BookingPage() {
                                             }
                                         }}
                                         minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
+                                        maxDate={dayjs().add(2, 'month').add(1, 'month').toDate()}
                                         valueFormat="DD/MM/YYYY HH:mm"
                                         leftSection={<IconCalendar size={16} color="teal" />}
                                         styles={{

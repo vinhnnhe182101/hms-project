@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
                 customerId: decoded.id,
                 email: decoded.sub || decoded.email,
                 role: decoded.role,
-                fullName: decoded.fullName,
+                fullName: decoded.fullName || decoded.name,
                 provider: decoded.provider,
             });
         } catch (error) {
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
                 customerId: decoded.id,
                 email: decoded.sub || decoded.email,
                 role: decoded.role,
-                fullName: decoded.fullName,
+                fullName: decoded.fullName || decoded.name,
                 provider: decoded.provider,
             };
 

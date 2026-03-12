@@ -108,9 +108,11 @@ public class RoomClassServiceImpl implements RoomClassService {
                 .id(roomClassId)
                 .name((String) row[1])
                 .standardCapacity(((Number) row[2]).intValue())
-                .basePrice((BigDecimal) row[3])
+                .maxCapacity(((Number) row[3]).intValue())
+                .basePrice((BigDecimal) row[4])
+                .extraPersonFee((BigDecimal) row[5])
                 .primaryImage(buildPrimaryImage(roomClassId))
-                .totalRooms(row[4] != null ? ((Number) row[4]).longValue() : 0L)
+                .totalRooms(row[6] != null ? ((Number) row[6]).longValue() : 0L)
                 .averageRating(avgRating != null ? avgRating : 0.0)
                 .build();
     }

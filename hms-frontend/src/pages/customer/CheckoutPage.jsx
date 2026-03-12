@@ -4,7 +4,8 @@ import {
     Box, Container, Grid, Card, Title, Text, TextInput, Button,
     Stack, Group, Divider, Textarea, Badge, Alert
 } from '@mantine/core';
-import { IconUser, IconPhone, IconIdBadge, IconCalendar, IconUsers, IconCoin, IconArrowLeft, IconInfoCircle, IconLogin } from '@tabler/icons-react';
+import { IconUser, IconPhone, IconIdBadge, IconCalendar, IconUsers, IconCoin, IconArrowLeft, IconInfoCircle, IconLogin, IconCheck, IconX } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import dayjs from 'dayjs';
 import { createBooking } from '../../apis/customer/reservationApi';
 import { authApi } from '../../apis/auth/authApi';
@@ -30,15 +31,23 @@ export default function CheckoutPage() {
         // Điền ngay fullName từ context (luôn có)
         if (customer.fullName) setName(customer.fullName);
 
-        // Gọi API /me để lấy phoneNumber và identityCard mới nhất từ DB
+        // Gọi API /me để lấy thông tin chi tiết từ DB
         authApi.getMyProfile()
             .then(res => {
-                const profile = res.data;
-                if (profile?.phoneNumber) setPhone(profile.phoneNumber);
-                if (profile?.identityCard) setIdentityCard(profile.identityCard);
+                const profile = res.data || res;
+                // Ưu tiên thông tin chi tiết từ object customer nếu có
+                const customerData = profile.customer || profile;
+                
+                if (customerData.fullName) setName(customerData.fullName);
+                else if (customerData.name) setName(customerData.name);
+                
+                if (customerData.phoneNumber) setPhone(customerData.phoneNumber);
+                else if (customerData.phone) setPhone(customerData.phone);
+                
+                if (customerData.identityCard) setIdentityCard(customerData.identityCard);
             })
             .catch(() => {
-                // Nếu API lỗi thì bỏ qua, user tự nhập
+                // Nếu API lỗi thì bỏ qua
             });
     }, [customer]);
 
@@ -62,7 +71,12 @@ export default function CheckoutPage() {
 
     const handleConfirmBooking = async () => {
         if (!name.trim() || !phone.trim() || !identityCard.trim()) {
-            alert('Vui lòng điền đầy đủ thông tin khách hàng!');
+            notifications.show({
+                title: 'Thiếu thông tin',
+                message: 'Vui lòng điền đầy đủ thông tin khách hàng!',
+                color: 'red',
+                icon: <IconX size={16} />
+            });
             return;
         }
 
@@ -95,13 +109,24 @@ export default function CheckoutPage() {
                 // Chuyển hướng người dùng qua trang VNPAY để trả tiền
                 window.location.href = response.paymentUrl;
             } else {
-                alert(`Đặt phòng thành công! Mã đặt phòng: ${response.reservationCode}.\n\nVui lòng liên hệ khách sạn để chuẩn bị thanh toán tiền cọc ${new Intl.NumberFormat('vi-VN').format(response.depositAmount)} VNĐ (20%).`);
+                notifications.show({
+                    title: 'Đặt phòng thành công',
+                    message: `Mã đặt phòng: ${response.reservationCode}.\nVui lòng liên hệ khách sạn để chuẩn bị thanh toán tiền cọc ${new Intl.NumberFormat('vi-VN').format(response.depositAmount)} VNĐ.`,
+                    color: 'teal',
+                    icon: <IconCheck size={16} />,
+                    autoClose: 8000
+                });
                 navigate('/');
             }
         } catch (error) {
             console.error('Lỗi khi đặt phòng:', error);
             const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.';
-            alert(errorMessage);
+            notifications.show({
+                title: 'Lỗi',
+                message: errorMessage,
+                color: 'red',
+                icon: <IconX size={16} />
+            });
         } finally {
             setIsSubmitting(false);
         }

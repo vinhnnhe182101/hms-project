@@ -4,7 +4,8 @@ import {
     Container, Title, Card, Text, Button, Group, Stack, Table,
     Select, Box, NumberInput, ActionIcon, Anchor, Loader, Center, Alert
 } from '@mantine/core';
-import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle, IconX } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { getActiveAllocations, createServiceBookings } from '../../apis/customer/serviceBookingApi';
 
@@ -102,7 +103,12 @@ export default function ServiceCheckoutPage() {
 
     const handleConfirmBooking = async () => {
         if (!customer?.customerId) {
-            alert('Vui lòng đăng nhập trước khi đặt dịch vụ!');
+            notifications.show({
+                title: 'Yêu cầu đăng nhập',
+                message: 'Vui lòng đăng nhập trước khi đặt dịch vụ!',
+                color: 'orange',
+                icon: <IconInfoCircle size={16} />
+            });
             navigate('/login');
             return;
         }
@@ -119,7 +125,12 @@ export default function ServiceCheckoutPage() {
             // 1. Kiểm tra xem tổng chia có bằng tổng đặt không
             const totalQty = allocs.reduce((sum, a) => sum + (a.qty || 0), 0);
             if (totalQty !== item.quantity) {
-                alert(`Dịch vụ "${item.name}" có tổng số lượng sử dụng (${totalQty}) chưa khớp với số lượng mua ban đầu (${item.quantity})!`);
+                notifications.show({
+                    title: 'Số lượng không khớp',
+                    message: `Dịch vụ "${item.name}" có số lượng phân bổ (${totalQty}) chưa khớp với số lượng mua (${item.quantity})!`,
+                    color: 'red',
+                    icon: <IconX size={16} />
+                });
                 isValid = false;
                 break;
             }
@@ -127,7 +138,12 @@ export default function ServiceCheckoutPage() {
             // 2. Chắc chắn rằng mỗi dòng chia đều đã được chọn phòng
             for (const a of allocs) {
                 if (!a.roomId) {
-                    alert(`Vui lòng chọn phòng cụ thể cho dịch vụ "${item.name}"!`);
+                    notifications.show({
+                        title: 'Thiếu thông tin phòng',
+                        message: `Vui lòng chọn phòng cụ thể cho dịch vụ "${item.name}"!`,
+                        color: 'red',
+                        icon: <IconX size={16} />
+                    });
                     isValid = false;
                     break;
                 }
@@ -147,10 +163,21 @@ export default function ServiceCheckoutPage() {
         setIsSubmitting(true);
         try {
             await createServiceBookings(finalPayload);
-            alert('✅ Đơn dịch vụ đã được ghi nhận vào hệ thống thành công!\nSẽ có nhân viên liên hệ xác nhận và phục vụ bạn sớm nhất.');
+            notifications.show({
+                title: 'Đặt dịch vụ thành công',
+                message: 'Đơn dịch vụ đã được ghi nhận vào hệ thống thành công! Sẽ có nhân viên liên hệ xác nhận và phục vụ bạn sớm nhất.',
+                color: 'teal',
+                icon: <IconCheck size={16} />,
+                autoClose: 8000
+            });
             navigate('/services');
         } catch (error) {
-            alert(error.response?.data || 'Có lỗi xảy ra khi đặt dịch vụ. Vui lòng thử lại!');
+            notifications.show({
+                title: 'Lỗi',
+                message: error.response?.data || 'Có lỗi xảy ra khi đặt dịch vụ. Vui lòng thử lại!',
+                color: 'red',
+                icon: <IconX size={16} />
+            });
         } finally {
             setIsSubmitting(false);
         }

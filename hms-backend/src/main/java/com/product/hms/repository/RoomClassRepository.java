@@ -20,7 +20,9 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             SELECT rc.id,
                    rc.name,
                    rc.standardCapacity,
+                   rc.maxCapacity,
                    rc.basePrice,
+                   rc.extraPersonFee,
                    (COUNT(DISTINCT r.id) - 
                     (SELECT COUNT(DISTINCT r2.id) 
                      FROM ReservationRoomEntity alloc
@@ -36,7 +38,7 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             FROM RoomClassEntity rc
             LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
             WHERE rc.isActive = true
-            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.basePrice
+            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.maxCapacity, rc.basePrice, rc.extraPersonFee
             ORDER BY rc.id ASC
             """)
     Page<Object[]> findRoomClassSummary(@Param("checkIn") Timestamp checkIn,
@@ -48,12 +50,14 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             SELECT rc.id,
                    rc.name,
                    rc.standardCapacity,
+                   rc.maxCapacity,
                    rc.basePrice,
+                   rc.extraPersonFee,
                    COUNT(r.id)
             FROM RoomClassEntity rc
             LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
             WHERE rc.isActive = true
-            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.basePrice
+            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.maxCapacity, rc.basePrice, rc.extraPersonFee
             ORDER BY rc.id ASC
             """)
     Page<Object[]> findRoomClassSummaryWithoutDate(Pageable pageable);
@@ -78,12 +82,14 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             SELECT rc.id,
                    rc.name,
                    rc.standardCapacity,
+                   rc.maxCapacity,
                    rc.basePrice,
+                   rc.extraPersonFee,
                    COUNT(r.id)
             FROM RoomClassEntity rc
             LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id
             WHERE rc.id <> :excludeId
-            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.basePrice
+            GROUP BY rc.id, rc.name, rc.standardCapacity, rc.maxCapacity, rc.basePrice, rc.extraPersonFee
             ORDER BY rc.id ASC
             """)
     List<Object[]> findOtherRoomClasses(@Param("excludeId") Long excludeId);

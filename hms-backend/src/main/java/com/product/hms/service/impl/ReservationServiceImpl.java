@@ -12,6 +12,7 @@ import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.enums.ReservationStatus;
+import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.*;
@@ -34,7 +35,12 @@ import com.product.hms.dto.request.BookingRequestDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.UUID;
@@ -202,6 +208,43 @@ public class ReservationServiceImpl implements ReservationService {
         ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
         Instant checkInInstant = request.getCheckIn();
         Instant checkOutInstant = request.getCheckOut();
+
+        Instant now = Instant.now();
+        ZonedDateTime nowZoned = now.atZone(zoneId);
+        ZonedDateTime checkInZoned = checkInInstant.atZone(zoneId);
+        ZonedDateTime checkOutZoned = checkOutInstant.atZone(zoneId);
+
+        // 1. Check-in must be at least 1 hour from now if it is today
+        if (checkInZoned.toLocalDate().isEqual(nowZoned.toLocalDate())) {
+            if (checkInInstant.isBefore(now.plus(1, ChronoUnit.HOURS))) {
+                throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian check-in phải sau ít nhất 1 giờ kể từ hiện tại nếu bạn đặt vào hôm nay.");
+            }
+        } else if (checkInInstant.isBefore(now)) {
+            throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian check-in không được ở trong quá khứ.");
+        }
+
+        // 2. Check-in and Check-out within 2 months
+        ZonedDateTime maxLimit = nowZoned.plusMonths(2);
+        if (checkInZoned.isAfter(maxLimit)) {
+            throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Chỉ cho phép đặt phòng trong vòng 2 tháng tới.");
+        }
+        if (checkOutZoned.isAfter(maxLimit.plusDays(1))) {
+             throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian trả phòng không được vượt quá 2 tháng kể từ hiện tại.");
+        }
+
+        // 3. Guest count validation against max room capacity
+        int totalMaxCapacity = 0;
+        if (request.getRooms() != null) {
+            for (BookingRequestDTO.RoomBookingRequest r : request.getRooms()) {
+                RoomClassEntity roomClass = roomClassRepository.findById(r.getId())
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_CLASS_NOT_FOUND, "Không tìm thấy loại phòng ID: " + r.getId()));
+                totalMaxCapacity += roomClass.getMaxCapacity() * r.getQuantity();
+            }
+        }
+        if (request.getGuests() > totalMaxCapacity) {
+            throw new BadRequestException(ErrorCode.EXCEED_MAX_CAPACITY, "Số lượng khách (" + request.getGuests() + ") vượt quá tổng sức chứa tối đa của các phòng đã chọn (" + totalMaxCapacity + " người).");
+        }
+        // --- VALIDATION END ---
 
         LocalDate checkInDate = checkInInstant.atZone(zoneId).toLocalDate();
         LocalDate checkOutDate = checkOutInstant.atZone(zoneId).toLocalDate();
