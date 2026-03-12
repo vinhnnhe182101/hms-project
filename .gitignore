@@ -28,9 +28,9 @@ hms-database/*
 !.github/
 !.github/copilot-instructions.md
 !business_rules.md
-!coding_guildlines.md
+!coding_guidelines.md
 !lessons.md
-!styles_guildelines.md
+!styles_guidelines.md
 !todo.md
 
 !.gitignore
