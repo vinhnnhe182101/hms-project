@@ -3,7 +3,7 @@ import { CustomerLayout } from '../layouts/customer/CustomerLayout';
 import { AdminLayout } from '../layouts/admin/AdminLayout';
 import { HousekeepingLayout } from '../layouts/housekeeping/HousekeepingLayout';
 import { ProtectedRoute } from './ProtectedRoute';
-import HomePage from '../pages/customer/HơmePage.jsx';
+import HomePage from '../pages/customer/HomePage.jsx';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import AdminDashboardPage from '../pages/admin/DashboardPage';
