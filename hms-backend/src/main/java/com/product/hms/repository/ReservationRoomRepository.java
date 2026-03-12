@@ -32,5 +32,6 @@ public interface ReservationRoomRepository extends JpaRepository<ReservationRoom
      * @return Danh sách các ReservationRoomEntity thỏa mãn điều kiện
      */
     List<ReservationRoomEntity> findByReservationEntity_IdAndIsActiveTrue(Long reservationId);
-}
 
+    boolean existsByRoomEntityAndReservationEntityAndIsActiveTrue(com.product.hms.entity.RoomEntity room, com.product.hms.entity.ReservationEntity reservation);
+}

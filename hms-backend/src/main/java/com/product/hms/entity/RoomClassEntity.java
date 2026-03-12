@@ -67,5 +67,4 @@ public class RoomClassEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-
 }

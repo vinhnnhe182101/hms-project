@@ -2,9 +2,14 @@ package com.product.hms.service.impl;
 
 import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.PaymentRequest;
+import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.RoomChangeRequest;
+import com.product.hms.dto.request.RoomClassQuantityRequest;
 import com.product.hms.dto.response.*;
 import com.product.hms.entity.*;
-import com.product.hms.enums.*;
+import com.product.hms.enums.FolioStatus;
+import com.product.hms.enums.ReservationRoomStatus;
+import com.product.hms.enums.RoomStatus;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
@@ -13,6 +18,8 @@ import com.product.hms.service.FolioService;
 import com.product.hms.service.PaymentService;
 import com.product.hms.service.ReservationRoomService;
 import com.product.hms.service.impl.reservation.ReservationCheckOutSupport;
+import com.product.hms.service.impl.reservation.ReservationRoomSupport;
+import com.product.hms.service.impl.reservation.ReservationRoomValidationSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,25 +42,22 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
     private final FolioService folioService;
     private final PaymentService paymentService;
     private final CustomerMapper customerMapper;
+    private final RoomClassRepository roomClassRepository;
 
     @Override
     @Transactional(readOnly = true)
     public ReservationRoomFolioResponse getReservationRoomFolio(Long reservationRoomId) {
-        ReservationRoomEntity reservationRoom = reservationRoomRepository.findById(reservationRoomId)
+        ReservationRoomEntity reservationRoomEntity = reservationRoomRepository.findById(reservationRoomId)
                 .orElseThrow(() -> new NotFoundException(
                         ErrorCode.RESERVATION_ROOM_NOT_FOUND,
                         "Reservation room not found with ID: " + reservationRoomId
                 ));
 
-        // Get folio
-        FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoom)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Folio not found for reservation room ID: " + reservationRoomId
-                ));
+        // Lấy folioEntity dùng hàm support
+        FolioEntity folioEntity = ReservationRoomSupport.getFolioByReservationRoom(folioRepository, reservationRoomEntity);
 
-        // Get folio items
-        List<FolioItemEntity> folioItems = folioItemRepository.findByFolioEntityAndIsActiveTrue(folio);
+        // Lấy folioEntity items dùng hàm support
+        List<FolioItemEntity> folioItems = ReservationRoomSupport.getActiveFolioItemsByFolio(folioItemRepository, folioEntity);
         List<FolioItemResponse> folioItemResponses = folioItems.stream()
                 .map(item -> new FolioItemResponse(
                         item.getId(),
@@ -65,9 +69,8 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 ))
                 .toList();
 
-        // Get room occupants
-        List<RoomOccupantEntity> occupants = roomOccupantRepository
-                .findByReservationRoomEntityAndIsActiveTrue(reservationRoom);
+        // Lấy room occupants dùng hàm support
+        List<RoomOccupantEntity> occupants = ReservationRoomSupport.getActiveRoomOccupantsByReservationRoom(roomOccupantRepository, reservationRoomEntity);
         List<RoomOccupantResponse> occupantResponses = occupants.stream()
                 .map(occupant -> new RoomOccupantResponse(
                         customerMapper.toResponse(occupant.getCustomerEntity()),
@@ -75,21 +78,21 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                 ))
                 .toList();
 
-        // Get room info
-        String roomNumber = reservationRoom.getRoomEntity() != null
-                ? reservationRoom.getRoomEntity().getRoomNumber()
+        // Lấy thông tin phòng
+        String roomNumber = reservationRoomEntity.getRoomEntity() != null
+                ? reservationRoomEntity.getRoomEntity().getRoomNumber()
                 : "Not assigned";
-        String roomClassName = reservationRoom.getRoomClassEntity().getName();
+        String roomClassName = reservationRoomEntity.getRoomClassEntity().getName();
 
         return new ReservationRoomFolioResponse(
-                reservationRoom.getId(),
+                reservationRoomEntity.getId(),
                 roomNumber,
                 roomClassName,
                 occupantResponses,
                 folioItemResponses,
-                folio.getTotalCharges(),
-                folio.getTotalPaid(),
-                folio.getBalance()
+                folioEntity.getTotalCharges(),
+                folioEntity.getTotalPaid(),
+                folioEntity.getBalance()
         );
     }
 
@@ -101,41 +104,11 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                         ErrorCode.RESERVATION_ROOM_NOT_FOUND,
                         "Reservation room not found with ID: " + reservationRoomId
                 ));
-
         ReservationEntity reservation = reservationRoom.getReservationEntity();
-
-        // Validate reservation is IN_HOUSE
-        if (reservation.getStatus() != ReservationStatus.IN_HOUSE) {
-            throw new BusinessException(
-                    ErrorCode.RESERVATION_CHECKOUT_NOT_ALLOWED,
-                    "Check-out only allowed when reservation status is IN_HOUSE. Current: " + reservation.getStatus()
-            );
-        }
-
-        // Validate room is CHECKED_IN
-        if (reservationRoom.getStatus() != ReservationRoomStatus.CHECKED_IN) {
-            throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_NOT_CHECKED_IN,
-                    "Room must be in CHECKED_IN status to check out. Room ID: " + reservationRoomId
-            );
-        }
-
-        // Check for pending services
-        boolean hasPendingServices = serviceBookingRepository.existsByReservationRoomEntityAndStatus(
-                reservationRoom,
-                ServiceBookingStatus.PENDING
-        );
-        if (hasPendingServices) {
-            throw new BusinessException(
-                    ErrorCode.RESERVATION_ROOM_HAS_PENDING_SERVICES,
-                    "Cannot check out room with pending services. Room ID: " + reservationRoomId
-            );
-        }
-
-        // Set actual checkout time
+        ReservationRoomValidationSupport.validateReservationInHouseForCheckOut(reservation);
+        ReservationRoomValidationSupport.validateReservationRoomCheckedInForCheckOut(reservationRoom);
+        ReservationRoomValidationSupport.validateNoPendingServicesForCheckOut(reservationRoom, serviceBookingRepository);
         reservationRoom.setActualCheckOut(Instant.now());
-
-        // Apply late check-out fee if applicable
         BigDecimal lateCheckOutFee = ReservationCheckOutSupport.calculateLateCheckOutFee(
                 reservationRoom,
                 reservation.getExpectedCheckOut()
@@ -143,20 +116,13 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         if (lateCheckOutFee.signum() > 0) {
             folioService.applyLateCheckOutFee(reservationRoom, lateCheckOutFee);
         }
-
-        // Update room status
         reservationRoom.setStatus(ReservationRoomStatus.CHECKED_OUT);
         reservationRoomRepository.save(reservationRoom);
-
-        // Update physical room status to DIRTY
         if (reservationRoom.getRoomEntity() != null) {
             reservationRoom.getRoomEntity().setStatus(RoomStatus.DIRTY);
             roomRepository.save(reservationRoom.getRoomEntity());
         }
-
-        // Check if all rooms are checked out, update reservation status
-        updateReservationStatusIfAllCheckedOut(reservation);
-
+        ReservationRoomSupport.updateReservationStatusIfAllCheckedOut(reservation, reservationRoomRepository, reservationRepository);
         return new ReservationRoomCheckOutResponse(
                 reservationRoomId,
                 ReservationRoomStatus.CHECKED_OUT.getDbValue(),
@@ -172,85 +138,88 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
                         ErrorCode.RESERVATION_ROOM_NOT_FOUND,
                         "Reservation room not found with ID: " + reservationRoomId
                 ));
-
         ReservationEntity reservation = reservationRoom.getReservationEntity();
-
         FolioEntity folio = folioRepository.findByReservationRoomEntity(reservationRoom)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INTERNAL_SERVER_ERROR,
                         "Folio not found for reservation room ID: " + reservationRoomId
                 ));
-
-        if (folio.getStatus() == FolioStatus.CLOSED) {
-            throw new BusinessException(
-                    ErrorCode.FOLIO_ALREADY_CLOSED,
-                    "Cannot process payment for closed folio"
-            );
-        }
-
+        ReservationRoomValidationSupport.validateFolioNotClosed(folio);
         BigDecimal depositRequested = request.depositAmount() != null ? request.depositAmount() : BigDecimal.ZERO;
-        if (depositRequested.signum() < 0) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Deposit amount must be >= 0");
-        }
-
         BigDecimal depositAvailable = reservation.getTotalDeposit() != null
                 ? reservation.getTotalDeposit()
                 : BigDecimal.ZERO;
-
-        if (depositRequested.compareTo(depositAvailable) > 0) {
-            throw new BusinessException(
-                    ErrorCode.INSUFFICIENT_DEPOSIT,
-                    String.format("Insufficient deposit. Available: %s, Requested: %s", depositAvailable, depositRequested)
-            );
-        }
-
+        ReservationRoomValidationSupport.validateDepositAmount(depositRequested, depositAvailable);
         PaymentResponse response = paymentService.processPaymentForFolio(folio, request);
-
         if (depositRequested.signum() > 0) {
             reservation.setTotalDeposit(depositAvailable.subtract(depositRequested));
             reservationRepository.save(reservation);
         }
-
         if (folio.getBalance().signum() <= 0) {
             folio.setStatus(FolioStatus.CLOSED);
             folioRepository.save(folio);
         }
-
-        updateReservationStatusIfAllPaid(reservation);
+        ReservationRoomSupport.updateReservationStatusIfAllPaid(reservation, reservationRoomRepository, folioRepository, reservationRepository);
         return response;
     }
 
-    private void updateReservationStatusIfAllPaid(ReservationEntity reservation) {
-        // Only update if reservation is CHECKED_OUT
-        if (reservation.getStatus() != ReservationStatus.CHECKED_OUT) {
-            return;
-        }
-
-        List<ReservationRoomEntity> allRooms = reservationRoomRepository
-                .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
-
-        boolean allPaid = allRooms.stream().allMatch(room -> {
-            FolioEntity folio = folioRepository.findByReservationRoomEntity(room).orElse(null);
-            return folio != null && folio.getBalance().signum() <= 0;
-        });
-
-        if (allPaid) {
-            reservation.setStatus(ReservationStatus.FINISHED);
-            reservationRepository.save(reservation);
-        }
+    @Override
+    @Transactional
+    public void changeRoom(Long reservationRoomId, RoomChangeRequest request) {
+        ReservationRoomEntity reservationRoom = reservationRoomRepository.findById(reservationRoomId)
+                .orElseThrow(() -> new NotFoundException(
+                        ErrorCode.RESERVATION_ROOM_NOT_FOUND,
+                        "Reservation room not found with ID: " + reservationRoomId
+                ));
+        ReservationEntity reservation = reservationRoom.getReservationEntity();
+        ReservationRoomValidationSupport.validateReservationRoomForChange(reservation, reservationRoom);
+        RoomEntity newRoom = roomRepository.findById(request.newRoomId())
+                .orElseThrow(() -> new NotFoundException(
+                        ErrorCode.ROOM_NOT_FOUND,
+                        "Room not found with ID: " + request.newRoomId()
+                ));
+        ReservationRoomValidationSupport.validateNewRoomForChange(newRoom, reservation, reservationRoomRepository);
+        BigDecimal changeFee = ReservationRoomSupport.calculateRoomChangeFeeWithBookingPrice(newRoom, reservationRoom, reservation);
+        ReservationRoomSupport.updateRoomStatusAndBookingPrice(reservationRoom, newRoom, roomRepository, reservationRoomRepository);
+        folioService.handleRoomChangeAdjustment(reservationRoom, newRoom, changeFee);
+        ReservationRoomSupport.updateNoteIfNeeded(request.note(), reservationRoom, reservationRoomRepository);
     }
 
-    private void updateReservationStatusIfAllCheckedOut(ReservationEntity reservation) {
-        List<ReservationRoomEntity> allRooms = reservationRoomRepository
-                .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
-
-        boolean allCheckedOut = allRooms.stream()
-                .allMatch(r -> r.getStatus() == ReservationRoomStatus.CHECKED_OUT);
-
-        if (allCheckedOut) {
-            reservation.setStatus(ReservationStatus.CHECKED_OUT);
-            reservationRepository.save(reservation);
+    @Override
+    @Transactional
+    public List<ReservationRoomEntity> createRoomAllocations(ReservationEntity reservation, ReservationRequest request) {
+        List<ReservationRoomEntity> allocations = new java.util.ArrayList<>();
+        for (RoomClassQuantityRequest roomClassQuantity : request.roomClassQuantities()) {
+            RoomClassEntity roomClass = roomClassRepository.findById(roomClassQuantity.roomClassId())
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorCode.ROOM_CLASS_NOT_FOUND,
+                            "Room class not found with ID: " + roomClassQuantity.roomClassId()
+                    ));
+            ReservationRoomEntity reservationRoomEntity = getReservationRoomEntity(reservation, roomClassQuantity, roomClass);
+            ReservationRoomEntity savedAllocation = reservationRoomRepository.save(reservationRoomEntity);
+            allocations.add(savedAllocation);
         }
+        return allocations;
+    }
+
+    private ReservationRoomEntity getReservationRoomEntity(ReservationEntity reservation, RoomClassQuantityRequest roomClassQuantity, RoomClassEntity roomClass) {
+        ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
+        reservationRoomEntity.setReservationEntity(reservation);
+        reservationRoomEntity.setRoomClassEntity(roomClass);
+        reservationRoomEntity.setNumberOfPeople(roomClassQuantity.numberOfPeople());
+        reservationRoomEntity.setPriceAtBooking(roomClass.getBasePrice());
+        reservationRoomEntity.setStatus(ReservationRoomStatus.PENDING);
+        reservationRoomEntity.setIsActive(true);
+        return reservationRoomEntity;
+    }
+
+    @Override
+    public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation) {
+        return reservationRoomRepository.findByReservationEntity(reservation);
+    }
+
+    @Override
+    public void deleteAllocationsByReservation(ReservationEntity reservation) {
+        reservationRoomRepository.deleteByReservationEntity(reservation);
     }
 }
-
