@@ -1,10 +1,15 @@
 package com.product.hms.service;
 
 import com.product.hms.dto.request.PaymentRequest;
+import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.request.RoomChangeRequest;
 import com.product.hms.dto.response.PaymentResponse;
 import com.product.hms.dto.response.ReservationRoomCheckOutResponse;
 import com.product.hms.dto.response.ReservationRoomFolioResponse;
+import com.product.hms.entity.ReservationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
+
+import java.util.List;
 
 /**
  * Service interface for reservation room operations (check-out, folio management, payment)
@@ -39,13 +44,41 @@ public interface ReservationRoomService {
      * @param request           chi tiết thanh toán, bao gồm danh sách các folio, method thanh toán, số tiền đặt cọc muốn khấu trừ.
      * @return PaymentResponse chứa thông tin chi tiết về
      */
-    // TODO: Cần thêm service xử lý khi khách hàng thanh toán tiền mặt tại quầy. Lễ tân sẽ Mark As Paid cho các mục folio đã chọn.
     PaymentResponse processPayment(Long reservationRoomId, PaymentRequest request);
 
     /**
      * Chuyển phòng cho khách đã check-in.
+     *
      * @param reservationRoomId ID của reservation room cần chuyển phòng
-     * @param request Thông tin chuyển phòng
+     * @param request           Thông tin chuyển phòng
      */
     void changeRoom(Long reservationRoomId, RoomChangeRequest request);
+
+    /**
+     * Tạo các bản ghi ReservationRoomEntity dựa trên thông tin đặt phòng và số lượng phòng theo từng loại phòng được cung cấp trong request.
+     * Service sẽ tự lấy RoomClassEntity từ repository dựa trên roomClassId trong request.
+     *
+     * @param reservation bản ghi đặt phòng mà các bản ghi ReservationRoomEntity sẽ liên kết đến
+     * @param request     đối tượng chứa thông tin chi tiết về đặt phòng, danh sách hạng phòng và số lượng người ở mỗi hạng phòng
+     * @return danh sách các bản ghi ReservationRoomEntity đã được tạo.
+     */
+    List<ReservationRoomEntity> createRoomAllocations(
+            ReservationEntity reservation,
+            ReservationRequest request
+    );
+
+    /**
+     * Lấy danh sách các bản ghi ReservationRoomEntity liên quan đến một ReservationEntity cụ thể.
+     *
+     * @param reservation bản ghi đặt phòng mà bạn muốn lấy các bản ghi ReservationRoomEntity liên quan đến nó
+     * @return danh sách các bản ghi ReservationRoomEntity liên quan đến ReservationEntity đã cho.
+     */
+    List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation);
+
+    /**
+     * Xóa tất cả các bản ghi ReservationRoomEntity liên quan đến một ReservationEntity cụ thể.
+     *
+     * @param reservation bản ghi đặt phòng mà bạn muốn xóa tất cả các bản ghi ReservationRoomEntity liên quan đến nó
+     */
+    void deleteAllocationsByReservation(ReservationEntity reservation);
 }

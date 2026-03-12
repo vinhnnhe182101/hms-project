@@ -6,7 +6,7 @@ import com.product.hms.dto.response.RoomClassQuantityResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.ReservationRoomEntity;
-import com.product.hms.service.RoomAllocationService;
+import com.product.hms.service.ReservationRoomService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +19,11 @@ public final class ReservationResponseSupport {
     public static ReservationResponse buildReservationResponse(
             ReservationEntity reservation,
             CustomerEntity customer,
-            RoomAllocationService roomAllocationService,
+            ReservationRoomService reservationRoomService,
             CustomerMapper customerMapper
     ) {
         List<RoomClassQuantityResponse> allocationResponses = new ArrayList<>();
-        List<ReservationRoomEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
+        List<ReservationRoomEntity> allocations = reservationRoomService.getAllocationsByReservation(reservation);
 
         for (ReservationRoomEntity allocation : allocations) {
             allocationResponses.add(new RoomClassQuantityResponse(
@@ -47,4 +47,3 @@ public final class ReservationResponseSupport {
         );
     }
 }
-

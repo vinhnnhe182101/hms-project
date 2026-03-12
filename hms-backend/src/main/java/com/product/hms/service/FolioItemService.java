@@ -50,7 +50,6 @@ public interface FolioItemService {
      * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
      * @param chargeAmount   số tiền phí dịch vụ (positive value)
      */
-    // TODO: Nên bỏ chargeAmount ra khỏi tham số, thay vào đó sẽ tính toán dựa trên serviceBooking
     void createServiceChargeItem(FolioEntity folio, ServiceBookingEntity serviceBooking, BigDecimal chargeAmount);
 
     /**
@@ -94,11 +93,12 @@ public interface FolioItemService {
 
     /**
      * Tạo FolioItem điều chỉnh khi khách chuyển phòng.
-     * @param folio Folio liên quan
-     * @param amount Số tiền điều chỉnh (có thể âm hoặc dương)
-     * @param oldRoomNumber Số phòng cũ
+     *
+     * @param folio            Folio liên quan
+     * @param amount           Số tiền điều chỉnh (có thể âm hoặc dương)
+     * @param oldRoomNumber    Số phòng cũ
      * @param oldRoomClassName Hạng phòng cũ
-     * @param newRoomNumber Số phòng mới
+     * @param newRoomNumber    Số phòng mới
      * @param newRoomClassName Hạng phòng mới
      */
     void createFolioItemForRoomChangeAdjustment(

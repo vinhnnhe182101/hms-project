@@ -7,7 +7,6 @@ import com.product.hms.entity.FolioEntity;
 import java.math.BigDecimal;
 import java.util.Map;
 
-// TODO: Thêm một Schedule để tự chuyển payment thành CANCELED nếu sau một khoảng thời gian nhất định
 public interface PaymentService {
 
     /**

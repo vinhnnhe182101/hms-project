@@ -239,16 +239,6 @@ public class PaymentServiceImpl implements PaymentService {
         // STEP 3: Tạo payment allocation cho từng folio item đã chọn
         paymentAllocationService.createPaymentAllocation(paymentTransactionEntity, selectedFolioItemEntities);
 
-        // TODO: Cần xem xét lại vì dù method nào cũng sẽ cần gọi api để đánh dấu đã thanh toán thành công, lúc đó với cập nhật tổng đã trả và số dư.
-//        BigDecimal newBalance = folioEntity.getBalance();
-//        if (paymentMethod != PaymentMethod.VNPAY) {
-//            BigDecimal newTotalPaid = folioEntity.getTotalPaid().add(selectedItemsTotalPrice);
-//            newBalance = folioEntity.getTotalCharges().subtract(newTotalPaid);
-//            folioEntity.setTotalPaid(newTotalPaid);
-//            folioEntity.setBalance(newBalance);
-//            folioRepository.save(folioEntity);
-//        }
-
         // STEP 4: Nếu là VNPAY thì tạo URL thanh toán
         String paymentUrl = null;
         if (paymentMethod == PaymentMethod.VNPAY) {

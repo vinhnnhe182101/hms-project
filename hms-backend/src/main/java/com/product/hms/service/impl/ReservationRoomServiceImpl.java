@@ -2,10 +2,14 @@ package com.product.hms.service.impl;
 
 import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.PaymentRequest;
+import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.request.RoomChangeRequest;
+import com.product.hms.dto.request.RoomClassQuantityRequest;
 import com.product.hms.dto.response.*;
 import com.product.hms.entity.*;
-import com.product.hms.enums.*;
+import com.product.hms.enums.FolioStatus;
+import com.product.hms.enums.ReservationRoomStatus;
+import com.product.hms.enums.RoomStatus;
 import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
@@ -38,6 +42,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
     private final FolioService folioService;
     private final PaymentService paymentService;
     private final CustomerMapper customerMapper;
+    private final RoomClassRepository roomClassRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -178,5 +183,43 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         ReservationRoomSupport.updateRoomStatusAndBookingPrice(reservationRoom, newRoom, roomRepository, reservationRoomRepository);
         folioService.handleRoomChangeAdjustment(reservationRoom, newRoom, changeFee);
         ReservationRoomSupport.updateNoteIfNeeded(request.note(), reservationRoom, reservationRoomRepository);
+    }
+
+    @Override
+    @Transactional
+    public List<ReservationRoomEntity> createRoomAllocations(ReservationEntity reservation, ReservationRequest request) {
+        List<ReservationRoomEntity> allocations = new java.util.ArrayList<>();
+        for (RoomClassQuantityRequest roomClassQuantity : request.roomClassQuantities()) {
+            RoomClassEntity roomClass = roomClassRepository.findById(roomClassQuantity.roomClassId())
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorCode.ROOM_CLASS_NOT_FOUND,
+                            "Room class not found with ID: " + roomClassQuantity.roomClassId()
+                    ));
+            ReservationRoomEntity reservationRoomEntity = getReservationRoomEntity(reservation, roomClassQuantity, roomClass);
+            ReservationRoomEntity savedAllocation = reservationRoomRepository.save(reservationRoomEntity);
+            allocations.add(savedAllocation);
+        }
+        return allocations;
+    }
+
+    private ReservationRoomEntity getReservationRoomEntity(ReservationEntity reservation, RoomClassQuantityRequest roomClassQuantity, RoomClassEntity roomClass) {
+        ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
+        reservationRoomEntity.setReservationEntity(reservation);
+        reservationRoomEntity.setRoomClassEntity(roomClass);
+        reservationRoomEntity.setNumberOfPeople(roomClassQuantity.numberOfPeople());
+        reservationRoomEntity.setPriceAtBooking(roomClass.getBasePrice());
+        reservationRoomEntity.setStatus(ReservationRoomStatus.PENDING);
+        reservationRoomEntity.setIsActive(true);
+        return reservationRoomEntity;
+    }
+
+    @Override
+    public List<ReservationRoomEntity> getAllocationsByReservation(ReservationEntity reservation) {
+        return reservationRoomRepository.findByReservationEntity(reservation);
+    }
+
+    @Override
+    public void deleteAllocationsByReservation(ReservationEntity reservation) {
+        reservationRoomRepository.deleteByReservationEntity(reservation);
     }
 }

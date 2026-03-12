@@ -45,10 +45,8 @@ public interface FolioService {
      * Cập nhật khoản phí dịch vụ (service charge) khi có thay đổi về số lượng.
      *
      * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
-     * @param chargeAmount   số tiền phí dịch vụ mới (positive value)
      */
-    // TODO: Nên bỏ chargeAmount ra khỏi tham số, thay vào đó sẽ tính toán dựa trên serviceBooking
-    void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount);
+    void updateServiceCharge(ServiceBookingEntity serviceBooking);
 
     /**
      * Hủy bỏ khoản phí dịch vụ (service charge) khi khách hàng hủy dịch vụ.

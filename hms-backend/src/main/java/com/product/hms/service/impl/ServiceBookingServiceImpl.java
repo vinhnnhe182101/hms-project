@@ -136,11 +136,8 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
         // Only update quantity, not serviceId
         serviceBooking.setQuantity(request.quantity());
 
-        BigDecimal newAmount = serviceBooking.getPriceAtBooking()
-                .multiply(BigDecimal.valueOf(serviceBooking.getQuantity()));
-
         ServiceBookingEntity updated = serviceBookingRepository.save(serviceBooking);
-        folioService.updateServiceCharge(updated, newAmount);
+        folioService.updateServiceCharge(updated);
 
         return buildResponse(updated);
     }

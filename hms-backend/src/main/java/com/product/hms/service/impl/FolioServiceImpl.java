@@ -77,7 +77,7 @@ public class FolioServiceImpl implements FolioService {
     }
 
     @Override
-    public void updateServiceCharge(ServiceBookingEntity serviceBookingEntity, BigDecimal chargeAmount) {
+    public void updateServiceCharge(ServiceBookingEntity serviceBookingEntity) {
         // STEP 1: Tìm folioEntity dựa vào reservation room của service booking
         FolioEntity folioEntity = folioRepository.findByReservationRoomEntity(serviceBookingEntity.getReservationRoomEntity())
                 .orElseThrow(() -> new BusinessException(
@@ -85,15 +85,21 @@ public class FolioServiceImpl implements FolioService {
                         "Folio not found for reservation room ID: " + serviceBookingEntity.getReservationRoomEntity().getId()
                 ));
 
-        // STEP 2: Tìm folioEntity item đang active cho service booking này
-        // TODO: Nên chuyển về chỉ update total price của folioEntity item
+        // STEP 2: Tính lại chargeAmount từ quantity và priceAtBooking
+        BigDecimal chargeAmount = serviceBookingEntity.getPriceAtBooking().multiply(BigDecimal.valueOf(serviceBookingEntity.getQuantity()));
+
+        // STEP 3: Chỉ cho phép cập nhật số lượng, không cho phép thêm mới hoặc huỷ dịch vụ cũ
         folioItemService.findActiveByServiceBooking(serviceBookingEntity)
                 .ifPresentOrElse(
                         folioItemEntity -> folioItemService.updateServiceChargeItem(folioItemEntity, serviceBookingEntity.getQuantity(), chargeAmount),
-                        () -> folioItemService.createServiceChargeItem(folioEntity, serviceBookingEntity, chargeAmount)
+                        () -> {
+                            throw new BusinessException(
+                                    ErrorCode.INVALID_REQUEST,
+                                    "Service Booking ID: " + serviceBookingEntity.getId() + " not found in any active folio item for reservation room ID: " + serviceBookingEntity.getReservationRoomEntity().getId());
+                        }
                 );
 
-        // STEP 3: Tính lại tổng charges và balance của folioEntity để tránh lỗi cộng dồn delta
+        // STEP 4: Tính lại tổng charges và balance của folioEntity để tránh lỗi cộng dồn delta
         recalculateFolioTotals(folioEntity);
     }
 
