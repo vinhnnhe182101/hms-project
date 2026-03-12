@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import CustomerLayout from '../layouts/customer/CustomerLayout.jsx';
+import { CustomerLayout } from '../layouts/customer/CustomerLayout.jsx';
 import { AdminLayout } from '../layouts/admin/AdminLayout.jsx';
 import { HousekeepingLayout } from '../layouts/housekeeping/HousekeepingLayout.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
@@ -44,10 +44,7 @@ export const router = createBrowserRouter([
             { path: 'forgot-password', element: <div>Forgot Password</div> },
         ],
     },
-    {
-        path: '/login',
-        element: <LoginPage />,
-    },
+
     {
         path: '/admin',
         element: (

@@ -1,4 +1,4 @@
-import {Title, Paper, Grid, Card, Text, Group, Badge, Progress, SimpleGrid, Button} from '@mantine/core';
+import { Title, Paper, Grid, Card, Text, Group, Badge, Progress, SimpleGrid, Button } from '@mantine/core';
 import { IconBrush, IconChecklist, IconClock, IconAlertCircle } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 

@@ -214,6 +214,10 @@ public class ReservationServiceImpl implements ReservationService {
         ZonedDateTime checkInZoned = checkInInstant.atZone(zoneId);
         ZonedDateTime checkOutZoned = checkOutInstant.atZone(zoneId);
 
+        if (checkOutInstant.isBefore(checkInInstant) || checkOutInstant.equals(checkInInstant)) {
+            throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian check-out phải sau thời gian check-in.");
+        }
+
         // 1. Check-in must be at least 1 hour from now if it is today
         if (checkInZoned.toLocalDate().isEqual(nowZoned.toLocalDate())) {
             if (checkInInstant.isBefore(now.plus(1, ChronoUnit.HOURS))) {

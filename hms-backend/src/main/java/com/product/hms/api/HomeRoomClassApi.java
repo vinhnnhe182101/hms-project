@@ -30,12 +30,17 @@ public class HomeRoomClassApi {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkIn,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkOut,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         if (checkIn == null) {
             checkIn = LocalDateTime.now();
         }
         if (checkOut == null) {
+            checkOut = checkIn.plusDays(1);
+        }
+
+        // Basic validation
+        if (checkOut.isBefore(checkIn) || checkOut.isEqual(checkIn)) {
             checkOut = checkIn.plusDays(1);
         }
 

@@ -23,7 +23,7 @@ export default function OAuth2RedirectPage() {
                         message: decodeURIComponent(error),
                         color: 'red',
                     });
-                    navigate('/login', { replace: true });
+                    navigate('/auth/login', { replace: true });
                     return;
                 }
 
@@ -33,7 +33,7 @@ export default function OAuth2RedirectPage() {
                         message: 'No token received',
                         color: 'red',
                     });
-                    navigate('/login', { replace: true });
+                    navigate('/auth/login', { replace: true });
                     return;
                 }
 
@@ -57,7 +57,7 @@ export default function OAuth2RedirectPage() {
                     message: 'Authentication failed',
                     color: 'red',
                 });
-                navigate('/login', { replace: true });
+                navigate('/auth/login', { replace: true });
             }
         };
         handleRedirect();

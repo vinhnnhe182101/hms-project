@@ -39,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentAllocationRepository paymentAllocationRepository;
     private final VnPayUtil vnPayUtil;
 
-    @Value("${vnpay.return-url:http://localhost:8080/api/v1/payment/vnpay-ipn}")
+    @Value("${vnpay.return-url}")
     private String vnPayReturnUrl;
 
     @Override

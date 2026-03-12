@@ -1,117 +1,231 @@
-import { Group, Button, Text, Box, Menu, Avatar } from '@mantine/core';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import {
+    Container, Group, Title, Button, Menu, Avatar,
+    Text, Divider, Burger, Drawer, Stack
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import {
+    IconUser, IconLogout, IconDashboard, IconCalendarPlus,
+    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory, IconBell
+} from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header() {
+export function CustomerHeader() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
+    const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
 
-    const isActive = (path) => {
-        return location.pathname === path;
+    const handleLogout = async () => {
+        console.log('Logout button clicked');
+        logout();
     };
 
-    const menuItems = [
-        { label: 'Trang chủ', path: '/' },
-        { label: 'Phòng & Suites', path: '/rooms' },
-        { label: 'Dịch vụ', path: '/services' },
-        { label: 'Lịch sử', path: '/history' }
+    const navItems = [
+        { label: 'Home', icon: IconHome, path: '/' },
+        { label: 'Rooms', icon: IconHotelService, path: '/rooms' },
+        { label: 'Service', icon: IconBell, path: '/services' },
+        { label: 'Booking History', icon: IconHistory, path: '/history' },
     ];
 
-    const handleLogout = () => {
-        logout();
-        navigate('/');
+    const isActivePath = (path) => {
+        if (path === '/') return location.pathname === '/';
+        return location.pathname.startsWith(path);
     };
 
     return (
-        <header style={{
-            backgroundColor: 'var(--mantine-color-white)',
-            borderBottom: '1px solid var(--mantine-color-gray-2)',
-            padding: 'var(--mantine-spacing-md) 0'
-        }}>
-            <Box style={{
-                padding: '0 var(--mantine-spacing-xl)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <Text
-                    fw={900}
-                    style={{
-                        cursor: 'pointer',
-                        fontSize: '24px',
-                        letterSpacing: '1px',
-                        color: 'var(--mantine-color-teal-6)'
-                    }}
-                    onClick={() => navigate('/')}
-                >
-                    ROYAL HOTEL
-                </Text>
+        <>
+            {/* Desktop Header */}
+            <Container size="lg" style={{ height: '100%' }}>
+                <Group justify="space-between" style={{ height: '100%' }}>
+                    {/* Logo */}
+                    <Group>
+                        <Title
+                            order={2}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate('/')}
+                        >
+                            FPTU Hotel
+                        </Title>
+                    </Group>
 
-                <Group gap={40}>
-                    {menuItems.map((item) => (
-                        <Text
+                    {/* Desktop Navigation */}
+                    <Group visibleFrom="sm" gap="xl">
+                        {navItems.map((item) => (
+                            <Button
+                                key={item.path}
+                                variant={isActivePath(item.path) ? "light" : "subtle"}
+                                leftSection={<item.icon size={18} />}
+                                onClick={() => {
+                                    navigate(item.path);
+                                    closeDrawer();
+                                }}
+                            >
+                                {item.label}
+                            </Button>
+                        ))}
+                    </Group>
+
+                    {/* Auth Buttons / User Menu */}
+                    <Group visibleFrom="sm">
+                        {isAuthenticated ? (
+                            <Menu shadow="md" width={240}>
+                                <Menu.Target>
+                                    <Group style={{ cursor: 'pointer' }}>
+                                        <Avatar color="blue" radius="xl">
+                                            {user?.fullName?.charAt(0)}
+                                        </Avatar>
+                                        <div style={{ flex: 1 }}>
+                                            <Text size="sm" fw={500}>
+                                                {user?.email}
+                                            </Text>
+                                        </div>
+                                    </Group>
+                                </Menu.Target>
+
+                                <Menu.Dropdown>
+                                    <Menu.Label>Navigation</Menu.Label>
+                                    
+                                    <Menu.Item
+                                        leftSection={<IconCalendarPlus size={14} />}
+                                        onClick={() => navigate('/booking')}
+                                    >
+                                        Book a Room
+                                    </Menu.Item>
+
+                                    <Divider />
+
+                                    <Menu.Label>Account</Menu.Label>
+                                    <Menu.Item
+                                        leftSection={<IconUser size={14} />}
+                                        onClick={() => navigate('/customer/profile')}
+                                    >
+                                        Profile
+                                    </Menu.Item>
+                                    <Menu.Item
+                                        color="red"
+                                        leftSection={<IconLogout size={14} />}
+                                        onClick={handleLogout}
+                                    >
+                                        Logout
+                                    </Menu.Item>
+                                </Menu.Dropdown>
+                            </Menu>
+                        ) : (
+                            <Group>
+                                <Button variant="light" onClick={() => navigate('/auth/login')}>
+                                    Login
+                                </Button>
+                                <Button onClick={() => navigate('/auth/register')}>
+                                    Sign Up
+                                </Button>
+                            </Group>
+                        )}
+                    </Group>
+
+                    {/* Mobile Burger */}
+                    <Burger
+                        opened={drawerOpened}
+                        onClick={toggleDrawer}
+                        hiddenFrom="sm"
+                    />
+                </Group>
+            </Container>
+
+            {/* Mobile Drawer */}
+            <Drawer
+                opened={drawerOpened}
+                onClose={closeDrawer}
+                size="100%"
+                padding="md"
+                title="Menu"
+                hiddenFrom="sm"
+                zIndex={1000000}
+            >
+                <Stack>
+                    {navItems.map((item) => (
+                        <Button
                             key={item.path}
-                            fw={isActive(item.path) ? 700 : 500}
-                            style={{
-                                cursor: 'pointer',
-                                color: isActive(item.path) ? 'var(--mantine-color-teal-6)' : 'var(--mantine-color-gray-7)',
-                                fontSize: 'var(--mantine-font-size-md)',
-                                transition: 'all 0.2s ease',
-                                borderBottom: isActive(item.path) ? '2px solid var(--mantine-color-teal-6)' : '2px solid transparent',
-                                paddingBottom: '4px'
+                            variant={isActivePath(item.path) ? "light" : "subtle"}
+                            leftSection={<item.icon size={18} />}
+                            onClick={() => {
+                                navigate(item.path);
+                                closeDrawer();
                             }}
-                            onClick={() => navigate(item.path)}
-                            onMouseEnter={(e) => {
-                                if (!isActive(item.path)) {
-                                    e.currentTarget.style.color = 'var(--mantine-color-teal-6)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!isActive(item.path)) {
-                                    e.currentTarget.style.color = 'var(--mantine-color-gray-7)';
-                                }
-                            }}
+                            fullWidth
+                            justify="start"
                         >
                             {item.label}
-                        </Text>
+                        </Button>
                     ))}
-                </Group>
 
-                {user ? (
-                    <Menu shadow="md" width={180} position="bottom-end">
-                        <Menu.Target>
-                            <Group gap={10} style={{ cursor: 'pointer' }}>
-                                <Avatar
-                                    color="teal"
-                                    radius="xl"
-                                    size="sm"
-                                >
-                                    {user.fullName?.charAt(0)?.toUpperCase() || 'K'}
-                                </Avatar>
-                                <Text fw={600} size="sm" style={{ color: 'var(--mantine-color-gray-8)', maxWidth: 120 }} lineClamp={1}>
-                                    {user.fullName}
-                                </Text>
-                            </Group>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                            <Menu.Label>Tài khoản</Menu.Label>
-                            <Menu.Item onClick={handleLogout} color="red">
-                                Đăng xuất
-                            </Menu.Item>
-                        </Menu.Dropdown>
-                    </Menu>
-                ) : (
-                    <Button
-                        id="header-login-btn"
-                        color="teal"
-                        size="md"
-                        onClick={() => navigate('/login')}
-                    >
-                        Đăng nhập
-                    </Button>
-                )}
-            </Box>
-        </header>
+                    <Divider />
+
+                    {isAuthenticated ? (
+                        <>
+                            <Button
+                                variant="light"
+                                leftSection={<IconDashboard size={18} />}
+                                onClick={() => {
+                                    navigate('/customer');
+                                    closeDrawer();
+                                }}
+                                fullWidth
+                                justify="start"
+                            >
+                                Dashboard
+                            </Button>
+                            <Button
+                                variant="light"
+                                leftSection={<IconUser size={18} />}
+                                onClick={() => {
+                                    navigate('/customer/profile');
+                                    closeDrawer();
+                                }}
+                                fullWidth
+                                justify="start"
+                            >
+                                Profile
+                            </Button>
+                            <Button
+                                color="red"
+                                leftSection={<IconLogout size={18} />}
+                                onClick={() => {
+                                    handleLogout();
+                                    closeDrawer();
+                                }}
+                                fullWidth
+                                justify="start"
+                            >
+                                Logout
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                variant="light"
+                                onClick={() => {
+                                    navigate('/auth/login');
+                                    closeDrawer();
+                                }}
+                                fullWidth
+                            >
+                                Login
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    navigate('/auth/register');
+                                    closeDrawer();
+                                }}
+                                fullWidth
+                            >
+                                Sign Up
+                            </Button>
+                        </>
+                    )}
+                </Stack>
+            </Drawer>
+        </>
     );
 }

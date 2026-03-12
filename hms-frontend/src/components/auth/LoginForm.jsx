@@ -14,9 +14,12 @@ import {
     Stack,
     Divider,
     Box,
-    Alert
+    Alert,
+    Overlay
 } from '@mantine/core';
-import { IconBrandGoogle, IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
+import { IconBrandGoogle, IconArrowLeft, IconAlertCircle, IconLock, IconMail } from '@tabler/icons-react';
+
+const AUTH_BG_URL = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=1600';
 
 export function LoginForm() {
     const navigate = useNavigate();
@@ -44,82 +47,114 @@ export function LoginForm() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+        window.location.href = 'http://localhost:8080/oauth2/authorize/google';
     };
 
     return (
         <Box
             style={{
                 minHeight: '100vh',
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'linear-gradient(135deg, var(--mantine-color-teal-9) 0%, var(--mantine-color-teal-7) 50%, var(--mantine-color-teal-9) 100%)',
-                padding: '20px',
+                backgroundImage: `url(${AUTH_BG_URL})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '40px 20px',
             }}
         >
-            <Container size={420} my={40}>
-                <Paper radius="md" p="xl" withBorder shadow="md">
-                    <Stack align="center" mb="lg">
+            <Overlay color="#000" opacity={0.4} zIndex={1} />
+            
+            <Container size={420} style={{ position: 'relative', zIndex: 2, width: '100%' }}>
+                <Paper 
+                    radius="xl" 
+                    p={40} 
+                    style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}
+                >
+                    <Stack align="center" mb={30}>
                         <Title
-                            order={2}
+                            order={1}
                             fw={900}
-                            style={{ letterSpacing: '2px', color: 'var(--mantine-color-teal-9)' }}
+                            style={{ 
+                                letterSpacing: '2px', 
+                                color: 'var(--mantine-color-blue-9)', 
+                                fontSize: '32px',
+                                textTransform: 'uppercase'
+                            }}
                         >
-                            ROYAL HOTEL
+                            FPTU HOTEL
                         </Title>
-                        <Text c="dimmed" size="sm" ta="center">
-                            Chào mừng bạn quay trở lại!
+                        <Text c="dimmed" size="sm" ta="center" fw={500}>
+                            Welcome back! Please enter your details.
                         </Text>
                     </Stack>
 
                     <Button
-                        variant="default"
+                        variant="outline"
                         color="gray"
                         fullWidth
                         onClick={handleGoogleLogin}
                         leftSection={<IconBrandGoogle size={18} color="#4285F4" />}
                         radius="md"
+                        size="md"
+                        styles={{
+                            root: { transition: 'transform 0.2s ease' },
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                     >
-                        Tiếp tục với Google
+                        Continue with Google
                     </Button>
 
-                    <Divider label="Hoặc đăng nhập bằng email" labelPosition="center" my="lg" />
+                    <Divider label="or continue with email" labelPosition="center" my="lg" />
 
                     <form onSubmit={handleSubmit}>
                         <Stack gap="md">
                             <TextInput
-                                label="Địa chỉ Email"
-                                placeholder="your@email.com"
+                                label="Email Address"
+                                placeholder="name@example.com"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={loading}
+                                leftSection={<IconMail size={16} />}
+                                radius="md"
+                                size="md"
                             />
                             <PasswordInput
-                                label="Mật khẩu"
-                                placeholder="Mật khẩu của bạn"
+                                label="Password"
+                                placeholder="Enter your password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
+                                leftSection={<IconLock size={16} />}
+                                radius="md"
+                                size="md"
                             />
 
                             {error && (
-                                <Alert icon={<IconAlertCircle size={16} />} title="Lỗi đăng nhập" color="red" radius="md">
+                                <Alert icon={<IconAlertCircle size={16} />} color="red" radius="md" variant="light">
                                     {error}
                                 </Alert>
                             )}
 
                             <Group justify="space-between" mt="xs">
-                                <Checkbox label="Ghi nhớ đăng nhập" color="teal" />
+                                <Checkbox label="Remember me" color="blue" radius="xs" />
                                 <Text
-                                    size="sm"
-                                    color="teal"
+                                    size="xs"
+                                    color="blue"
+                                    fw={600}
                                     style={{ cursor: 'pointer' }}
                                     onClick={() => navigate('/auth/forgot-password')}
                                 >
-                                    Quên mật khẩu?
+                                    Forgot password?
                                 </Text>
                             </Group>
 
@@ -127,37 +162,44 @@ export function LoginForm() {
                                 type="submit"
                                 fullWidth
                                 loading={loading}
-                                color="teal"
-                                size="md"
-                                mt="sm"
+                                color="blue"
+                                size="lg"
+                                mt="xl"
+                                radius="md"
+                                style={{
+                                    boxShadow: '0 10px 15px -3px rgba(34, 139, 230, 0.3)',
+                                    height: '50px'
+                                }}
                             >
-                                Đăng nhập
+                                Sign In
                             </Button>
                         </Stack>
                     </form>
 
-                    <Stack align="center" mt="xl" gap="xs">
-                        <Text size="sm">
-                            Chưa có tài khoản?{' '}
+                    <Stack align="center" mt="xl" gap="md">
+                        <Text size="sm" c="dimmed">
+                            Don't have an account?{' '}
                             <Text
                                 component="span"
-                                fw={600}
-                                color="teal"
-                                style={{ cursor: 'pointer' }}
+                                fw={700}
+                                color="blue"
+                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
                                 onClick={() => navigate('/auth/register')}
                             >
-                                Đăng ký ngay
+                                Create an account
                             </Text>
                         </Text>
 
                         <Group
                             gap={5}
-                            style={{ cursor: 'pointer' }}
+                            style={{ cursor: 'pointer', opacity: 0.7 }}
                             onClick={() => navigate('/')}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}
                         >
-                            <IconArrowLeft size={14} color="var(--mantine-color-gray-6)" />
-                            <Text size="xs" c="dimmed">
-                                Quay về trang chủ
+                            <IconArrowLeft size={14} />
+                            <Text size="xs" fw={500}>
+                                Back to website
                             </Text>
                         </Group>
                     </Stack>

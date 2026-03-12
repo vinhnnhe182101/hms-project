@@ -5,38 +5,49 @@ import {
     Badge, Tabs, Loader, Center, Image, Pagination
 } from '@mantine/core';
 import { IconPlus, IconMinus, IconTrash } from '@tabler/icons-react';
-import { getAllServices, getServicesByCategory } from '../../apis/customer/serviceApi';
+import { getServices, getServiceCategories } from '../../apis/customer/serviceApi';
 
-/**
- * Mapping ServiceCategory (backend enum) → icon + tên tiếng Việt hiển thị
- * Backend chỉ có: SPA, MINIBAR
- */
-const CATEGORY_CONFIG = {
-    SPA: { icon: '💆', label: 'Spa & Massage', color: 'violet' },
-    MINIBAR: { icon: '🍹', label: 'Minibar', color: 'blue' },
-};
 
-const ALL_CATEGORIES = [
-    { id: 'all', label: 'Tất Cả', icon: '🌟' },
-    { id: 'SPA', label: 'Spa & Massage', icon: '💆' },
-    { id: 'MINIBAR', label: 'Minibar', icon: '🍹' },
-];
 
 export default function ServicesPage() {
     const navigate = useNavigate();
     const [cart, setCart] = useState([]);
 
     const [activeCategory, setActiveCategory] = useState('all');
+    const [categories, setCategories] = useState([{ id: 'all', label: 'All', icon: '🌟' }]);
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(true);
     const [error, setError] = useState(null);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 6;
+    const [pageSize, setPageSize] = useState(null);
 
-    // Đặt lại trang về 1 mỗi khi đổi category
+    // Fetch categories on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await getServiceCategories();
+                // Map API response to our category format
+                // data might be a simple array of strings (enums)
+                const apiCategories = data.map(cat => ({
+                    id: cat,
+                    label: cat.charAt(0) + cat.slice(1).toLowerCase().replace('_', ' '),
+                    icon: '✨'
+                }));
+                setCategories([{ id: 'all', label: 'All', icon: '🌟' }, ...apiCategories]);
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    // Reset to page 1 when category changes
     useEffect(() => {
         setCurrentPage(1);
     }, [activeCategory]);
@@ -47,20 +58,23 @@ export default function ServicesPage() {
             setLoading(true);
             setError(null);
             try {
-                let data;
-                if (activeCategory === 'all') {
-                    data = await getAllServices(currentPage - 1, pageSize);
-                } else {
-                    data = await getServicesByCategory(activeCategory, currentPage - 1, pageSize);
-                }
+                const data = await getServices(activeCategory, currentPage - 1, pageSize);
 
                 // Trích xuất dữ liệu mảng. Tùy theo API, thường nó là `data.content` hoặc `data.data`.
                 const content = data?.data || data?.content || [];
                 setServices(content);
                 setTotalPages(data?.totalPages || 1);
+
+                // Đồng bộ pageSize từ backend nếu có trả về
+                if (data?.pageSize) {
+                    const backendSize = Number(data.pageSize);
+                    if (backendSize !== pageSize) {
+                        setPageSize(backendSize);
+                    }
+                }
             } catch (err) {
                 console.error('Error fetching services:', err);
-                setError(err.response?.data?.message || 'Không thể tải dữ liệu dịch vụ. Vui lòng thử lại.');
+                setError(err.response?.data?.message || 'Unable to load services. Please try again.');
                 setServices([]);
                 setTotalPages(1);
             } finally {
@@ -95,13 +109,15 @@ export default function ServicesPage() {
     const getTotalPrice = () => cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
     const formatPrice = (price) =>
-        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price || 0);
 
-    const getCategoryInfo = (category) => CATEGORY_CONFIG[category] || { icon: '🔧', label: category, color: 'gray' };
+    const getCategoryLabel = (category) => {
+        if (!category) return '';
+        return category.charAt(0) + category.slice(1).toLowerCase().replace('_', ' ');
+    };
 
     // ── ServiceCard component ──
     const ServiceCard = ({ service }) => {
-        const catInfo = getCategoryInfo(service.serviceCategory);
         return (
             <Card
                 shadow="sm"
@@ -133,8 +149,8 @@ export default function ServicesPage() {
                 </Card.Section>
 
                 <Group justify="space-between" mt="md" mb="sm">
-                    <Badge color={catInfo.color} variant="light" size="sm">
-                        {catInfo.label}
+                    <Badge color="blue" variant="light" size="sm">
+                        {getCategoryLabel(service.serviceCategory)}
                     </Badge>
                 </Group>
 
@@ -149,16 +165,16 @@ export default function ServicesPage() {
                     )}
 
                     <Group justify="space-between" mt="auto" align="center">
-                        <Text fw={700} color="teal.6" style={{ fontSize: '16px' }}>
+                        <Text fw={700} color="blue.6" style={{ fontSize: '16px' }}>
                             {formatPrice(service.price)}
                         </Text>
                         <Button
                             leftSection={<IconPlus size={16} />}
-                            color="teal"
+                            color="blue"
                             style={{ fontSize: '14px' }}
                             onClick={() => addToCart(service)}
                         >
-                            Thêm
+                            Add
                         </Button>
                     </Group>
                 </Stack>
@@ -169,13 +185,13 @@ export default function ServicesPage() {
     return (
         <Box>
             {/* Header */}
-            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '60px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', color: 'white', padding: '60px 0' }}>
                 <Container size="xl">
                     <Title order={1} mb="md" style={{ fontSize: '28px', fontWeight: 700 }}>
-                        Dịch Vụ Phòng
+                        Room Services
                     </Title>
                     <Text style={{ fontSize: '16px', opacity: 0.9 }}>
-                        Đặt dịch vụ spa, minibar và các tiện ích ngay tại phòng của bạn
+                        Order spa, minibar, and other amenities right to your room
                     </Text>
                 </Container>
             </Box>
@@ -187,10 +203,10 @@ export default function ServicesPage() {
                         <Tabs
                             value={activeCategory}
                             onChange={setActiveCategory}
-                            color="teal"
+                            color="blue"
                         >
                             <Tabs.List mb={30}>
-                                {ALL_CATEGORIES.map((cat) => (
+                                {categories.map((cat) => (
                                     <Tabs.Tab
                                         key={cat.id}
                                         value={cat.id}
@@ -203,26 +219,26 @@ export default function ServicesPage() {
                             </Tabs.List>
 
                             {/* Panel content — dùng chung cho tất cả tab */}
-                            {ALL_CATEGORIES.map((cat) => (
+                            {categories.map((cat) => (
                                 <Tabs.Panel key={cat.id} value={cat.id}>
                                     {loading ? (
                                         <Center py={80}>
-                                            <Loader size="lg" color="teal" />
+                                            <Loader size="lg" color="blue" />
                                         </Center>
                                     ) : error ? (
                                         <Box ta="center" py={60}>
                                             <Text c="red" size="lg" mb="md">{error}</Text>
                                             <Button
                                                 variant="outline"
-                                                color="teal"
+                                                color="blue"
                                                 onClick={() => setActiveCategory(activeCategory)}
                                             >
-                                                Thử lại
+                                                Try Again
                                             </Button>
                                         </Box>
                                     ) : services.length === 0 ? (
                                         <Box ta="center" py={60}>
-                                            <Text c="dimmed" size="lg">Chưa có dịch vụ nào trong danh mục này.</Text>
+                                            <Text c="dimmed" size="lg">No services available in this category.</Text>
                                         </Box>
                                     ) : (
                                         <Box>
@@ -240,7 +256,7 @@ export default function ServicesPage() {
                                                         total={totalPages}
                                                         value={currentPage}
                                                         onChange={setCurrentPage}
-                                                        color="teal"
+                                                        color="blue"
                                                         size="lg"
                                                     />
                                                 </Group>
@@ -257,12 +273,12 @@ export default function ServicesPage() {
                         <Card shadow="lg" padding="xl" radius="md" withBorder style={{ position: 'sticky', top: '20px' }}>
                             <Group justify="space-between" mb="md">
                                 <Title order={3} style={{ fontSize: '18px', fontWeight: 600 }}>
-                                    Giỏ Hàng
+                                    Cart
                                 </Title>
                                 <Badge
                                     size="xl"
                                     circle
-                                    color="teal"
+                                    color="blue"
                                     style={{ color: 'white', fontSize: '16px' }}
                                 >
                                     {cart.reduce((total, item) => total + item.quantity, 0)}
@@ -271,8 +287,8 @@ export default function ServicesPage() {
 
                             {cart.length === 0 ? (
                                 <Box ta="center" py={50}>
-                                    <Text c="dimmed" style={{ fontSize: '16px' }}>Giỏ hàng trống</Text>
-                                    <Text c="dimmed" size="sm" mt="xs">Thêm dịch vụ để đặt hàng</Text>
+                                    <Text c="dimmed" style={{ fontSize: '16px' }}>Cart is empty</Text>
+                                    <Text c="dimmed" size="sm" mt="xs">Add services to order</Text>
                                 </Box>
                             ) : (
                                 <>
@@ -298,7 +314,7 @@ export default function ServicesPage() {
                                                         <Button
                                                             size="sm"
                                                             variant="light"
-                                                            color="teal"
+                                                            color="blue"
                                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                             p={6}
                                                         >
@@ -310,14 +326,14 @@ export default function ServicesPage() {
                                                         <Button
                                                             size="sm"
                                                             variant="light"
-                                                            color="teal"
+                                                            color="blue"
                                                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                             p={6}
                                                         >
                                                             <IconPlus size={14} />
                                                         </Button>
                                                     </Group>
-                                                    <Text fw={700} color="teal.6" style={{ fontSize: '16px' }}>
+                                                    <Text fw={700} color="blue.6" style={{ fontSize: '16px' }}>
                                                         {formatPrice(item.price * item.quantity)}
                                                     </Text>
                                                 </Group>
@@ -327,15 +343,15 @@ export default function ServicesPage() {
 
                                     <Box pt="lg" style={{ borderTop: '2px solid #e9ecef' }}>
                                         <Group justify="space-between" mb="lg">
-                                            <Text fw={700} style={{ fontSize: '16px' }}>Tổng cộng</Text>
-                                            <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
+                                            <Text fw={700} style={{ fontSize: '16px' }}>Total</Text>
+                                            <Text fw={700} color="blue.6" style={{ fontSize: '18px' }}>
                                                 {formatPrice(getTotalPrice())}
                                             </Text>
                                         </Group>
                                         <Button
                                             fullWidth
                                             size="lg"
-                                            color="teal"
+                                            color="blue"
                                             style={{
                                                 fontSize: '15px',
                                                 fontWeight: 600,
@@ -343,7 +359,7 @@ export default function ServicesPage() {
                                             }}
                                             onClick={() => navigate('/services/checkout', { state: { cart } })}
                                         >
-                                            Đặt Dịch Vụ
+                                            Place Order
                                         </Button>
                                     </Box>
                                 </>

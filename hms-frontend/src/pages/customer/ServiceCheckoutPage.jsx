@@ -43,7 +43,7 @@ export default function ServiceCheckoutPage() {
                 }));
                 setActiveRooms(options);
             } catch (error) {
-                console.error("Lỗi khi tải phòng:", error);
+                console.error("Error loading rooms:", error);
             } finally {
                 setLoadingRooms(false);
             }
@@ -55,9 +55,9 @@ export default function ServiceCheckoutPage() {
     if (cart.length === 0) {
         return (
             <Container py={60} ta="center">
-                <Title order={2} mb="md">Giỏ hàng của bạn đang trống</Title>
-                <Button onClick={() => navigate('/services')} color="teal">
-                    Quay lại danh sách dịch vụ
+                <Title order={2} mb="md">Your cart is empty</Title>
+                <Button onClick={() => navigate('/services')} color="blue">
+                    Back to services list
                 </Button>
             </Container>
         );
@@ -66,7 +66,7 @@ export default function ServiceCheckoutPage() {
     const getTotalPrice = () => cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
     const formatPrice = (price) =>
-        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price || 0);
 
     const handleUpdateAlloc = (serviceId, index, field, value) => {
         setAllocations(prev => {
@@ -104,12 +104,12 @@ export default function ServiceCheckoutPage() {
     const handleConfirmBooking = async () => {
         if (!customer?.customerId) {
             notifications.show({
-                title: 'Yêu cầu đăng nhập',
-                message: 'Vui lòng đăng nhập trước khi đặt dịch vụ!',
+                title: 'Login Required',
+                message: 'Please login before ordering services!',
                 color: 'orange',
                 icon: <IconInfoCircle size={16} />
             });
-            navigate('/login');
+            navigate('/auth/login');
             return;
         }
 
@@ -126,8 +126,8 @@ export default function ServiceCheckoutPage() {
             const totalQty = allocs.reduce((sum, a) => sum + (a.qty || 0), 0);
             if (totalQty !== item.quantity) {
                 notifications.show({
-                    title: 'Số lượng không khớp',
-                    message: `Dịch vụ "${item.name}" có số lượng phân bổ (${totalQty}) chưa khớp với số lượng mua (${item.quantity})!`,
+                    title: 'Quantity mismatch',
+                    message: `Service "${item.name}" has an allocation quantity (${totalQty}) that does not match the purchased quantity (${item.quantity})!`,
                     color: 'red',
                     icon: <IconX size={16} />
                 });
@@ -139,8 +139,8 @@ export default function ServiceCheckoutPage() {
             for (const a of allocs) {
                 if (!a.roomId) {
                     notifications.show({
-                        title: 'Thiếu thông tin phòng',
-                        message: `Vui lòng chọn phòng cụ thể cho dịch vụ "${item.name}"!`,
+                        title: 'Room information missing',
+                        message: `Please select a specific room for the service "${item.name}"!`,
                         color: 'red',
                         icon: <IconX size={16} />
                     });
@@ -164,17 +164,17 @@ export default function ServiceCheckoutPage() {
         try {
             await createServiceBookings(finalPayload);
             notifications.show({
-                title: 'Đặt dịch vụ thành công',
-                message: 'Đơn dịch vụ đã được ghi nhận vào hệ thống thành công! Sẽ có nhân viên liên hệ xác nhận và phục vụ bạn sớm nhất.',
-                color: 'teal',
+                title: 'Service booked successfully',
+                message: 'Your service order has been successfully recorded! A staff member will contact you for confirmation and serve you shortly.',
+                color: 'blue',
                 icon: <IconCheck size={16} />,
                 autoClose: 8000
             });
             navigate('/services');
         } catch (error) {
             notifications.show({
-                title: 'Lỗi',
-                message: error.response?.data || 'Có lỗi xảy ra khi đặt dịch vụ. Vui lòng thử lại!',
+                title: 'Error',
+                message: error.response?.data || 'An error occurred while booking the service. Please try again!',
                 color: 'red',
                 icon: <IconX size={16} />
             });
@@ -191,38 +191,38 @@ export default function ServiceCheckoutPage() {
                     c="dimmed"
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}
                 >
-                    <IconArrowLeft size={16} /> Quay lại trang Dịch vụ
+                    <IconArrowLeft size={16} /> Back to Services page
                 </Anchor>
 
                 <Card shadow="sm" padding="xl" radius="md" withBorder>
                     <Title order={2} mb="xl" style={{ color: '#2c3e50', borderBottom: '2px solid #e9ecef', paddingBottom: '16px' }}>
-                        Chi Tiết Đặt Dịch Vụ
+                        Service Booking Details
                     </Title>
 
                     {/* Loading Context hoặc Chưa Đăng nhập & Check-in */}
                     {loadingRooms ? (
-                        <Center py={40}><Loader color="teal" /></Center>
+                        <Center py={40}><Loader color="blue" /></Center>
                     ) : !customer ? (
                         <Alert icon={<IconInfoCircle size={16} />} color="blue" mb="lg">
-                            Bạn cần đăng nhập và có phòng đang thuê để tiếp tục đặt dịch vụ.
+                            You need to log in and have an active room rental to continue booking services.
                         </Alert>
                     ) : activeRooms.length === 0 ? (
                         <Alert icon={<IconInfoCircle size={16} />} color="orange" mb="lg">
-                            Bạn hiện tại chưa nhận phòng hoặc đơn đặt phòng chưa được xác nhận, nên không thể đặt dịch vụ báo phòng lúc này.
+                            You haven't checked in yet or your booking hasn't been confirmed, so you cannot book services to your room at this time.
                         </Alert>
                     ) : (
                         <Text c="dimmed" mb="md" size="sm">
-                            Bạn vui lòng phân bổ dịch vụ và số lượng về các phòng đang sử dụng dưới đây:
+                            Please allocate the services and quantities to the rooms you are currently using:
                         </Text>
                     )}
 
                     <Table striped highlightOnHover withTableBorder>
                         <Table.Thead>
                             <Table.Tr style={{ backgroundColor: '#f1f3f5' }}>
-                                <Table.Th>Dịch vụ</Table.Th>
-                                <Table.Th style={{ textAlign: 'center' }}>Số lượng đã mua</Table.Th>
-                                <Table.Th>Phân bổ phòng sử dụng</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Thành tiền</Table.Th>
+                                <Table.Th>Service</Table.Th>
+                                <Table.Th style={{ textAlign: 'center' }}>Purchased quantity</Table.Th>
+                                <Table.Th>Room allocation</Table.Th>
+                                <Table.Th style={{ textAlign: 'right' }}>Subtotal</Table.Th>
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
@@ -235,14 +235,14 @@ export default function ServiceCheckoutPage() {
                                     <Table.Tr key={item.id}>
                                         <Table.Td>
                                             <Text fw={600}>{item.name}</Text>
-                                            <Text size="xs" c="dimmed">{formatPrice(item.price)} / lượt</Text>
+                                            <Text size="xs" c="dimmed">{formatPrice(item.price)} / use</Text>
                                         </Table.Td>
 
                                         <Table.Td style={{ textAlign: 'center', verticalAlign: 'top', paddingTop: '16px' }}>
                                             <Text fw={700} size="lg">{item.quantity}</Text>
                                             {!isQtyMatched && (
                                                 <Text size="xs" c="red" mt={4} fw={500}>
-                                                    Đang nhập: {currentTotal}
+                                                    Entered: {currentTotal}
                                                 </Text>
                                             )}
                                         </Table.Td>
@@ -252,7 +252,7 @@ export default function ServiceCheckoutPage() {
                                                 {allocs.map((alloc, index) => (
                                                     <Group key={index} gap="xs" wrap="nowrap">
                                                         <Select
-                                                            placeholder="Chọn phòng..."
+                                                            placeholder="Select room..."
                                                             data={activeRooms}
                                                             value={alloc.roomId}
                                                             onChange={(val) => handleUpdateAlloc(item.id, index, 'roomId', val)}
@@ -286,14 +286,14 @@ export default function ServiceCheckoutPage() {
                                                         onClick={() => handleAddAlloc(item.id)}
                                                         style={{ alignSelf: 'flex-start' }}
                                                     >
-                                                        Thêm phòng khác
+                                                        Add another room
                                                     </Button>
                                                 )}
                                             </Stack>
                                         </Table.Td>
 
                                         <Table.Td style={{ textAlign: 'right', verticalAlign: 'top', paddingTop: '16px' }}>
-                                            <Text fw={600} color="teal.6">
+                                            <Text fw={600} color="blue.6">
                                                 {formatPrice(item.price * item.quantity)}
                                             </Text>
                                         </Table.Td>
@@ -304,8 +304,8 @@ export default function ServiceCheckoutPage() {
                     </Table>
 
                     <Group justify="space-between" mt="xl" pt="md" style={{ borderTop: '2px solid #e9ecef' }}>
-                        <Title order={3}>Tổng thanh toán:</Title>
-                        <Title order={2} color="teal.6">
+                        <Title order={3}>Total payment:</Title>
+                        <Title order={2} color="blue.6">
                             {formatPrice(getTotalPrice())}
                         </Title>
                     </Group>
@@ -316,17 +316,17 @@ export default function ServiceCheckoutPage() {
                             size="lg"
                             onClick={() => navigate('/services')}
                         >
-                            Hủy
+                            Cancel
                         </Button>
                         <Button
                             size="lg"
-                            color="teal"
+                            color="blue"
                             leftSection={<IconCheck size={20} />}
                             onClick={handleConfirmBooking}
                             loading={isSubmitting}
                             disabled={loadingRooms || !customer || activeRooms.length === 0}
                         >
-                            Xác Nhận Đặt
+                            Confirm Booking
                         </Button>
                     </Group>
                 </Card>

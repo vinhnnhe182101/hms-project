@@ -26,7 +26,7 @@ public class RoomImgServiceImpl implements RoomImgService {
     public RoomImgResponse uploadImage(Long roomClassId, MultipartFile file, boolean isPrimary) throws IOException {
         // Kiểm tra RoomClass tồn tại
         RoomClassEntity roomClass = roomClassRepository.findById(roomClassId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng với ID: " + roomClassId));
+                .orElseThrow(() -> new RuntimeException("Could not find room class with ID: " + roomClassId));
 
         // Nếu ảnh mới là primary, bỏ primary của ảnh cũ trước
         if (isPrimary) {

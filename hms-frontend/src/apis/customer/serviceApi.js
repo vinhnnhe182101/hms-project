@@ -10,30 +10,30 @@ const api = axios.create({
 });
 
 
-export const getAllServices = async (page = 0, size = 50) => {
+/**
+ * GET /api/v1/home/services?category=SPA&page=0&size=10
+ * Lấy danh sách dịch vụ (có thể lọc theo category).
+ */
+export const getServices = async (category = null, page = 0, size = 50) => {
     try {
-        const response = await api.get('/home/services', { params: { page, size } });
+        const params = { page, size };
+        if (category && category !== 'all') {
+            params.category = category;
+        }
+        const response = await api.get('/home/services', { params });
         return response.data;
     } catch (error) {
-        console.error('Error fetching all services:', error);
+        console.error('Error fetching services:', error);
         throw error;
     }
 };
 
-/**
- * GET /api/v1/services/by-category?category=SPA&page=0&size=10
- * Lấy dịch vụ theo danh mục.
- *
- * @param {string} category - Giá trị enum: 'SPA' | 'MINIBAR'
- */
-export const getServicesByCategory = async (category, page = 0, size = 50) => {
+export const getServiceCategories = async () => {
     try {
-        const response = await api.get('/home/services/by-category', {
-            params: { category, page, size }
-        });
+        const response = await api.get('/home/services/categories');
         return response.data;
     } catch (error) {
-        console.error(`Error fetching services by category (${category}):`, error);
+        console.error('Error fetching service categories:', error);
         throw error;
     }
 };

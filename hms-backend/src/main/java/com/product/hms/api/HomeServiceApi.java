@@ -23,24 +23,29 @@ public class HomeServiceApi {
     private final ServiceService serviceService;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllServices(
+    public ResponseEntity<Map<String, Object>> getServices(
+            @RequestParam(required = false) ServiceCategory category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        return ResponseEntity.ok(buildPageResponse(serviceService.getAllServices(pageable)));
+        Page<ServiceResponse> resultPage;
+        
+        if (category != null) {
+            resultPage = serviceService.getServicesByCategory(category, pageable);
+        } else {
+            resultPage = serviceService.getAllServices(pageable);
+        }
+        
+        return ResponseEntity.ok(buildPageResponse(resultPage));
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<ServiceCategory[]> getCategories() {
+        return ResponseEntity.ok(ServiceCategory.values());
     }
 
 
-    @GetMapping("/by-category")
-    public ResponseEntity<Map<String, Object>> getServicesByCategory(
-            @RequestParam ServiceCategory category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        return ResponseEntity.ok(buildPageResponse(serviceService.getServicesByCategory(category, pageable)));
-    }
 
     private Map<String, Object> buildPageResponse(Page<ServiceResponse> resultPage) {
         Map<String, Object> response = new HashMap<>();

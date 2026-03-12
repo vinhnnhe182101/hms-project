@@ -35,6 +35,11 @@ export default function BookingPage() {
                 setLoading(true);
                 const inIso = checkIn ? dayjs(checkIn).format('YYYY-MM-DDTHH:mm:ss') : null;
                 const outIso = checkOut ? dayjs(checkOut).format('YYYY-MM-DDTHH:mm:ss') : null;
+
+                if (inIso && outIso && (dayjs(outIso).isBefore(dayjs(inIso)) || dayjs(outIso) === dayjs(inIso))) {
+                    setLoading(false);
+                    return;
+                }
                 const data = await getRoomClassList(0, 50, inIso, outIso);
                 const rooms = data?.data || [];
                 setRoomClasses(rooms);
@@ -52,7 +57,7 @@ export default function BookingPage() {
     }, [checkIn, checkOut]);
 
     const formatPrice = (price) =>
-        new Intl.NumberFormat('vi-VN').format(price || 0);
+        new Intl.NumberFormat('en-US').format(price || 0);
 
     const handleQuantityChange = (id, value, totalRooms) => {
         const val = Math.min(Math.max(0, Number(value) || 0), totalRooms);
@@ -81,8 +86,8 @@ export default function BookingPage() {
 
         if (guests > totalMaxCapacity) {
             notifications.show({
-                title: 'Vượt quá sức chứa',
-                message: `Tổng số khách (${guests}) vượt quá sức chứa tối đa của các phòng đã chọn (${totalMaxCapacity} người). Vui lòng chọn thêm phòng hoặc giảm số khách.`,
+                title: 'Capacity exceeded',
+                message: `Total guests (${guests}) exceeds the maximum capacity of selected rooms (${totalMaxCapacity} people). Please select more rooms or reduce guest count.`,
                 color: 'red',
                 autoClose: 5000,
             });
@@ -94,8 +99,8 @@ export default function BookingPage() {
         if (checkInDayjs.isSame(now, 'day')) {
             if (checkInDayjs.isBefore(now.add(1, 'hour'))) {
                 notifications.show({
-                    title: 'Giờ check-in không hợp lệ',
-                    message: 'Nếu đặt phòng trong hôm nay, giờ check-in phải sau ít nhất 1 giờ so với hiện tại.',
+                    title: 'Invalid check-in time',
+                    message: 'For same-day bookings, check-in time must be at least 1 hour from now.',
                     color: 'red',
                     autoClose: 5000,
                 });
@@ -106,8 +111,8 @@ export default function BookingPage() {
         const maxLimit = dayjs().add(2, 'month');
         if (checkInDayjs.isAfter(maxLimit)) {
              notifications.show({
-                title: 'Ngày không hợp lệ',
-                message: 'Chỉ được phép đặt phòng trong vòng 2 tháng tới.',
+                title: 'Invalid date',
+                message: 'Bookings are only allowed within the next 2 months.',
                 color: 'red',
                 autoClose: 5000,
             });
@@ -132,13 +137,13 @@ export default function BookingPage() {
     return (
         <Box style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             {/* Header */}
-            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '50px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', color: 'white', padding: '50px 0' }}>
                 <Container size="xl">
                     <Title order={1} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }} mb={8}>
-                        Đặt Phòng
+                        Book a Room
                     </Title>
                     <Text style={{ fontSize: '16px', opacity: 0.85 }}>
-                        Chọn loại phòng phù hợp và điền thông tin đặt phòng
+                        Choose the right room type and fill in the booking information
                     </Text>
                 </Container>
             </Box>
@@ -150,33 +155,33 @@ export default function BookingPage() {
                     <Grid.Col span={{ base: 12, md: 8 }}>
                         <Card shadow="sm" radius="md" withBorder padding={0} style={{ overflow: 'hidden' }}>
                             {/* Table header */}
-                            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', padding: '14px 20px' }}>
+                            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', padding: '14px 20px' }}>
                                 <Group gap="sm">
-                                    <IconBuilding size={18} color="var(--mantine-color-teal-3)" />
+                                    <IconBuilding size={18} color="var(--mantine-color-blue-3)" />
                                     <Text fw={700} style={{ color: 'white', fontSize: '16px' }}>
-                                        ĐẶT PHÒNG
+                                        ROOM BOOKING
                                     </Text>
                                 </Group>
                             </Box>
 
                             {loading ? (
-                                <Center py={80}><Loader color="teal" size="lg" /></Center>
+                                <Center py={80}><Loader color="blue" size="lg" /></Center>
                             ) : (
                                 <>
                                     <Table striped highlightOnHover withColumnBorders style={{ fontSize: '14px' }}>
                                         <Table.Thead>
                                             <Table.Tr style={{ backgroundColor: '#f1f3f5' }}>
                                                 <Table.Th style={{ padding: '14px 16px', fontSize: '14px', fontWeight: 700 }}>
-                                                    Loại phòng
+                                                    Room Type
                                                 </Table.Th>
                                                 <Table.Th style={{ padding: '14px 12px', fontSize: '14px', fontWeight: 700, textAlign: 'center' }}>
-                                                    Giá phòng
+                                                    Room Price
                                                 </Table.Th>
                                                 <Table.Th style={{ padding: '14px 12px', fontSize: '14px', fontWeight: 700, textAlign: 'center' }}>
-                                                    Phòng trống
+                                                    Available
                                                 </Table.Th>
                                                 <Table.Th style={{ padding: '14px 12px', fontSize: '14px', fontWeight: 700, textAlign: 'center' }}>
-                                                    Số lượng
+                                                    Quantity
                                                 </Table.Th>
                                             </Table.Tr>
                                         </Table.Thead>
@@ -193,7 +198,7 @@ export default function BookingPage() {
                                                     <Table.Tr
                                                         key={room.id}
                                                         style={{
-                                                            backgroundColor: qty > 0 ? 'var(--mantine-color-teal-0)' : undefined,
+                                                            backgroundColor: qty > 0 ? 'var(--mantine-color-blue-0)' : undefined,
                                                             transition: 'background 0.2s'
                                                         }}
                                                     >
@@ -206,18 +211,18 @@ export default function BookingPage() {
                                                                 <Group gap={4}>
                                                                     <IconUsers size={14} color="#888" />
                                                                     <Text size="xs" c="dimmed">
-                                                                        {room.standardCapacity} Người
+                                                                        {room.standardCapacity} People
                                                                     </Text>
                                                                 </Group>
                                                             </Group>
                                                         </Table.Td>
 
                                                         {/* Price */}
-                                                        <Table.Td style={{ padding: '16px 12px', textAlign: 'center' }}>
-                                                            <Text fw={700} color="teal.6" style={{ fontSize: '15px' }}>
+                                                         <Table.Td style={{ padding: '16px 12px', textAlign: 'center' }}>
+                                                            <Text fw={700} color="blue.6" style={{ fontSize: '15px' }}>
                                                                 {formatPrice(room.basePrice)}
                                                             </Text>
-                                                            <Text size="xs" c="dimmed">VNĐ / đêm</Text>
+                                                            <Text size="xs" c="dimmed">VND / night</Text>
                                                         </Table.Td>
 
                                                         {/* Available */}
@@ -232,9 +237,9 @@ export default function BookingPage() {
                                                         </Table.Td>
 
                                                         {/* Quantity selector */}
-                                                        <Table.Td style={{ padding: '16px 12px', textAlign: 'center' }}>
+                                                         <Table.Td style={{ padding: '16px 12px', textAlign: 'center' }}>
                                                             {available === 0 ? (
-                                                                <Text size="sm" c="dimmed">Hết phòng</Text>
+                                                                <Text size="sm" c="dimmed">Out of rooms</Text>
                                                             ) : (
                                                                 <Select
                                                                     value={String(qty)}
@@ -246,7 +251,7 @@ export default function BookingPage() {
                                                                         input: {
                                                                             textAlign: 'center',
                                                                             fontWeight: 600,
-                                                                            borderColor: qty > 0 ? 'var(--mantine-color-teal-6)' : undefined,
+                                                                            borderColor: qty > 0 ? 'var(--mantine-color-blue-6)' : undefined,
                                                                         }
                                                                     }}
                                                                 />
@@ -263,23 +268,23 @@ export default function BookingPage() {
                                         style={{
                                             padding: '16px 20px',
                                             borderTop: '2px solid #e9ecef',
-                                            backgroundColor: totalPrice > 0 ? 'var(--mantine-color-teal-0)' : '#f8f9fa'
+                                            backgroundColor: totalPrice > 0 ? 'var(--mantine-color-blue-0)' : '#f8f9fa'
                                         }}
                                     >
-                                        <Group justify="space-between" align="center">
+                                         <Group justify="space-between" align="center">
                                             <Group gap={6}>
-                                                <IconCoin size={18} color="teal" />
+                                                <IconCoin size={18} color="blue" />
                                                 <Text fw={600} style={{ fontSize: '15px' }}>
-                                                    Tổng thành tiền:
+                                                    Total Amount:
                                                 </Text>
                                             </Group>
-                                            <Text fw={800} color="teal.6" style={{ fontSize: '20px' }}>
-                                                {totalPrice > 0 ? `${formatPrice(totalPrice)} VNĐ` : '—'}
+                                            <Text fw={800} color="blue.6" style={{ fontSize: '20px' }}>
+                                                {totalPrice > 0 ? `${formatPrice(totalPrice)} VND` : '—'}
                                             </Text>
                                         </Group>
-                                        {totalPrice > 0 && (
+                                         {totalPrice > 0 && (
                                             <Text size="xs" c="dimmed" mt={4}>
-                                                ({nights} đêm × các phòng đã chọn ×{' '}giá phòng)
+                                                ({nights} nights × selected rooms ×{' '}room price)
                                             </Text>
                                         )}
                                     </Box>
@@ -298,43 +303,59 @@ export default function BookingPage() {
                             style={{ position: 'sticky', top: '24px', overflow: 'hidden' }}
                         >
                             {/* Card header */}
-                            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', padding: '14px 20px' }}>
+                             <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', padding: '14px 20px' }}>
                                 <Text fw={700} style={{ color: 'white', fontSize: '16px', letterSpacing: '0.5px' }}>
-                                    THÔNG TIN
+                                    INFORMATION
                                 </Text>
                             </Box>
 
-                            <Stack gap="lg" p="xl">
+                             <Stack gap="lg" p="xl">
                                 {/* Check-in */}
                                 <Box>
-                                    <Text size="sm" fw={500} mb={6} c="dimmed">Ngày đến:</Text>
+                                    <Text size="sm" fw={500} mb={6} c="dimmed">Arrival Date:</Text>
                                     <DateTimePicker
                                         value={checkIn}
                                         onChange={(date) => {
-                                            setCheckIn(date);
-                                            if (date && checkOut && date >= checkOut) {
-                                                setCheckOut(dayjs(date).add(1, 'hour').toDate());
+                                            if (!date) return;
+                                            
+                                            const now = dayjs();
+                                            let newCheckIn = date;
+                                            
+                                            // Don't allow selecting more than 5 minutes in the past
+                                            if (dayjs(date).isBefore(now.subtract(5, 'minute'))) {
+                                                newCheckIn = now.toDate();
+                                            }
+                                            
+                                            setCheckIn(newCheckIn);
+                                            
+                                            // Ensure check-out is at least 1 hour after check-in
+                                            const minCheckOut = dayjs(newCheckIn).add(1, 'hour');
+                                            if (!checkOut || dayjs(checkOut).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
                                             }
                                         }}
                                         minDate={new Date()}
                                         maxDate={dayjs().add(2, 'month').toDate()}
                                         valueFormat="DD/MM/YYYY HH:mm"
-                                        leftSection={<IconCalendar size={16} color="teal" />}
+                                        leftSection={<IconCalendar size={16} color="blue" />}
                                         styles={{
-                                            input: { borderColor: 'var(--mantine-color-teal-6)', fontWeight: 500 },
+                                            input: { borderColor: 'var(--mantine-color-blue-6)', fontWeight: 500 },
                                         }}
                                         clearable={false}
                                     />
                                 </Box>
 
-                                {/* Check-out */}
+                                 {/* Check-out */}
                                 <Box>
-                                    <Text size="sm" fw={500} mb={6} c="dimmed">Ngày đi:</Text>
+                                    <Text size="sm" fw={500} mb={6} c="dimmed">Departure Date:</Text>
                                     <DateTimePicker
                                         value={checkOut}
                                         onChange={(date) => {
-                                            if (date && checkIn && date <= checkIn) {
-                                                setCheckOut(dayjs(checkIn).add(1, 'hour').toDate());
+                                            if (!date) return;
+                                            
+                                            const minCheckOut = dayjs(checkIn).add(1, 'hour');
+                                            if (dayjs(date).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
                                             } else {
                                                 setCheckOut(date);
                                             }
@@ -342,26 +363,26 @@ export default function BookingPage() {
                                         minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
                                         maxDate={dayjs().add(2, 'month').add(1, 'month').toDate()}
                                         valueFormat="DD/MM/YYYY HH:mm"
-                                        leftSection={<IconCalendar size={16} color="teal" />}
+                                        leftSection={<IconCalendar size={16} color="blue" />}
                                         styles={{
-                                            input: { borderColor: 'var(--mantine-color-teal-6)', fontWeight: 500 },
+                                            input: { borderColor: 'var(--mantine-color-blue-6)', fontWeight: 500 },
                                         }}
                                         clearable={false}
                                     />
                                 </Box>
 
-                                <Divider />
+                                 <Divider />
 
-                                {/* Số người */}
+                                {/* Number of Guests */}
                                 <Box>
-                                    <Text size="sm" fw={500} mb={6} c="dimmed">Số người:</Text>
+                                    <Text size="sm" fw={500} mb={6} c="dimmed">Number of Guests:</Text>
                                     <NumberInput
                                         value={guests}
                                         onChange={setGuests}
                                         min={1}
                                         max={999}
-                                        leftSection={<IconUsers size={16} color="teal" />}
-                                        styles={{ input: { borderColor: 'var(--mantine-color-teal-6)' } }}
+                                        leftSection={<IconUsers size={16} color="blue" />}
+                                        styles={{ input: { borderColor: 'var(--mantine-color-blue-6)' } }}
                                         clampBehavior="strict"
                                     />
                                 </Box>
@@ -372,21 +393,21 @@ export default function BookingPage() {
                                 {hasSelection && (
                                     <Box
                                         style={{
-                                            backgroundColor: 'var(--mantine-color-teal-0)',
+                                            backgroundColor: 'var(--mantine-color-blue-0)',
                                             borderRadius: 8,
                                             padding: '12px 14px',
-                                            border: '1px solid var(--mantine-color-teal-2)'
+                                            border: '1px solid var(--mantine-color-blue-2)'
                                         }}
                                     >
-                                        <Text size="sm" fw={600} mb={8}>Phòng đã chọn:</Text>
+                                         <Text size="sm" fw={600} mb={8}>Selected Rooms:</Text>
                                         <Stack gap={4}>
                                             {roomClasses
                                                 .filter(r => (quantities[r.id] || 0) > 0)
                                                 .map(r => (
-                                                    <Group key={r.id} justify="space-between">
+                                                     <Group key={r.id} justify="space-between">
                                                         <Text size="xs" c="dimmed">{r.name} × {quantities[r.id]}</Text>
-                                                        <Text size="xs" fw={600} color="teal.6">
-                                                            {formatPrice(quantities[r.id] * r.basePrice * nights)} VNĐ
+                                                        <Text size="xs" fw={600} color="blue.6">
+                                                            {formatPrice(quantities[r.id] * r.basePrice * nights)} VND
                                                         </Text>
                                                     </Group>
                                                 ))}
@@ -399,7 +420,7 @@ export default function BookingPage() {
                                     size="lg"
                                     disabled={!hasSelection}
                                     onClick={handleContinue}
-                                    color="teal"
+                                     color="blue"
                                     style={{
                                         fontSize: '16px',
                                         fontWeight: 600,
@@ -407,11 +428,11 @@ export default function BookingPage() {
                                         transition: 'all 0.2s',
                                     }}
                                 >
-                                    Tiếp tục →
+                                    Continue →
                                 </Button>
-                                {!hasSelection && (
+                                 {!hasSelection && (
                                     <Text size="xs" c="dimmed" ta="center">
-                                        Vui lòng chọn ít nhất 1 phòng để tiếp tục
+                                        Please select at least 1 room to continue
                                     </Text>
                                 )}
                             </Stack>

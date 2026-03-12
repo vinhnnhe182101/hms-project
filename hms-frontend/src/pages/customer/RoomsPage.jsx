@@ -20,7 +20,7 @@ export default function RoomsPage() {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const [pageSize, setPageSize] = useState(9);
+    const [pageSize, setPageSize] = useState(null);
 
     const [checkIn, setCheckIn] = useState(dayjs().toDate());
     const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').toDate());
@@ -31,13 +31,23 @@ export default function RoomsPage() {
         try {
             const inIso = inDate ? dayjs(inDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             const outIso = outDate ? dayjs(outDate).format('YYYY-MM-DDTHH:mm:ss') : null;
+
+            if (inIso && outIso && (dayjs(outIso).isBefore(dayjs(inIso)) || dayjs(outIso).isSame(dayjs(inIso)))) {
+                setError('Check-out time must be after check-in time.');
+                setLoading(false);
+                return;
+            }
+
             const data = await getRoomClassList(currentPage, size, inIso, outIso);
             if (data && data.data) {
                 setRooms(data.data);
                 setTotalPages(data.totalPages);
                 setTotalItems(data.totalItems);
-                if (data.pageSize && data.pageSize !== pageSize) {
-                    setPageSize(Number(data.pageSize));
+                if (data.pageSize) {
+                    const backendSize = Number(data.pageSize);
+                    if (backendSize !== pageSize) {
+                        setPageSize(backendSize);
+                    }
                 }
             } else {
                 setRooms([]);
@@ -46,7 +56,7 @@ export default function RoomsPage() {
             }
         } catch (err) {
             console.error('Error fetching room classes:', err);
-            setError(err.response?.data?.message || err.message || 'Không thể tải dữ liệu phòng. Vui lòng thử lại sau.');
+            setError(err.response?.data?.message || err.message || 'Unable to load room data. Please try again later.');
         } finally {
             setLoading(false);
         }
@@ -66,19 +76,19 @@ export default function RoomsPage() {
 
     // Format price to VND
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price);
     };
 
     return (
         <Box>
             {/* Page Header */}
-            <Box style={{ backgroundColor: 'var(--mantine-color-teal-9)', color: 'white', padding: '50px 0' }}>
+            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', color: 'white', padding: '50px 0' }}>
                 <Container size="xl">
                     <Title order={1} mb={10} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>
-                        Các Loại Phòng
+                        Room Types
                     </Title>
                     <Text style={{ fontSize: '16px', opacity: 0.85 }}>
-                        Khám phá các loại phòng sang trọng của chúng tôi
+                        Explore our luxury room types
                     </Text>
                 </Container>
             </Box>
@@ -92,16 +102,29 @@ export default function RoomsPage() {
                             <Stack gap="xl">
                                 {/* Search Date Filters */}
                                 <Box>
-                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Bộ lọc tìm kiếm</Text>
+                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Search Filters</Text>
 
                                     <DateTimePicker
-                                        label="Nhận phòng"
-                                        placeholder="Chọn ngày giờ"
+                                        label="Check-in"
+                                        placeholder="Select date and time"
                                         value={checkIn}
                                         onChange={(date) => {
-                                            setCheckIn(date);
-                                            if (date && checkOut && date >= checkOut) {
-                                                setCheckOut(dayjs(date).add(1, 'hour').toDate());
+                                            if (!date) return;
+                                            
+                                            const now = dayjs();
+                                            let newCheckIn = date;
+                                            
+                                            // Don't allow selecting more than 5 minutes in the past
+                                            if (dayjs(date).isBefore(now.subtract(5, 'minute'))) {
+                                                newCheckIn = now.toDate();
+                                            }
+                                            
+                                            setCheckIn(newCheckIn);
+                                            
+                                            // Ensure check-out is at least 1 hour after check-in
+                                            const minCheckOut = dayjs(newCheckIn).add(1, 'hour');
+                                            if (!checkOut || dayjs(checkOut).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
                                             }
                                         }}
                                         minDate={new Date()}
@@ -111,13 +134,15 @@ export default function RoomsPage() {
                                     />
 
                                     <DateTimePicker
-                                        label="Trả phòng"
-                                        placeholder="Chọn ngày giờ"
+                                        label="Check-out"
+                                        placeholder="Select date and time"
                                         value={checkOut}
                                         onChange={(date) => {
-                                            if (date && checkIn && date <= checkIn) {
-                                                // Handle invalid backwards selection
-                                                setCheckOut(dayjs(checkIn).add(1, 'hour').toDate());
+                                            if (!date) return;
+                                            
+                                            const minCheckOut = dayjs(checkIn).add(1, 'hour');
+                                            if (dayjs(date).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
                                             } else {
                                                 setCheckOut(date);
                                             }
@@ -130,14 +155,14 @@ export default function RoomsPage() {
 
                                     <Button
                                         fullWidth
-                                        color="teal"
+                                        color="blue"
                                         mb="sm"
                                         onClick={() => {
                                             setPage(0);
                                             fetchRooms(0, pageSize, checkIn, checkOut);
                                         }}
                                     >
-                                        Tìm phòng trống
+                                        Find available rooms
                                     </Button>
 
                                     <Button
@@ -146,14 +171,14 @@ export default function RoomsPage() {
                                         fullWidth
                                         onClick={() => {
                                             const defaultIn = dayjs().toDate();
-                                            const defaultOut = dayjs().toDate();
+                                            const defaultOut = dayjs().add(1, 'day').toDate();
                                             setCheckIn(defaultIn);
                                             setCheckOut(defaultOut);
                                             setPage(0);
                                             fetchRooms(0, pageSize, defaultIn, defaultOut);
                                         }}
                                     >
-                                        Đặt lại
+                                        Reset
                                     </Button>
                                 </Box>
                             </Stack>
@@ -167,11 +192,12 @@ export default function RoomsPage() {
 
                             <Group justify="space-between" mb="lg">
                                 <Text size="md" fw={500}>
-                                    Tìm thấy {totalItems} loại phòng
+                                    Found {totalItems} room types
                                 </Text>
                                 <Select
-                                    label="Số lượng:"
-                                    value={pageSize.toString()}
+                                    label="Page size:"
+                                    value={pageSize ? pageSize.toString() : ''}
+                                    placeholder="Loading..."
                                     onChange={handlePageSizeChange}
                                     data={['3', '6', '9', '12']}
                                     style={{ width: '130px' }}
@@ -186,7 +212,7 @@ export default function RoomsPage() {
 
                             {!loading && !error && rooms.length === 0 && (
                                 <Text ta="center" my="xl" size="lg" c="dimmed">
-                                    Không tìm thấy loại phòng phù hợp.
+                                    No matching room types found.
                                 </Text>
                             )}
 
@@ -233,7 +259,7 @@ export default function RoomsPage() {
                                                         {room.name}
                                                     </Title>
                                                     <Badge variant="light" color={room.totalRooms > 0 ? "green" : "red"} radius="sm" style={{ flexShrink: 0 }}>
-                                                        {room.totalRooms} phòng trống
+                                                        {room.totalRooms} rooms available
                                                     </Badge>
                                                 </Group>
 
@@ -249,32 +275,32 @@ export default function RoomsPage() {
                                                     <Text size="xs" c="dimmed">
                                                         {room.averageRating
                                                             ? room.averageRating.toFixed(1)
-                                                            : 'Chưa có đánh giá'}
+                                                            : 'No reviews yet'}
                                                     </Text>
                                                 </Group>
 
                                                 {/* Capacity */}
                                                 <Group gap="xs">
-                                                    <IconUsers size={15} color="var(--mantine-color-teal-6)" />
+                                                    <IconUsers size={15} color="var(--mantine-color-blue-6)" />
                                                     <Text size="sm" c="dimmed">
-                                                        {room.standardCapacity} khách tiêu chuẩn
+                                                        {room.standardCapacity} standard guests
                                                     </Text>
                                                 </Group>
 
                                                 <Box mt="auto">
                                                     <Group justify="space-between" mb="xs" align="flex-end">
                                                         <Box>
-                                                            <Text fw={700} color="teal.6" style={{ fontSize: '18px' }}>
+                                                            <Text fw={700} color="blue.6" style={{ fontSize: '18px' }}>
                                                                 {formatPrice(room.basePrice || 0)}
                                                             </Text>
-                                                            <Text c="dimmed" style={{ fontSize: '12px' }}>/ đêm</Text>
+                                                            <Text c="dimmed" style={{ fontSize: '12px' }}>/ night</Text>
                                                         </Box>
                                                     </Group>
 
                                                     <Stack gap="xs">
                                                         <Button
                                                             fullWidth
-                                                            color="teal"
+                                                            color="blue"
                                                             style={{
                                                                 fontSize: '14px',
                                                                 padding: '8px 16px',
@@ -286,7 +312,7 @@ export default function RoomsPage() {
                                                                 navigate(`/rooms/${room.id}`);
                                                             }}
                                                         >
-                                                            Xem chi tiết
+                                                            View Details
                                                         </Button>
                                                     </Stack>
                                                 </Box>
@@ -304,7 +330,7 @@ export default function RoomsPage() {
                                     total={totalPages}
                                     value={page + 1}
                                     onChange={(p) => setPage(p - 1)}
-                                    color="teal"
+                                    color="blue"
                                     size="lg"
                                 />
                             </Box>
