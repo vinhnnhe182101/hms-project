@@ -455,4 +455,15 @@
 
 ---
 
+## [API mark as paid offline: chỉ cần gọi service, không cần custom logic controller]
+
+- **Thời gian:** 11/03/2026
+- **Bối cảnh:** Thêm API cho phép lễ tân đánh dấu thanh toán offline (CASH) đã hoàn thành.
+- **Vấn đề:** Ban đầu định viết nhiều logic ở controller, nhưng thực tế chỉ cần gọi service markAsPaid đã đủ kiểm soát nghiệp vụ và validation.
+- **Nguyên nhân:** Service đã kiểm tra trạng thái, phương thức, và cập nhật liên quan. Controller chỉ cần expose endpoint đúng chuẩn REST.
+- **Giải pháp:** Controller chỉ nhận request, gọi service, trả response. Không lặp lại validation ở controller.
+- **Quy tắc mới:** Nếu service đã kiểm soát đầy đủ nghiệp vụ và validation, controller chỉ nên làm nhiệm vụ expose endpoint, không lặp lại logic.
+
+---
+
 *Lưu ý cho AI: Đọc kỹ các bài học này để tránh đề xuất các giải pháp đã từng gây lỗi trong quá khứ.*

@@ -9,8 +9,21 @@
 
 > Những việc cần ưu tiên xử lý ngay. AI nên tập trung vào phần này.
 
-- (Hiện tại không còn task nào đang mở trong sprint — tất cả các mục bên dưới đã hoàn thành và được chuyển xuống phần ✅
-  Done.)
+- [x] Thêm API để lễ tân đánh dấu thanh toán cho khách (mark as paid) cho trường hợp khách thanh toán offline.
+- Thêm API cho phép chuyển phòng sau khi đã check-in (room change), cái này có cả trường hợp nâng hạng phòng (room
+  upgrade) và chuyển sang phòng khác cùng hạng (room transfer).
+    - Sẽ có các loại yêu cầu chuyển phòng sau:
+        - Chuyển phòng do khách yêu cầu (customer-requested room change): Tính phí theo BR
+        - Chuyển phòng do lỗi phòng (room issue room change): Không tính phí, cần ghi chú lý do.
+    - Cập nhật folio tương ứng với phí chuyển phòng nếu có.
+    - Validation: chỉ cho phép chuyển phòng khi reservation status = IN_HOUSE, phòng mới phải AVAILABLE, cùng room
+      class, không bị gán trùng.
+- Thêm xử lý việc khi check-in không còn phòng theo hạng đã đặt (overbooking scenario):
+    - Xử lý theo business rule
+- Thêm API để lấy danh sách (nhớ dùng SpecificationUtils):
+    - Thêm API để lấy danh sách dịch vụ, tìm kiếm dịch vụ
+    - Thêm API để lấy danh sách đặt phòng, tìm kiếm đặt phòng
+    - Thêm API để lấy danh sách phòng, tìm kiếm phòng
 
 ## 📌 Temporary Notes
 
@@ -22,6 +35,12 @@
 ## 🗂️ Backlog
 
 > Những tính năng hoặc cải tiến sẽ làm sau khi xong Active Tasks.
+
+- **Backend**:
+
+- **Frontend**:
+    - Tạo giao diện đặt phòng, check-in/check-out, quản lý dịch vụ.
+    - Tích hợp API với frontend, xử lý form validation, hiển thị error messages.
 
 ---
 
@@ -152,8 +171,8 @@
 #### 6. Xử lý Folio & Payment
 
 - Sau khi tạo đơn đặt phòng, tính toán tiền cọc, tạo FolioEntity và PaymentTransactionEntity tạm thời
-- Công thức tính tiền cọc: depositAmount = totalRoomCost * 0.20
-- Công thức tính tổng tiền phòng: totalRoomCost = sum(roomClassPrice * numberOfPeople)
+- Công thức tính tiền cọc: depositAmount = totalRoomCost \* 0.20
+- Công thức tính tổng tiền phòng: totalRoomCost = sum(roomClassPrice \* numberOfPeople)
 
 #### 7. Refactor & Chuẩn hóa code
 

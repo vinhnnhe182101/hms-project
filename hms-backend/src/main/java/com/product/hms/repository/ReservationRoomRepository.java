@@ -3,12 +3,9 @@ package com.product.hms.repository;
 import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ReservationRoomRepository extends JpaRepository<ReservationRoomEntity, Long> {
@@ -36,5 +33,5 @@ public interface ReservationRoomRepository extends JpaRepository<ReservationRoom
      */
     List<ReservationRoomEntity> findByReservationEntity_IdAndIsActiveTrue(Long reservationId);
 
+    boolean existsByRoomEntityAndReservationEntityAndIsActiveTrue(com.product.hms.entity.RoomEntity room, com.product.hms.entity.ReservationEntity reservation);
 }
-

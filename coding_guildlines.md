@@ -14,6 +14,15 @@
 
 * **Layered Architecture**.
 
+## Common Coding Style
+
+* Mỗi hàm, class phải có doc tương ứng như Javadoc (backend) hoặc JSDoc (frontend). Doc ghi ngắn gọn, tập trung vào
+  “what” và “why” hơn là “how” (vì code đã nói rồi).
+* Chỗ nào nhiều bước nghiệp vụ, dùng STEP *: để phân tách rõ ràng trong comment. Chỗ nào cần ghi chú thì dùng NOTE: để
+  highlight.
+* Chỉ dùng tiếng việt trong doc, comment còn tên exception, desciption, log message... vẫn dùng tiếng anh để chuẩn hoá.
+* Nếu 1 hàm quá dài (>40-60 dòng), phải refactor thành hàm nhỏ hơn, tách code thành cách service, support class
+
 ## Backend Coding Style & Safety
 
 ### General
@@ -23,6 +32,8 @@
 * Tránh code boilerplate.
 * Các API phải tuân thủ RESTful conventions và có version trong URL (ví dụ: `/api/v1/users`).
 * Khi có logic phức tạp trong service, hãy tách thành private method nhỏ để tăng tính modular và dễ đọc.
+* Khi import không dùng trực tiếp com.product.hms.service.impl.reservation.ReservationServiceImpl, mà thêm import ở đầu
+  chứ không viết dài như thế này
 
 ### DTOs & Response Design
 

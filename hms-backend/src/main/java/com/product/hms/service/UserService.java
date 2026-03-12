@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.request.StaffAccountRequestDTO;
 import com.product.hms.entity.UserEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,32 +15,24 @@ import java.util.Map;
 
 public interface UserService {
 
-    UserResponseDTO createUser(UserRequestDTO request);
-
-    UserResponseDTO updateUser(Long id, UserRequestDTO request);
-
-
-    UserResponseDTO getUserById(Long id);
-
     List<UserResponseDTO> getAllUsers();
-
+    UserResponseDTO getUserById(Long id);
+    UserResponseDTO updateUserRole(Long id, Role role);
+    UserResponseDTO updateUserStatus(Long id, Boolean isActive);
     void deleteUser(Long id);
 
-    UserResponseDTO updateUserRole(Long id, Role role);
-
-    UserResponseDTO updateUserStatus(Long id, Boolean isActive);
-
-    StaffResponseDTO createStaff(StaffRequestDTO request);
-
-    StaffResponseDTO updateStaff(Long id, StaffRequestDTO request);
-
-    StaffResponseDTO getStaffById(Long id);
-
+    // ==========================================
+    // 2. STAFF MANAGEMENT (Full CRUD)
+    // ==========================================
     List<StaffResponseDTO> getAllStaff();
+    StaffResponseDTO getStaffById(Long id);
+    StaffResponseDTO createStaffAccount(StaffAccountRequestDTO request);
+    StaffResponseDTO updateStaff(Long id, StaffRequestDTO request);
     void deleteStaff(Long id);
+
+    // ==========================================
+    // 3. AUTH & UTILS
+    // ==========================================
     UserEntity findByEmail(String email);
 
-    boolean existsByEmail(String email);
-
-    UserEntity processOAuth2User(Map<String, Object> attributes, String provider);
 }

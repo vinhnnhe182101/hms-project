@@ -1,6 +1,7 @@
 package com.product.hms.api;
 
 import com.product.hms.dto.request.PaymentRequest;
+import com.product.hms.dto.request.RoomChangeRequest;
 import com.product.hms.dto.response.PaymentResponse;
 import com.product.hms.dto.response.ReservationRoomCheckOutResponse;
 import com.product.hms.dto.response.ReservationRoomFolioResponse;
@@ -55,5 +56,18 @@ public class ReservationRoomApi {
         PaymentResponse response = reservationRoomService.processPayment(reservationRoomId, request);
         return ResponseEntity.ok(response);
     }
-}
 
+    /**
+     * Chuyển phòng cho khách đã check-in.
+     * @param reservationRoomId ID của reservation room cần chuyển phòng
+     * @param request Thông tin chuyển phòng
+     */
+    @PostMapping("/{reservationRoomId}/room-change")
+    public ResponseEntity<Void> changeRoom(
+            @PathVariable Long reservationRoomId,
+            @RequestBody RoomChangeRequest request
+    ) {
+        reservationRoomService.changeRoom(reservationRoomId, request);
+        return ResponseEntity.ok().build();
+    }
+}

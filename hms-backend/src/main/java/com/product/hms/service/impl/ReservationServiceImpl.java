@@ -14,7 +14,7 @@ import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.*;
 import com.product.hms.service.FolioService;
 import com.product.hms.service.ReservationService;
-import com.product.hms.service.RoomAllocationService;
+import com.product.hms.service.ReservationRoomService;
 import com.product.hms.service.impl.reservation.ReservationCheckInSupport;
 import com.product.hms.service.impl.reservation.ReservationPricingSupport;
 import com.product.hms.service.impl.reservation.ReservationResponseSupport;
@@ -46,7 +46,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationRoomRepository reservationRoomRepository;
     private final RoomRepository roomRepository;
-    private final RoomAllocationService roomAllocationService;
+    private final ReservationRoomService reservationRoomService;
     private final FolioService folioService;
     private final CustomerMapper customerMapper;
 
@@ -65,8 +65,8 @@ public class ReservationServiceImpl implements ReservationService {
         BigDecimal depositAmount = ReservationPricingSupport.calculateDepositForRequest(request, roomClassById);
         ReservationEntity reservation = saveReservation(request, customer, depositAmount);
 
-        createAllocationsAndFolios(reservation, request, roomClassById, depositAmount);
-        return ReservationResponseSupport.buildReservationResponse(reservation, customer, roomAllocationService, customerMapper);
+        createAllocationsAndFolios(reservation, request, depositAmount);
+        return ReservationResponseSupport.buildReservationResponse(reservation, customer, reservationRoomService, customerMapper);
     }
 
     @Override
@@ -91,10 +91,10 @@ public class ReservationServiceImpl implements ReservationService {
         updateReservationFields(reservation, request, customer, depositAmount);
         reservationRepository.save(reservation);
 
-        roomAllocationService.deleteAllocationsByReservation(reservation);
-        createAllocationsAndFolios(reservation, request, roomClassById, depositAmount);
+        reservationRoomService.deleteAllocationsByReservation(reservation);
+        createAllocationsAndFolios(reservation, request, depositAmount);
 
-        return ReservationResponseSupport.buildReservationResponse(reservation, customer, roomAllocationService, customerMapper);
+        return ReservationResponseSupport.buildReservationResponse(reservation, customer, reservationRoomService, customerMapper);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationValidationSupport.validateCancellationAllowed(reservation);
         boolean isEligibleForRefund = ReservationValidationSupport.isRefundEligible(reservation);
 
-        List<ReservationRoomEntity> reservationRoomEntities = roomAllocationService.getAllocationsByReservation(reservation);
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomService.getAllocationsByReservation(reservation);
         for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
             if (isEligibleForRefund) {
                 folioService.createRefundItem(reservationRoomEntity, reservation.getTotalDeposit());
@@ -124,7 +124,7 @@ public class ReservationServiceImpl implements ReservationService {
         return ReservationResponseSupport.buildReservationResponse(
                 reservation,
                 reservation.getCustomerEntity(),
-                roomAllocationService,
+                reservationRoomService,
                 customerMapper
         );
     }
@@ -156,7 +156,7 @@ public class ReservationServiceImpl implements ReservationService {
         return ReservationResponseSupport.buildReservationResponse(
                 reservation,
                 reservation.getCustomerEntity(),
-                roomAllocationService,
+                reservationRoomService,
                 customerMapper
         );
     }
@@ -215,13 +215,11 @@ public class ReservationServiceImpl implements ReservationService {
     private void createAllocationsAndFolios(
             ReservationEntity reservation,
             ReservationRequest request,
-            Map<Long, RoomClassEntity> roomClassById,
             BigDecimal depositAmount
     ) {
-        List<ReservationRoomEntity> reservationRoomEntities = roomAllocationService.createRoomAllocations(
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomService.createRoomAllocations(
                 reservation,
-                request,
-                roomClassById
+                request
         );
 
         for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
