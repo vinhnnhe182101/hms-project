@@ -17,11 +17,14 @@ import com.product.hms.exception.ResourceNotFoundException;
 import com.product.hms.repository.CustomerRepository;
 import com.product.hms.repository.StaffRepository;
 import com.product.hms.repository.UserRepository;
+import com.product.hms.repository.specification.StaffSpecification;
 import com.product.hms.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -207,5 +210,12 @@ public class UserServiceImpl implements UserService {
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    public Page<StaffResponseDTO> getStaffWithPagination(String name, String email, String phoneNumber, String department, String status, Boolean isActive, Pageable pageable) {
+        var spec = StaffSpecification.build(name, email, phoneNumber, department, status, isActive);
+        Page<StaffEntity> page = staffRepository.findAll(spec, pageable);
+        return page.map(this::toStaffResponseDTO);
     }
 }

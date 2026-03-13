@@ -1,13 +1,17 @@
 package com.product.hms.api;
 
 import com.product.hms.dto.response.UserResponseDTO;
+import com.product.hms.dto.response.CustomerResponse;
 import com.product.hms.enums.Role;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.service.UserService;
+import com.product.hms.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +21,21 @@ import java.util.Map;
 public class AdminUserController {
 
     private final UserService userService;
+    private final CustomerService customerService;
 
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/customers/page")
+    public ResponseEntity<Page<CustomerResponse>> getCustomersPage(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) Boolean isActive,
+            Pageable pageable
+    ) {
+        Page<CustomerResponse> page = customerService.getCustomersWithPagination(email, isActive, pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
