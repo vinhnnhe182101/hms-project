@@ -1,10 +1,3 @@
-// id: decoded.id,
-//     email: decoded.sub || decoded.email,
-//     role: decoded.role,
-//     fullName: decoded.fullName,
-//     provider: decoded.provider,
-
-
 interface JwtPayload {
     id: number;
     email: string;
@@ -18,4 +11,9 @@ interface JwtPayload {
     nbf?: number;
     iat?: number;
     jti?: string;
+}
+
+interface StaffLayoutContextType {
+    isMobileOpen: boolean;
+    setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
