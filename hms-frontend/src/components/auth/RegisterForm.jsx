@@ -35,7 +35,7 @@ export function RegisterForm() {
         try {
             const result = await authApi.register({ email, password, fullName });
             if (result.success || result.data) {
-                navigate('/auth/login');
+                navigate('/login');
             } else {
                 setError(result.message || 'Registration failed');
             }
@@ -162,7 +162,7 @@ export function RegisterForm() {
                                 fw={700}
                                 color="blue"
                                 style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                onClick={() => navigate('/auth/login')}
+                                onClick={() => navigate('/login')}
                             >
                                 Sign in here
                             </Text>

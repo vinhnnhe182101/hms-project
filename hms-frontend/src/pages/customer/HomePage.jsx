@@ -420,7 +420,7 @@ export default function HomePage() {
                                 color="blue"
                                 mt="xl"
                                 radius="md"
-                                onClick={() => navigate('/bookings')}
+                                onClick={() => navigate('/booking')}
                                 style={{ height: '60px', padding: '0 50px', fontWeight: 700 }}
                             >
                                 Reserve Your Room Now
