@@ -1,8 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom';
-import { CustomerLayout } from '../layouts/customer/CustomerLayout.jsx';
-import { AdminLayout } from '../layouts/admin/AdminLayout.jsx';
-import { HousekeepingLayout } from '../layouts/housekeeping/HousekeepingLayout.jsx';
-import { ProtectedRoute } from './ProtectedRoute.jsx';
+import {createBrowserRouter} from 'react-router-dom';
+import {CustomerLayout} from '../layouts/customer/CustomerLayout.jsx';
+import {AdminLayout} from '../layouts/admin/AdminLayout.jsx';
+import {HousekeepingLayout} from '../layouts/housekeeping/HousekeepingLayout.jsx';
+import {ProtectedRoute} from './ProtectedRoute.jsx';
 import HomePage from '../pages/customer/HomePage.jsx';
 import RoomsPage from '../pages/customer/RoomsPage.jsx';
 import RoomDetailPage from '../pages/customer/RoomDetailPage.jsx';
@@ -18,47 +18,47 @@ import AdminDashboardPage from '../pages/admin/DashboardPage.jsx';
 import RoomManagementPage from '../pages/admin/RoomManagementPage.jsx';
 import RoomTypesPage from '../pages/admin/RoomTypesPage.jsx';
 import ServiceManagementPage from '../pages/admin/ServiceManagementPage.jsx';
-import HousekeepingDashboardPage from '../pages/housekeeping/DashboardPage.jsx';
-import { AuthLayout } from "../layouts/AuthLayout.jsx";
+import {AuthLayout} from "../layouts/AuthLayout.jsx";
 import OAuth2RedirectPage from "../pages/auth/OAuth2RedirectPage.jsx";
 import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
-import { StaffLayout } from "../layouts/staff/StaffLayout.jsx";
+import {StaffLayout} from "../layouts/staff/StaffLayout.jsx";
+import {NAV_ITEMS} from "../constants/staff.jsx";
 
 export const router = createBrowserRouter([
     {
         path: '/',
-        element: <CustomerLayout />,
+        element: <CustomerLayout/>,
         children: [
-            { index: true, element: <HomePage /> },
-            { path: 'rooms', element: <RoomsPage /> },
-            { path: 'rooms/:id', element: <RoomDetailPage /> },
-            { path: 'services', element: <ServicesPage /> },
-            { path: 'services/checkout', element: <ProtectedRoute><ServiceCheckoutPage /></ProtectedRoute> },
-            { path: 'booking', element: <ProtectedRoute><BookingPage /></ProtectedRoute> },
-            { path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
-            { path: 'history', element: <BookingHistoryPage /> },
-            { path: 'payment/vnpay-callback', element: <PaymentCallbackPage /> },
+            {index: true, element: <HomePage/>},
+            {path: 'rooms', element: <RoomsPage/>},
+            {path: 'rooms/:id', element: <RoomDetailPage/>},
+            {path: 'services', element: <ServicesPage/>},
+            {path: 'services/checkout', element: <ProtectedRoute><ServiceCheckoutPage/></ProtectedRoute>},
+            {path: 'booking', element: <ProtectedRoute><BookingPage/></ProtectedRoute>},
+            {path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage/></ProtectedRoute>},
+            {path: 'history', element: <BookingHistoryPage/>},
+            {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
         ],
     },
     {
         path: '/user',
         element: (
                 <ProtectedRoute>
-                    <CustomerLayout />
+                    <CustomerLayout/>
                 </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <HomePage /> },
-            { path: 'rooms', element: <RoomsPage /> },
-            { path: 'rooms/:id', element: <RoomDetailPage /> },
-            { path: 'services', element: <ServicesPage /> },
-            { path: 'services/checkout', element: <ServiceCheckoutPage /> },
-            { path: 'booking', element: <BookingPage /> },
-            { path: 'booking/checkout', element: <CheckoutPage /> },
-            { path: 'history', element: <BookingHistoryPage /> },
+            {index: true, element: <HomePage/>},
+            {path: 'rooms', element: <RoomsPage/>},
+            {path: 'rooms/:id', element: <RoomDetailPage/>},
+            {path: 'services', element: <ServicesPage/>},
+            {path: 'services/checkout', element: <ServiceCheckoutPage/>},
+            {path: 'booking', element: <BookingPage/>},
+            {path: 'booking/checkout', element: <CheckoutPage/>},
+            {path: 'history', element: <BookingHistoryPage/>},
         ],
     },
     {
@@ -148,8 +148,25 @@ export const router = createBrowserRouter([
                 <ProtectedRoute requiredRole="STAFF">
                     <StaffLayout/>
                 </ProtectedRoute>
-        )
-    },
+        ),
+        children: [
+            {index: true, element: <div>Staff Dashboard</div>},
+            // Map tự động từ NAV_ITEMS sang định dạng object của Router
+            ...NAV_ITEMS.map(item => {
+                const relativePath = item.to
+                        .replace(/^\//, '')        // Bỏ dấu / ở đầu (nếu có)
+                        .replace(/^staff\//, '')   // Bỏ chữ staff/ ở đầu
+                        .replace(/^\//, '');
+                console.log("Mapping staff route:", item.to);
+                console.log("Path:", relativePath);
+
+                return {
+                    path: relativePath,
+                    element: item.element
+                }
+            })
+        ],
+    }, ,
     {
         path: '/oauth2/redirect',
         element: <OAuth2RedirectPage/>,
