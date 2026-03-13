@@ -1,20 +1,16 @@
-import { Loader } from '@mantine/core';
+import { Center, Loader, Paper, Stack, Text } from '@mantine/core';
 
-export function LoadingOverlay() {
+export function LoadingOverlay({ message = 'Loading...' }) {
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            zIndex: 1000,
-        }}>
-            <Loader size="xl" />
-        </div>
+        <Center mih="100vh" px="md" bg="gray.0">
+            <Paper radius="md" shadow="sm" p="xl" withBorder>
+                <Stack align="center" gap="sm">
+                    <Loader size="lg" />
+                    <Text c="dimmed" size="sm">
+                        {message}
+                    </Text>
+                </Stack>
+            </Paper>
+        </Center>
     );
 }

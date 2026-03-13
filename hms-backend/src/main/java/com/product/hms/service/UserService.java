@@ -2,8 +2,6 @@ package com.product.hms.service;
 
 import com.product.hms.dto.request.StaffAccountRequestDTO;
 import com.product.hms.entity.UserEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import com.product.hms.dto.request.StaffRequestDTO;
 import com.product.hms.dto.request.UserRequestDTO;
 import com.product.hms.dto.response.StaffResponseDTO;

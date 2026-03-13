@@ -38,20 +38,21 @@ export default function HomePage() {
         if (isAuthenticated) {
             navigate(`/booking/${roomId}`);
         } else {
-            navigate('/login', { state: { from: `/booking/${roomId}` } });
+            navigate('/auth/login', { state: { from: `/booking/${roomId}` } });
         }
     };
 
     return (
         <div>
-            {/* Hero Section */}
-            <div style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                padding: '80px 0',
-                marginBottom: '40px',
-                borderRadius: '0 0 20px 20px'
-            }}>
+            <div
+                style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    padding: '80px 0',
+                    marginBottom: '40px',
+                    borderRadius: '0 0 20px 20px'
+                }}
+            >
                 <Container size="lg">
                     <Title order={1} size={48} mb="md">Welcome to HMS Hotel</Title>
                     <Text size="xl" mb="xl" maw={600}>
@@ -71,7 +72,7 @@ export default function HomePage() {
                                 size="lg"
                                 variant="outline"
                                 color="white"
-                                onClick={() => navigate('/auth/register')}
+                                onClick={() => navigate('/register')}
                             >
                                 Sign Up for Exclusive Deals
                             </Button>
@@ -80,7 +81,6 @@ export default function HomePage() {
                 </Container>
             </div>
 
-            {/* Features Section */}
             <Container size="lg" mb={60}>
                 <Title order={2} ta="center" mb="xl">Why Choose Us?</Title>
                 <Grid>
@@ -196,7 +196,7 @@ export default function HomePage() {
                             <Button
                                 size="lg"
                                 variant="light"
-                                onClick={() => navigate('/auth/register')}
+                                onClick={() => navigate('/register')}
                             >
                                 Create Account
                             </Button>
