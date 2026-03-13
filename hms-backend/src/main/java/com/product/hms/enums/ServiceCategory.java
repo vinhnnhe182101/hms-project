@@ -9,6 +9,7 @@ public enum ServiceCategory implements DbValueEnum {
     MINIBAR("Minibar"),
     F_AND_B("F&B");
 
+
     private final String dbValue;
 
     ServiceCategory(String dbValue) {

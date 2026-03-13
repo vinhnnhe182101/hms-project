@@ -3,6 +3,8 @@ package com.product.hms.service;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
 import com.product.hms.dto.request.ReservationSearchFilter;
+import com.product.hms.dto.request.BookingRequestDTO; // Added this
+import com.product.hms.dto.response.BookingResponseDTO;
 import com.product.hms.dto.response.ReservationResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,8 @@ public interface ReservationService {
      * @return ReservationResponse chứa thông tin về đặt phòng đã được check-in, với trạng thái IN_HOUSE.
      */
     ReservationResponse checkInReservation(Long reservationId, ReservationCheckInRequest request);
+
+    BookingResponseDTO createBooking(BookingRequestDTO request);
 
     /**
      * Search reservations with filter and pagination.

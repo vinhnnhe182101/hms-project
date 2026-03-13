@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // Generic / Common Errors
     INVALID_REQUEST("INVALID_REQUEST", HttpStatus.BAD_REQUEST),
+    INVALID_DATA("INVALID_DATA", HttpStatus.BAD_REQUEST),
+    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND),
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // Customer Domain

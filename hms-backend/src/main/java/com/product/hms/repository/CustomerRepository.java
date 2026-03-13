@@ -18,6 +18,8 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> 
      */
     Optional<CustomerEntity> findByIdentityCard(String identityCard);
 
+    Optional<CustomerEntity> findByPhoneNumber(String phoneNumber);
+
     Optional<CustomerEntity> findByUserEntity(UserEntity userEntity);
 
     Optional<CustomerEntity> findByEmail(String email);
