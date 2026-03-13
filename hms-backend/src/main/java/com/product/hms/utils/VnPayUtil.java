@@ -51,9 +51,6 @@ public class VnPayUtil {
         String createDate = LocalDateTime.now().format(DATE_TIME_FORMATTER);
         vnpParams.put("vnp_CreateDate", createDate);
 
-        String expiryDate = LocalDateTime.now().plusMinutes(15).format(DATE_TIME_FORMATTER);
-        vnpParams.put("vnp_ExpiryDate", expiryDate);
-
         return buildUrlWithSignature(vnpParams);
     }
 

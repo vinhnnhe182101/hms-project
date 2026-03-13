@@ -11,6 +11,7 @@ import BookingPage from '../pages/customer/BookingPage.jsx';
 import CheckoutPage from '../pages/customer/CheckoutPage.jsx';
 import ServiceCheckoutPage from '../pages/customer/ServiceCheckoutPage.jsx';
 import BookingHistoryPage from '../pages/customer/BookingHistoryPage.jsx';
+import PaymentCallbackPage from '../pages/customer/PaymentCallbackPage.jsx';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterPage from '../pages/auth/RegisterPage.jsx';
 import AdminDashboardPage from '../pages/admin/DashboardPage.jsx';
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
             { path: 'booking', element: <ProtectedRoute><BookingPage /></ProtectedRoute> },
             { path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
             { path: 'history', element: <BookingHistoryPage /> },
+            { path: 'payment/vnpay-callback', element: <PaymentCallbackPage /> },
         ],
     },
     {

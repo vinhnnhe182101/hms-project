@@ -8,6 +8,7 @@ import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle, IconX } 
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { getActiveAllocations, createServiceBookings } from '../../apis/customer/serviceBookingApi';
+import { authApi } from '../../apis/auth/authApi';
 
 export default function ServiceCheckoutPage() {
     const location = useLocation();
@@ -25,31 +26,41 @@ export default function ServiceCheckoutPage() {
 
     const [activeRooms, setActiveRooms] = useState([]);
     const [loadingRooms, setLoadingRooms] = useState(true);
+    const [customerId, setCustomerId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!customer?.customerId) {
+        if (!customer) {
             setLoadingRooms(false);
             return;
         }
 
-        const fetchRooms = async () => {
+        const fetchProfileAndRooms = async () => {
             try {
-                const data = await getActiveAllocations(customer.customerId);
-                // Map API data => Select options
-                const options = data.map(alloc => ({
-                    value: String(alloc.allocationId),
-                    label: `${alloc.roomNumber} - ${alloc.roomClassName}`
-                }));
-                setActiveRooms(options);
+                // 1. Lấy thông tin profile để có được customerId chính xác từ DB
+                const res = await authApi.getMyProfile();
+                const profileData = res.data;
+                
+                if (profileData && profileData.id) {
+                    const cId = profileData.id;
+                    setCustomerId(cId);
+                    
+                    // 2. Lấy danh sách phòng đang sử dụng (IN_HOUSE)
+                    const data = await getActiveAllocations(cId);
+                    const options = data.map(alloc => ({
+                        value: String(alloc.allocationId),
+                        label: `${alloc.roomNumber} - ${alloc.roomClassName}`
+                    }));
+                    setActiveRooms(options);
+                }
             } catch (error) {
-                console.error("Error loading rooms:", error);
+                console.error("Error loading profile or rooms:", error);
             } finally {
                 setLoadingRooms(false);
             }
         };
 
-        fetchRooms();
+        fetchProfileAndRooms();
     }, [customer]);
 
     if (cart.length === 0) {
@@ -102,20 +113,29 @@ export default function ServiceCheckoutPage() {
     };
 
     const handleConfirmBooking = async () => {
-        if (!customer?.customerId) {
+        if (!customer) {
             notifications.show({
                 title: 'Login Required',
                 message: 'Please login before ordering services!',
                 color: 'orange',
                 icon: <IconInfoCircle size={16} />
             });
-            navigate('/auth/login');
+            navigate('/login');
+            return;
+        }
+
+        if (!customerId) {
+            notifications.show({
+                title: 'Data loading',
+                message: 'Customer information is being loaded, please try again in a moment!',
+                color: 'blue'
+            });
             return;
         }
 
         let isValid = true;
         const finalPayload = {
-            customerId: customer.customerId,
+            customerId: customerId,
             items: []
         };
 

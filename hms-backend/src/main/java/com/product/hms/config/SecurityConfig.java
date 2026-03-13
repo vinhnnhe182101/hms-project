@@ -90,6 +90,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/v1/auth/**",
                                 "/api/v1/home/**",
+                                "/api/v1/payment/vnpay-ipn",
                                 "/oauth2/**",
                                 "/login/oauth2/**"
                         ).permitAll()

@@ -114,10 +114,10 @@ export function CustomerHeader() {
                             </Menu>
                         ) : (
                             <Group>
-                                <Button variant="light" onClick={() => navigate('/auth/login')}>
+                                <Button variant="light" onClick={() => navigate('/login')}>
                                     Login
                                 </Button>
-                                <Button onClick={() => navigate('/auth/register')}>
+                                <Button onClick={() => navigate('/register')}>
                                     Sign Up
                                 </Button>
                             </Group>
@@ -206,7 +206,7 @@ export function CustomerHeader() {
                             <Button
                                 variant="light"
                                 onClick={() => {
-                                    navigate('/auth/login');
+                                    navigate('/login');
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -215,7 +215,7 @@ export function CustomerHeader() {
                             </Button>
                             <Button
                                 onClick={() => {
-                                    navigate('/auth/register');
+                                    navigate('/register');
                                     closeDrawer();
                                 }}
                                 fullWidth

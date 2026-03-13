@@ -22,6 +22,7 @@ export default function CheckoutPage() {
     const [phone, setPhone] = useState('');
     const [identityCard, setIdentityCard] = useState('');
     const [note, setNote] = useState('');
+    const [customerId, setCustomerId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Tự động điền thông tin từ customer đã đăng nhập
@@ -34,20 +35,17 @@ export default function CheckoutPage() {
         // Gọi API /me để lấy thông tin chi tiết từ DB
         authApi.getMyProfile()
             .then(res => {
-                const profile = res.data || res;
-                // Ưu tiên thông tin chi tiết từ object customer nếu có
-                const customerData = profile.customer || profile;
-                
-                if (customerData.fullName) setName(customerData.fullName);
-                else if (customerData.name) setName(customerData.name);
-                
-                if (customerData.phoneNumber) setPhone(customerData.phoneNumber);
-                else if (customerData.phone) setPhone(customerData.phone);
-                
-                if (customerData.identityCard) setIdentityCard(customerData.identityCard);
+                // Backend trả về: { status: "success", message: "...", data: { id, fullName, phoneNumber, identityCard, ... } }
+                const profileData = res.data;
+                if (!profileData) return;
+
+                if (profileData.id) setCustomerId(profileData.id);
+                if (profileData.fullName) setName(profileData.fullName);
+                if (profileData.phoneNumber) setPhone(profileData.phoneNumber);
+                if (profileData.identityCard) setIdentityCard(profileData.identityCard);
             })
-            .catch(() => {
-                // Nếu API lỗi thì bỏ qua
+            .catch((err) => {
+                console.error("Error fetching profile:", err);
             });
     }, [customer]);
 
@@ -95,7 +93,7 @@ export default function CheckoutPage() {
                     total: r.total
                 })),
                 customer: {
-                    customerId: customer?.customerId ?? null,
+                    customerId: customerId,
                     name,
                     phone,
                     identityCard,
@@ -173,7 +171,7 @@ export default function CheckoutPage() {
                                         variant="light"
                                         style={{ cursor: 'pointer' }}
                                         leftSection={<IconLogin size={12} />}
-                                        onClick={() => navigate('/auth/login')}
+                                        onClick={() => navigate('/login')}
                                     >
                                         Log in to auto-fill
                                     </Badge>

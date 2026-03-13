@@ -152,7 +152,7 @@ export function LoginForm() {
                                     color="blue"
                                     fw={600}
                                     style={{ cursor: 'pointer' }}
-                                    onClick={() => navigate('/auth/forgot-password')}
+                                    onClick={() => navigate('/forgot-password')}
                                 >
                                     Forgot password?
                                 </Text>
@@ -184,7 +184,7 @@ export function LoginForm() {
                                 fw={700}
                                 color="blue"
                                 style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                onClick={() => navigate('/auth/register')}
+                                onClick={() => navigate('/register')}
                             >
                                 Create an account
                             </Text>
