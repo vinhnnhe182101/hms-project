@@ -84,8 +84,7 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
             serviceBookingEntity = serviceBookingRepository.save(serviceBookingEntity);
 
-            BigDecimal chargeAmount = service.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
-            folioService.updateServiceCharge(serviceBookingEntity, chargeAmount);
+            folioService.addServiceCharge(serviceBookingEntity);
         }
     }
 
@@ -103,8 +102,7 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
         ServiceBookingEntity serviceBooking = buildServiceBooking(reservationRoom, service, serviceBookingRequest);
         ServiceBookingEntity saved = serviceBookingRepository.save(serviceBooking);
 
-        BigDecimal chargeAmount = service.getPrice().multiply(BigDecimal.valueOf(serviceBookingRequest.quantity()));
-        folioService.updateServiceCharge(saved, chargeAmount);
+        folioService.addServiceCharge(saved);
 
         return buildResponse(saved);
     }
@@ -191,11 +189,8 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
         // Only update quantity, not serviceId
         serviceBooking.setQuantity(request.quantity());
 
-        BigDecimal newAmount = serviceBooking.getPriceAtBooking()
-                .multiply(BigDecimal.valueOf(serviceBooking.getQuantity()));
-
         ServiceBookingEntity updated = serviceBookingRepository.save(serviceBooking);
-        folioService.updateServiceCharge(updated, newAmount);
+        folioService.updateServiceCharge(updated);
 
         return buildResponse(updated);
     }

@@ -21,16 +21,16 @@ public class FolioItemServiceImpl implements FolioItemService {
     private final FolioItemRepository folioItemRepository;
 
     @Override
-    public void createFolioItemForDeposit(FolioEntity folio, BigDecimal depositAmount) {
-        FolioItemEntity folioItem = new FolioItemEntity();
-        folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.ROOM_CHARGE);
-        folioItem.setDescription(Description.DEPOSIT_FOR_ROOM_RESERVATION);
-        folioItem.setQuantity(1);
-        folioItem.setTotalPrice(depositAmount);
-        folioItem.setStatus(FolioItemStatus.UNPAID);
-        folioItem.setIsActive(true);
-        folioItemRepository.save(folioItem);
+    public void createFolioItemForDeposit(FolioEntity folioEntity, BigDecimal depositAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.ROOM_CHARGE);
+        folioItemEntity.setDescription(Description.DEPOSIT_FOR_ROOM_RESERVATION);
+        folioItemEntity.setQuantity(1);
+        folioItemEntity.setTotalPrice(depositAmount);
+        folioItemEntity.setStatus(FolioItemStatus.UNPAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
@@ -47,96 +47,127 @@ public class FolioItemServiceImpl implements FolioItemService {
     }
 
     @Override
-    public void createRefundItem(FolioEntity folio, BigDecimal refundAmount) {
-        FolioItemEntity folioItem = new FolioItemEntity();
-        folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.ADJUSTMENT);
-        folioItem.setDescription(Description.REFUND_DEPOSIT_CANCELLATION);
-        folioItem.setQuantity(1);
-        folioItem.setTotalPrice(refundAmount.negate());  // Negative amount = refund
-        folioItem.setStatus(FolioItemStatus.PAID);
-        folioItem.setIsActive(true);
-        folioItemRepository.save(folioItem);
+    public void createRefundItem(FolioEntity folioEntity, BigDecimal refundAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.ADJUSTMENT);
+        folioItemEntity.setDescription(Description.REFUND_DEPOSIT_CANCELLATION);
+        folioItemEntity.setQuantity(1);
+        folioItemEntity.setTotalPrice(refundAmount.negate());  // NOTE: Negative amount = refund
+        folioItemEntity.setStatus(FolioItemStatus.PAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
-    public void createCancellationFeeItem(FolioEntity folio, BigDecimal cancellationAmount) {
-        FolioItemEntity folioItem = new FolioItemEntity();
-        folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.ADJUSTMENT);
-        folioItem.setDescription(Description.CANCELLATION_FEE_NO_REFUND);
-        folioItem.setQuantity(1);
-        folioItem.setTotalPrice(cancellationAmount);  // Positive = fee charged
-        folioItem.setStatus(FolioItemStatus.PAID);
-        folioItem.setIsActive(true);
-        folioItemRepository.save(folioItem);
+    public void createCancellationFeeItem(FolioEntity folioEntity, BigDecimal cancellationAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.ADJUSTMENT);
+        folioItemEntity.setDescription(Description.CANCELLATION_FEE_NO_REFUND);
+        folioItemEntity.setQuantity(1);
+        folioItemEntity.setTotalPrice(cancellationAmount);  // NOTE: Positive = fee charged
+        folioItemEntity.setStatus(FolioItemStatus.PAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
-    public void createServiceChargeItem(FolioEntity folio, ServiceBookingEntity serviceBooking, BigDecimal chargeAmount) {
-        FolioItemEntity folioItem = new FolioItemEntity();
-        folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.SERVICE_CHARGE);
-        folioItem.setServiceBookingEntity(serviceBooking);
-        folioItem.setDescription(Description.SERVICE_BOOKING_CHARGE);
-        folioItem.setQuantity(serviceBooking.getQuantity());
-        folioItem.setTotalPrice(chargeAmount);
-        folioItem.setStatus(FolioItemStatus.UNPAID);
-        folioItem.setIsActive(true);
-        folioItemRepository.save(folioItem);
+    public void createServiceChargeItem(FolioEntity folioEntity, ServiceBookingEntity serviceBooking, BigDecimal chargeAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.SERVICE_CHARGE);
+        folioItemEntity.setServiceBookingEntity(serviceBooking);
+        folioItemEntity.setDescription(Description.SERVICE_BOOKING_CHARGE);
+        folioItemEntity.setQuantity(serviceBooking.getQuantity());
+        folioItemEntity.setTotalPrice(chargeAmount);
+        folioItemEntity.setStatus(FolioItemStatus.UNPAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
-    public Optional<FolioItemEntity> findActiveByServiceBooking(ServiceBookingEntity serviceBooking) {
-        return folioItemRepository.findByServiceBookingEntityAndIsActiveTrue(serviceBooking);
+    public Optional<FolioItemEntity> findActiveByServiceBooking(ServiceBookingEntity serviceBookingEntity) {
+        return folioItemRepository.findByServiceBookingEntityAndIsActiveTrue(serviceBookingEntity);
     }
 
     @Override
-    public void updateServiceChargeItem(FolioItemEntity folioItem, Integer quantity, BigDecimal totalPrice) {
-        folioItem.setQuantity(quantity);
-        folioItem.setTotalPrice(totalPrice);
-        folioItemRepository.save(folioItem);
+    public void updateServiceChargeItem(FolioItemEntity folioItemEntity, Integer quantity, BigDecimal totalPrice) {
+        folioItemEntity.setQuantity(quantity);
+        folioItemEntity.setTotalPrice(totalPrice);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
-    public void voidServiceChargeItem(FolioItemEntity folioItem) {
-        folioItem.setStatus(FolioItemStatus.VOID);
-        folioItem.setIsActive(false);
-        folioItem.setDescription(Description.SERVICE_BOOKING_CANCELED);
-        folioItemRepository.save(folioItem);
+    public void voidServiceChargeItem(FolioItemEntity folioItemEntity) {
+        folioItemEntity.setStatus(FolioItemStatus.VOID);
+        folioItemEntity.setIsActive(false);
+        folioItemEntity.setDescription(Description.SERVICE_BOOKING_CANCELED);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
     public BigDecimal calculateTotalCharges(FolioEntity folioEntity) {
-        List<FolioItemEntity> activeItems = folioItemRepository.findByFolioEntity_IdAndIsActiveTrue(folioEntity.getId());
-        return activeItems.stream()
-                .map(item -> item.getTotalPrice() != null ? item.getTotalPrice() : BigDecimal.ZERO)
+        List<FolioItemEntity> activeFolioItemEntities = folioItemRepository.findByFolioEntity_IdAndIsActiveTrue(folioEntity.getId());
+        return activeFolioItemEntities.stream()
+                .map(FolioItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
-    public void createEarlyCheckInFeeItem(FolioEntity folio, BigDecimal feeAmount) {
-        FolioItemEntity folioItem = new FolioItemEntity();
-        folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.EARLY_CHECKIN_FEE);
-        folioItem.setDescription(Description.EARLY_CHECKIN_SURCHARGE);
-        folioItem.setQuantity(1);
-        folioItem.setTotalPrice(feeAmount);
-        folioItem.setStatus(FolioItemStatus.UNPAID);
-        folioItem.setIsActive(true);
-        folioItemRepository.save(folioItem);
+    public void createEarlyCheckInFeeItem(FolioEntity folioEntity, BigDecimal feeAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.EARLY_CHECKIN_FEE);
+        folioItemEntity.setDescription(Description.EARLY_CHECKIN_SURCHARGE);
+        folioItemEntity.setQuantity(1);
+        folioItemEntity.setTotalPrice(feeAmount);
+        folioItemEntity.setStatus(FolioItemStatus.UNPAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
     }
 
     @Override
-    public void createLateCheckOutFeeItem(FolioEntity folio, BigDecimal feeAmount) {
+    public void createLateCheckOutFeeItem(FolioEntity folioEntity, BigDecimal feeAmount) {
+        FolioItemEntity folioItemEntity = new FolioItemEntity();
+        folioItemEntity.setFolioEntity(folioEntity);
+        folioItemEntity.setType(FolioItemType.LATE_CHECKOUT_FEE);
+        folioItemEntity.setDescription(Description.LATE_CHECKOUT_SURCHARGE);
+        folioItemEntity.setQuantity(1);
+        folioItemEntity.setTotalPrice(feeAmount);
+        folioItemEntity.setStatus(FolioItemStatus.UNPAID);
+        folioItemEntity.setIsActive(true);
+        folioItemRepository.save(folioItemEntity);
+    }
+
+    @Override
+    public void markItemsAsPaid(List<FolioItemEntity> items) {
+        if (items == null || items.isEmpty()) return;
+        for (FolioItemEntity item : items) {
+            item.setStatus(FolioItemStatus.PAID);
+            folioItemRepository.save(item);
+        }
+    }
+
+    @Override
+    public void createFolioItemForRoomChangeAdjustment(
+            FolioEntity folio,
+            java.math.BigDecimal amount,
+            String oldRoomNumber,
+            String oldRoomClassName,
+            String newRoomNumber,
+            String newRoomClassName
+    ) {
         FolioItemEntity folioItem = new FolioItemEntity();
         folioItem.setFolioEntity(folio);
-        folioItem.setType(FolioItemType.LATE_CHECKOUT_FEE);
-        folioItem.setDescription(Description.LATE_CHECKOUT_SURCHARGE);
-        folioItem.setQuantity(1);
-        folioItem.setTotalPrice(feeAmount);
-        folioItem.setStatus(FolioItemStatus.UNPAID);
+        folioItem.setType(com.product.hms.enums.FolioItemType.ADJUSTMENT);
+        folioItem.setTotalPrice(amount);
+        folioItem.setStatus(com.product.hms.enums.FolioItemStatus.UNPAID);
         folioItem.setIsActive(true);
+        folioItem.setDescription(String.format(
+                "Room change from %s (%s) to %s (%s)",
+                oldRoomNumber, oldRoomClassName, newRoomNumber, newRoomClassName
+        ));
         folioItemRepository.save(folioItem);
     }
 }

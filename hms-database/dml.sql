@@ -61,8 +61,8 @@ VALUES (1, '101', 1, 'AVAILABLE', 'Standard room - floor 1', 1),
 INSERT INTO `user`
 (`id`, `email`, `password`, `role`, `provider`, `provider_id`, `is_active`)
 VALUES (1, 'admin@hotel.local', '$2y$10$dummyhashadmin', 'ADMIN', 'local', NULL, 1),
-       (2, 'reception@hotel.local', '$2y$10$dummyhashreception', 'RECEPTIONIST', 'local', NULL, 1),
-       (3, 'housekeeper@hotel.local', '$2y$10$dummyhashhk', 'HOUSEKEEPING', 'local', NULL, 1),
+       (2, 'reception@hotel.local', '$2y$10$dummyhashreception', 'STAFF', 'local', NULL, 1),
+       (3, 'housekeeper@hotel.local', '$2y$10$dummyhashhk', 'STAFF', 'local', NULL, 1),
        (4, 'john.customer@gmail.com', NULL, 'CUSTOMER', 'google', 'google-oauth2|john123', 1),
        (5, 'anna.customer@hotel.local', '$2y$10$dummyhashanna', 'CUSTOMER', 'local', NULL, 1);
 
@@ -236,3 +236,12 @@ VALUES (1, 1, 200000.00, 'Khách đổi lịch, hoàn cọc một phần', NULL,
         1, NULL, '2026-03-02 09:00:00', '2026-03-02 09:00:00', 1);
 
 COMMIT;
+
+INSERT INTO housekeeping_task
+(room_id, assignee_id, task_type, status, assigned_at, is_active)
+VALUES
+    (1, 4, 'CLEANING', 'SCHEDULED', NOW(), 1),
+    (2, 4, 'CLEANING', 'IN_PROGRESS', NOW(), 1),
+    (3, 4, 'INSPECTION', 'SCHEDULED', NOW(), 1),
+    (4, 4, 'MAINTENANCE_SUPPORT', 'COMPLETED', DATE_SUB(NOW(), INTERVAL 1 DAY), 1),
+    (5, 4, 'CLEANING', 'SCHEDULED', NOW(), 1);

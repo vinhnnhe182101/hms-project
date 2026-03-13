@@ -16,11 +16,11 @@ export function AdminHeader({ opened, toggle }) {
                 <Menu.Target>
                     <Group style={{ cursor: 'pointer' }}>
                         <Avatar color="blue" radius="xl">
-                            {user?.fullName?.charAt(0) || 'A'}
+                            {user?.customer?.fullName?.charAt(0) || 'A'}
                         </Avatar>
                         <div style={{ flex: 1 }}>
                             <Text size="sm" fw={500}>
-                                {user?.fullName || 'Admin'}
+                                {user?.customer?.fullName || 'Admin'}
                             </Text>
                             <Text size="xs" c="dimmed">
                                 {user?.email}

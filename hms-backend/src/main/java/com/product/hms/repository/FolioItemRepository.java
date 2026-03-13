@@ -34,4 +34,7 @@ public interface FolioItemRepository extends JpaRepository<FolioItemEntity, Long
      * @return Danh sách FolioItemEntity thỏa mãn điều kiện
      */
     List<FolioItemEntity> findByFolioEntity_IdAndIsActiveTrue(Long folioId);
+    List<FolioItemEntity> findByFolioEntityId(Long folioId);
+
+    List<FolioItemEntity> findByFolioEntityIdAndType(Long folioId, String type);
 }

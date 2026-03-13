@@ -1,5 +1,6 @@
 package com.product.hms.service.impl;
 
+import com.product.hms.dto.request.StaffAccountRequestDTO;
 import com.product.hms.dto.request.StaffRequestDTO;
 import com.product.hms.dto.request.UserRequestDTO;
 import com.product.hms.dto.response.StaffResponseDTO;
@@ -18,6 +19,7 @@ import com.product.hms.repository.StaffRepository;
 import com.product.hms.repository.UserRepository;
 import com.product.hms.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,55 +32,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
-    private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository, CustomerRepository customerRepository) {
+    public static final String DEFAULT_STAFF_PASSWORD = "Hms@HelloCacBan";
+
+    public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.staffRepository = staffRepository;
-        this.customerRepository = customerRepository;
-    }
-
-    @Override
-    @Transactional
-    public UserResponseDTO createUser(UserRequestDTO request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
-        }
-        UserEntity entity = new UserEntity();
-        mapUserRequestToEntity(request, entity);
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            entity.setPassword(request.getPassword());
-        }
-        entity.setProvider(request.getProvider() != null ? request.getProvider() : "local");
-        entity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
-        UserEntity saved = userRepository.save(entity);
-        return toUserResponseDTO(saved);
-    }
-
-    @Override
-    @Transactional
-    public UserResponseDTO updateUser(Long id, UserRequestDTO request) {
-        UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
-        if (!entity.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
-        }
-        mapUserRequestToEntity(request, entity);
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            entity.setPassword(request.getPassword());
-        }
-        if (request.getIsActive() != null) {
-            entity.setIsActive(request.getIsActive());
-        }
-        UserEntity saved = userRepository.save(entity);
-        return toUserResponseDTO(saved);
-    }
-
-    @Override
-    public UserResponseDTO getUserById(Long id) {
-        UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
-        return toUserResponseDTO(entity);
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -89,12 +50,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public void deleteUser(Long id) {
+    public UserResponseDTO getUserById(Long id) {
         UserEntity entity = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
-        entity.setIsActive(false);
-        userRepository.save(entity);
+        return toUserResponseDTO(entity);
     }
 
     @Override
@@ -103,8 +62,7 @@ public class UserServiceImpl implements UserService {
         UserEntity entity = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
         entity.setRole(role.name());
-        UserEntity saved = userRepository.save(entity);
-        return toUserResponseDTO(saved);
+        return toUserResponseDTO(userRepository.save(entity));
     }
 
     @Override
@@ -113,41 +71,27 @@ public class UserServiceImpl implements UserService {
         UserEntity entity = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
         entity.setIsActive(isActive);
-        UserEntity saved = userRepository.save(entity);
-        return toUserResponseDTO(saved);
+        return toUserResponseDTO(userRepository.save(entity));
     }
 
     @Override
     @Transactional
-    public StaffResponseDTO createStaff(StaffRequestDTO request) {
-        StaffEntity entity = new StaffEntity();
-        mapStaffRequestToEntity(request, entity);
-        if (request.getUserId() != null) {
-            UserEntity user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + request.getUserId()));
-            entity.setUserEntity(user);
-        }
-        entity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
-        StaffEntity saved = staffRepository.save(entity);
-        return toStaffResponseDTO(saved);
+    public void deleteUser(Long id) {
+        UserEntity entity = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
+        entity.setIsActive(false); // Soft delete
+        userRepository.save(entity);
     }
 
+    // ==========================================
+    // STAFF MANAGEMENT
+    // ==========================================
+
     @Override
-    @Transactional
-    public StaffResponseDTO updateStaff(Long id, StaffRequestDTO request) {
-        StaffEntity entity = staffRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.STAFF_NOT_FOUND, "Staff not found with id: " + id));
-        mapStaffRequestToEntity(request, entity);
-        if (request.getUserId() != null) {
-            UserEntity user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + request.getUserId()));
-            entity.setUserEntity(user);
-        }
-        if (request.getIsActive() != null) {
-            entity.setIsActive(request.getIsActive());
-        }
-        StaffEntity saved = staffRepository.save(entity);
-        return toStaffResponseDTO(saved);
+    public List<StaffResponseDTO> getAllStaff() {
+        return staffRepository.findAllByOrderByIdAsc().stream()
+                .map(this::toStaffResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -158,10 +102,57 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<StaffResponseDTO> getAllStaff() {
-        return staffRepository.findAllByOrderByIdAsc().stream()
-                .map(this::toStaffResponseDTO)
-                .collect(Collectors.toList());
+    @Transactional
+    public StaffResponseDTO createStaffAccount(StaffAccountRequestDTO request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
+        }
+
+        // Tạo mật khẩu mặc định (Bảo mật cơ bản: Hms@ + Số điện thoại)
+        String defaultPassword = "Hms@" + request.getPhoneNumber();
+
+        // 1. Tạo User
+        UserEntity userEntity = new UserEntity();
+        userEntity.setEmail(request.getEmail());
+        userEntity.setPassword(passwordEncoder.encode(defaultPassword));
+        userEntity.setRole(Role.STAFF.name());
+        userEntity.setProvider("local");
+        userEntity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
+        UserEntity savedUser = userRepository.save(userEntity);
+
+        // 2. Tạo Staff liên kết
+        StaffEntity staffEntity = new StaffEntity();
+        staffEntity.setFullName(request.getFullName());
+        staffEntity.setPhoneNumber(request.getPhoneNumber());
+        staffEntity.setDepartment(Department.valueOf(request.getDepartment()));
+        staffEntity.setStatus(request.getStatus());
+        staffEntity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
+        staffEntity.setUserEntity(savedUser);
+
+        return toStaffResponseDTO(staffRepository.save(staffEntity));
+    }
+
+    @Override
+    @Transactional
+    public StaffResponseDTO updateStaff(Long id, StaffRequestDTO request) {
+        StaffEntity entity = staffRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.STAFF_NOT_FOUND, "Staff not found with id: " + id));
+
+        entity.setFullName(request.getFullName());
+        entity.setPhoneNumber(request.getPhoneNumber());
+        entity.setDepartment(Department.valueOf(request.getDepartment()));
+        entity.setStatus(request.getStatus());
+
+        if (request.getIsActive() != null) {
+            entity.setIsActive(request.getIsActive());
+            // Cập nhật luôn trạng thái của User đăng nhập
+            if (entity.getUserEntity() != null) {
+                entity.getUserEntity().setIsActive(request.getIsActive());
+                userRepository.save(entity.getUserEntity());
+            }
+        }
+
+        return toStaffResponseDTO(staffRepository.save(entity));
     }
 
     @Override
@@ -169,29 +160,25 @@ public class UserServiceImpl implements UserService {
     public void deleteStaff(Long id) {
         StaffEntity entity = staffRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.STAFF_NOT_FOUND, "Staff not found with id: " + id));
-        entity.setIsActive(false);
+
+        entity.setIsActive(false); // Soft delete Staff
         staffRepository.save(entity);
-    }
 
-
-    private void mapUserRequestToEntity(UserRequestDTO request, UserEntity entity) {
-        entity.setEmail(request.getEmail());
-        entity.setRole(request.getRole() != null ? request.getRole().name() : entity.getRole());
-        if (request.getProvider() != null) {
-            entity.setProvider(request.getProvider());
-        }
-        if (request.getProviderId() != null) {
-            entity.setProviderId(request.getProviderId());
+        // Khóa luôn tài khoản User để không đăng nhập được nữa
+        if (entity.getUserEntity() != null) {
+            entity.getUserEntity().setIsActive(false);
+            userRepository.save(entity.getUserEntity());
         }
     }
+
+    // ==========================================
+    // MAPPERS & UTILS
+    // ==========================================
 
     private UserResponseDTO toUserResponseDTO(UserEntity e) {
         Role role = null;
         if (e.getRole() != null) {
-            try {
-                role = Role.valueOf(e.getRole());
-            } catch (IllegalArgumentException ignored) {
-            }
+            try { role = Role.valueOf(e.getRole()); } catch (IllegalArgumentException ignored) {}
         }
         return UserResponseDTO.builder()
                 .id(e.getId())
@@ -204,20 +191,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    private void mapStaffRequestToEntity(StaffRequestDTO request, StaffEntity entity) {
-        entity.setFullName(request.getFullName());
-        entity.setPhoneNumber(request.getPhoneNumber());
-        entity.setDepartment(Department.valueOf(request.getDepartment()));
-        entity.setStatus(request.getStatus());
-    }
-
     private StaffResponseDTO toStaffResponseDTO(StaffEntity e) {
-        String email = null;
-        Long userId = null;
-        if (e.getUserEntity() != null) {
-            userId = e.getUserEntity().getId();
-            email = e.getUserEntity().getEmail();
-        }
         return StaffResponseDTO.builder()
                 .id(e.getId())
                 .fullName(e.getFullName())
@@ -225,46 +199,10 @@ public class UserServiceImpl implements UserService {
                 .department(e.getDepartment().toString())
                 .status(e.getStatus())
                 .isActive(e.getIsActive())
-                .userId(userId)
-                .email(email)
+                .userId(e.getUserEntity() != null ? e.getUserEntity().getId() : null)
+                .email(e.getUserEntity() != null ? e.getUserEntity().getEmail() : null)
                 .build();
     }
-
-    @Override
-    @Transactional
-    public UserEntity processOAuth2User(Map<String, Object> attributes, String provider) {
-        String email = (String) attributes.get("email");
-
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    UserEntity newUser = new UserEntity();
-                    newUser.setEmail(email);
-                    newUser.setProvider(provider);
-                    newUser.setProviderId((String) attributes.get("sub"));
-                    newUser.setRole(Role.CUSTOMER.name());
-                    newUser.setIsActive(true);
-
-                    UserEntity savedUser = userRepository.save(newUser);
-
-                    // Create customer for OAuth2 user
-                    CustomerEntity customer = new CustomerEntity();
-                    customer.setUserEntity(savedUser);
-                    customer.setEmail(savedUser.getEmail());
-                    customer.setFullName((String) attributes.get("name"));
-                    customer.setIsActive(true);
-                    customerRepository.save(customer);
-
-                    return savedUser;
-                });
-
-        return user;
-    }
-
-    @Override
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
     @Override
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email)

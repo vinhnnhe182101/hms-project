@@ -38,17 +38,18 @@ export default function OAuth2RedirectPage() {
                 }
 
                 const decodedToken = decodeURIComponent(token);
-                // Save token in localStorage
+                const decoded = jwtDecode(decodedToken);
+
                 localStorage.setItem('accessToken', decodedToken);
 
                 console.log('OAuth2 - Token saved, redirecting...');
 
-                // You can also handle decoding here to check role if needed
-                // const decoded = jwtDecode(decodedToken);
-                // navigate(decoded.role === 'ADMIN' ? '/admin' : '/');
-                
-                // For now, simple redirect
-                window.location.href = '/';
+                const redirectPath =
+                    decoded.role === 'ADMIN' ? '/admin' :
+                        decoded.role === 'HOUSEKEEPING' ? '/housekeeping' :
+                            '/';
+
+                window.location.href = redirectPath;
 
             } catch (error) {
                 console.error('OAuth2 error:', error);
@@ -60,14 +61,14 @@ export default function OAuth2RedirectPage() {
                 navigate('/auth/login', { replace: true });
             }
         };
-        handleRedirect();
+    handleRedirect()
     }, [location.search, navigate]);
 
     return (
         <Center style={{ height: '100vh' }}>
             <Stack align="center">
-                <Loader size="xl" color="teal" />
-                <Text size="lg">Đang hoàn tất đăng nhập...</Text>
+                <Loader size="xl" />
+                <Text size="lg">Completing Google login...</Text>
             </Stack>
         </Center>
     );

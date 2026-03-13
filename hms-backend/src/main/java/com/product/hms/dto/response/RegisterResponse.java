@@ -5,19 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class JwtResponse {
-    private String token;
-    private String type = "Bearer";
+@AllArgsConstructor
+public class RegisterResponse {
     private Long id;
     private String email;
     private String role;
     private String fullName;
+    private String phoneNumber;
+    private String identityCard;
     private String provider;
     private Long customerId;
+    private String message;
 }

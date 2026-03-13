@@ -13,13 +13,13 @@ import {
 export function AdminSidebar() {
     const navItems = [
         { label: 'Dashboard', icon: IconDashboard, to: '/admin' },
-        { label: 'Phòng', icon: IconHotelService, to: '/admin/rooms' },
-        { label: 'Đặt phòng', icon: IconCalendarStats, to: '/admin/reservations' },
-        { label: 'Khách hàng', icon: IconUsers, to: '/admin/customers' },
-        { label: 'Nhân viên', icon: IconUsers, to: '/admin/staff' },
-        { label: 'Thanh toán', icon: IconCoin, to: '/admin/payments' },
-        { label: 'Báo cáo', icon: IconReport, to: '/admin/reports' },
-        { label: 'Cài đặt', icon: IconSettings, to: '/admin/settings' },
+        { label: 'Rooms', icon: IconHotelService, to: '/admin/rooms' },
+        { label: 'Reservations', icon: IconCalendarStats, to: '/admin/reservations' },
+        { label: 'Customers', icon: IconUsers, to: '/admin/customers' },
+        { label: 'Staff', icon: IconUsers, to: '/admin/staff' },
+        { label: 'Payments', icon: IconCoin, to: '/admin/payments' },
+        { label: 'Reports', icon: IconReport, to: '/admin/reports' },
+        { label: 'Settings', icon: IconSettings, to: '/admin/settings' },
     ];
 
     return (

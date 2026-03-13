@@ -5,6 +5,7 @@ import com.product.hms.entity.FolioItemEntity;
 import com.product.hms.entity.ServiceBookingEntity;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface FolioItemService {
@@ -50,7 +51,6 @@ public interface FolioItemService {
      * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
      * @param chargeAmount   số tiền phí dịch vụ (positive value)
      */
-    // TODO: Nên bỏ chargeAmount ra khỏi tham số, thay vào đó sẽ tính toán dựa trên serviceBooking
     void createServiceChargeItem(FolioEntity folio, ServiceBookingEntity serviceBooking, BigDecimal chargeAmount);
 
     /**
@@ -84,4 +84,30 @@ public interface FolioItemService {
      * @return Tổng số tiền các khoản phí (charges) đang hoạt động trong folio.
      */
     BigDecimal calculateTotalCharges(FolioEntity folio);
+
+    /**
+     * Đánh dấu danh sách folio item là đã thanh toán (PAID)
+     *
+     * @param items danh sách folio item cần cập nhật trạng thái
+     */
+    void markItemsAsPaid(List<FolioItemEntity> items);
+
+    /**
+     * Tạo FolioItem điều chỉnh khi khách chuyển phòng.
+     *
+     * @param folio            Folio liên quan
+     * @param amount           Số tiền điều chỉnh (có thể âm hoặc dương)
+     * @param oldRoomNumber    Số phòng cũ
+     * @param oldRoomClassName Hạng phòng cũ
+     * @param newRoomNumber    Số phòng mới
+     * @param newRoomClassName Hạng phòng mới
+     */
+    void createFolioItemForRoomChangeAdjustment(
+            FolioEntity folio,
+            java.math.BigDecimal amount,
+            String oldRoomNumber,
+            String oldRoomClassName,
+            String newRoomNumber,
+            String newRoomClassName
+    );
 }

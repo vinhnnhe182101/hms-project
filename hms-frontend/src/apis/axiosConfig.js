@@ -25,10 +25,11 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Response interceptor
+// Response interceptor - SỬA LẠI
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Không xử lý gì nếu là logout request
         if (error.config?.url?.includes('/auth/logout')) {
             return Promise.reject(error);
         }
@@ -36,37 +37,38 @@ axiosInstance.interceptors.response.use(
         if (error.response) {
             switch (error.response.status) {
                 case 401:
+                    // Chỉ thông báo, không tự động xóa token và redirect
                     notifications.show({
-                        title: 'Phiên làm việc hết hạn',
-                        message: 'Vui lòng đăng nhập lại',
+                        title: 'Session Expired',
+                        message: 'Please login again',
                         color: 'red',
                     });
                     break;
                 case 403:
                     notifications.show({
-                        title: 'Truy cập bị từ chối',
-                        message: 'Bạn không có quyền thực hiện hành động này',
+                        title: 'Access Denied',
+                        message: 'You do not have permission to perform this action',
                         color: 'red',
                     });
                     break;
                 case 500:
                     notifications.show({
-                        title: 'Lỗi hệ thống',
-                        message: 'Có lỗi xảy ra. Vui lòng thử lại sau.',
+                        title: 'Server Error',
+                        message: 'Something went wrong. Please try again later.',
                         color: 'red',
                     });
                     break;
                 default:
                     notifications.show({
-                        title: 'Lỗi',
-                        message: error.response.data?.message || 'Đã có lỗi xảy ra',
+                        title: 'Error',
+                        message: error.response.data?.message || 'An error occurred',
                         color: 'red',
                     });
             }
         } else if (error.request) {
             notifications.show({
-                title: 'Lỗi mạng',
-                message: 'Vui lòng kiểm tra kết nối internet của bạn',
+                title: 'Network Error',
+                message: 'Please check your internet connection',
                 color: 'red',
             });
         }

@@ -1,16 +1,20 @@
 package com.product.hms.utils;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class VnPayUtil {
@@ -27,10 +31,10 @@ public class VnPayUtil {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     public String generatePaymentUrl(String txnRef,
-                                     long amountVnd,
-                                     String ipAddress,
-                                     String orderInfo,
-                                     String returnUrl) {
+            long amountVnd,
+            String ipAddress,
+            String orderInfo,
+            String returnUrl) {
         Map<String, String> vnpParams = new HashMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
@@ -46,6 +50,9 @@ public class VnPayUtil {
 
         String createDate = LocalDateTime.now().format(DATE_TIME_FORMATTER);
         vnpParams.put("vnp_CreateDate", createDate);
+
+        String expiryDate = LocalDateTime.now().plusMinutes(15).format(DATE_TIME_FORMATTER);
+        vnpParams.put("vnp_ExpiryDate", expiryDate);
 
         return buildUrlWithSignature(vnpParams);
     }

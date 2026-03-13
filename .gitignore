@@ -8,6 +8,7 @@ hms-frontend/*
 !hms-frontend/eslint.config.js
 !hms-frontend/package.json
 !hms-frontend/package-lock.json
+!hms-frontend/jsconfig.json
 !hms-frontend/tsconfig.app.json
 !hms-frontend/tsconfig.json
 !hms-frontend/tsconfig.node.json
@@ -28,9 +29,9 @@ hms-database/*
 !.github/
 !.github/copilot-instructions.md
 !business_rules.md
-!coding_guildlines.md
+!coding_guidelines.md
 !lessons.md
-!styles_guildelines.md
+!styles_guidelines.md
 !todo.md
 
 !.gitignore

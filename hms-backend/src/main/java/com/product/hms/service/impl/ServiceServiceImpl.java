@@ -37,6 +37,7 @@ public class ServiceServiceImpl implements ServiceService {
                 .name(entity.getName())
                 .price(entity.getPrice())
                 .serviceCategory(entity.getServiceCategory())
+                .isActive(entity.getIsActive())
                 .build();
     }
 }

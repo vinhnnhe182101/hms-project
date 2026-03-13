@@ -1,22 +1,25 @@
 package com.product.hms.dto.response;
 
 import com.product.hms.enums.ServiceCategory;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-@Data
+/**
+ * DTO response cho API search dịch vụ (Service).
+ * <ul>
+ *   <li>id: ID dịch vụ.</li>
+ *   <li>name: Tên dịch vụ.</li>
+ *   <li>serviceCategory: Loại dịch vụ.</li>
+ *   <li>price: Giá dịch vụ.</li>
+ *   <li>isActive: Trạng thái hoạt động.</li>
+ * </ul>
+ */
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ServiceResponse {
-
-    private Long id;
-    private String name;
-    private BigDecimal price;
-
-    private ServiceCategory serviceCategory;
-}
+public record ServiceResponse(
+    Long id,
+    String name,
+    ServiceCategory serviceCategory,
+    BigDecimal price,
+    Boolean isActive
+) {}

@@ -1,18 +1,18 @@
 package com.product.hms.utils;
 
-import com.product.hms.entity.ShiftEntity;
-import com.product.hms.entity.StaffEntity;
-import com.product.hms.service.WorkScheduleService;
+import java.time.LocalTime;
+
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import com.product.hms.entity.ShiftEntity;
 
 /**
  * Utility class for handling overnight shifts (Ca qua đêm) in the HMS.
  *
- * An overnight shift is identified when startTime > endTime (e.g., 22:00 to 08:00 next day).
- * This utility provides helper methods for checking active staff and shift status.
+ * An overnight shift is identified when startTime > endTime (e.g., 22:00 to
+ * 08:00 next day).
+ * This utility provides helper methods for checking active staff and shift
+ * status.
  */
 @Component
 public class OvernightShiftUtil {

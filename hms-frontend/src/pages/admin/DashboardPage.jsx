@@ -1,4 +1,4 @@
-import { Title, Paper, Grid, Card, Text, SimpleGrid, Group } from '@mantine/core';
+import {Title, Paper, Grid, Card, Text, SimpleGrid, Group} from '@mantine/core';
 import {
     IconHotelService,
     IconUsers,
@@ -8,12 +8,12 @@ import {
 
 export default function AdminDashboardPage() {
     const stats = [
-        { title: 'Tổng số phòng', value: '150', icon: IconHotelService, color: 'blue' },
-        { title: 'Phòng đang ở', value: '45', icon: IconHotelService, color: 'red' },
-        { title: 'Check-in hôm nay', value: '12', icon: IconCalendarStats, color: 'green' },
-        { title: 'Doanh thu hôm nay', value: '$5,230', icon: IconCurrencyDollar, color: 'violet' },
-        { title: 'Khách hàng', value: '89', icon: IconUsers, color: 'cyan' },
-        { title: 'Đặt phòng chờ', value: '8', icon: IconCalendarStats, color: 'orange' },
+        { title: 'Total Rooms', value: '150', icon: IconHotelService, color: 'blue' },
+        { title: 'Occupied Rooms', value: '45', icon: IconHotelService, color: 'red' },
+        { title: 'Check-ins Today', value: '12', icon: IconCalendarStats, color: 'green' },
+        { title: 'Revenue Today', value: '$5,230', icon: IconCurrencyDollar, color: 'violet' },
+        { title: 'Total Guests', value: '89', icon: IconUsers, color: 'cyan' },
+        { title: 'Pending Reservations', value: '8', icon: IconCalendarStats, color: 'orange' },
     ];
 
     return (
@@ -39,18 +39,20 @@ export default function AdminDashboardPage() {
             <Grid mt="lg">
                 <Grid.Col span={8}>
                     <Paper shadow="sm" p="md" withBorder>
-                        <Title order={3} mb="md">Đặt phòng gần đây</Title>
+                        <Title order={3} mb="md">Recent Bookings</Title>
+                        {/* Add bookings table here */}
                         <Text c="dimmed" ta="center" py="xl">
-                            Không có đặt phòng mới
+                            No recent bookings to display
                         </Text>
                     </Paper>
                 </Grid.Col>
 
                 <Grid.Col span={4}>
                     <Paper shadow="sm" p="md" withBorder>
-                        <Title order={3} mb="md">Thao tác nhanh</Title>
+                        <Title order={3} mb="md">Quick Actions</Title>
+                        {/* Add quick actions here */}
                         <Text c="dimmed" ta="center" py="xl">
-                            Các thao tác nhanh sẽ xuất hiện ở đây
+                            Quick actions will appear here
                         </Text>
                     </Paper>
                 </Grid.Col>
