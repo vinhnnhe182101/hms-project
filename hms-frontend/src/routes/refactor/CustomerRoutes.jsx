@@ -9,25 +9,23 @@ function BookingDetailPage() {
     return null;
 }
 
-export const CustomerRoutes = () => {
-    return (
-            <>
-                <Route path="/" element={<CustomerLayout/>}>
-                    <Route index element={<HomePage/>}/>
-                    <Route path="rooms" element={<RoomsPage/>}/>
-                </Route>
+export const CustomerRoutes = (
+    <>
+        <Route path="/" element={<CustomerLayout/>}>
+            <Route index element={<HomePage/>}/>
+            <Route path="rooms" element={<RoomsPage/>}/>
+        </Route>
 
-                <Route
-                        path="/customer"
-                        element={
-                            <ProtectedRoute>
-                                <CustomerLayout/>
-                            </ProtectedRoute>
-                        }
-                >
-                    <Route path="bookings" element={<BookingHistoryPage/>}/>
-                    <Route path="bookings/:id" element={<BookingDetailPage/>}/>
-                </Route>
-            </>
-    );
-};
+        <Route
+            path="/customer"
+            element={
+                <ProtectedRoute>
+                    <CustomerLayout/>
+                </ProtectedRoute>
+            }
+        >
+            <Route path="bookings" element={<BookingHistoryPage/>}/>
+            <Route path="bookings/:id" element={<BookingDetailPage/>}/>
+        </Route>
+    </>
+);
