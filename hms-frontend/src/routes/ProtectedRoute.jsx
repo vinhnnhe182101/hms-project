@@ -6,6 +6,8 @@ export function ProtectedRoute({ children, requiredRole }) {
     const { user, loading, isAuthenticated } = useAuth();
     const location = useLocation();
 
+    const normalizeRole = (role) => String(role || '').replace(/^ROLE_/, '').toUpperCase();
+
     console.log('ProtectedRoute - requiredRole:', requiredRole);
     console.log('ProtectedRoute - user:', user);
     console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
@@ -18,7 +20,7 @@ export function ProtectedRoute({ children, requiredRole }) {
         console.log('ProtectedRoute - Not authenticated, redirecting to login');
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
-    if (requiredRole && user?.role !== requiredRole) {
+    if (requiredRole && normalizeRole(user?.role) !== normalizeRole(requiredRole)) {
         console.log(`ProtectedRoute - Access denied: Required ${requiredRole}, but user has ${user?.role}`);
         return <Navigate to="/unauthorized" replace />;
     }

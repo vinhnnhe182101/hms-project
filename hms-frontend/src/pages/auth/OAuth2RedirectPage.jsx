@@ -44,10 +44,13 @@ export default function OAuth2RedirectPage() {
 
                 console.log('OAuth2 - Token saved, redirecting...');
 
+                const normalizedRole = String(decoded.role || '').replace(/^ROLE_/, '').toUpperCase();
                 const redirectPath =
-                    decoded.role === 'ADMIN' ? '/admin' :
-                        decoded.role === 'HOUSEKEEPING' ? '/housekeeping' :
-                            '/';
+                    normalizedRole === 'ADMIN' ? '/admin' :
+                        normalizedRole === 'HOUSEKEEPING' ? '/housekeeping' :
+                            normalizedRole === 'RECEPTIONIST' ? '/receptionist' :
+                                normalizedRole === 'STAFF' ? '/staff' :
+                                    '/user';
 
                 window.location.href = redirectPath;
 

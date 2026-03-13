@@ -15,6 +15,9 @@ import PaymentCallbackPage from '../pages/customer/PaymentCallbackPage.jsx';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterPage from '../pages/auth/RegisterPage.jsx';
 import AdminDashboardPage from '../pages/admin/DashboardPage.jsx';
+import RoomManagementPage from '../pages/admin/RoomManagementPage.jsx';
+import RoomTypesPage from '../pages/admin/RoomTypesPage.jsx';
+import ServiceManagementPage from '../pages/admin/ServiceManagementPage.jsx';
 import HousekeepingDashboardPage from '../pages/housekeeping/DashboardPage.jsx';
 import { AuthLayout } from "../layouts/AuthLayout.jsx";
 import OAuth2RedirectPage from "../pages/auth/OAuth2RedirectPage.jsx";
@@ -23,10 +26,6 @@ import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import { StaffLayout } from "../layouts/staff/StaffLayout.jsx";
-
-function BookingDetailPage() {
-    return null;
-}
 
 export const router = createBrowserRouter([
     {
@@ -45,7 +44,34 @@ export const router = createBrowserRouter([
         ],
     },
     {
+        path: '/user',
+        element: (
+                <ProtectedRoute>
+                    <CustomerLayout />
+                </ProtectedRoute>
+        ),
+        children: [
+            { index: true, element: <HomePage /> },
+            { path: 'rooms', element: <RoomsPage /> },
+            { path: 'rooms/:id', element: <RoomDetailPage /> },
+            { path: 'services', element: <ServicesPage /> },
+            { path: 'services/checkout', element: <ServiceCheckoutPage /> },
+            { path: 'booking', element: <BookingPage /> },
+            { path: 'booking/checkout', element: <CheckoutPage /> },
+            { path: 'history', element: <BookingHistoryPage /> },
+        ],
+    },
+    {
         path: '/',
+        element: <AuthLayout/>,
+        children: [
+            {path: 'login', element: <LoginPage/>},
+            {path: 'register', element: <RegisterPage/>},
+            {path: 'forgot-password', element: <div>Forgot Password</div>},
+        ],
+    },
+    {
+        path: '/auth',
         element: <AuthLayout/>,
         children: [
             {path: 'login', element: <LoginPage/>},
@@ -72,27 +98,33 @@ export const router = createBrowserRouter([
         ),
         children: [
             {path: 'bookings', element: <BookingHistoryPage/>},
-            {path: 'bookings/:id', element: <BookingDetailPage/>},
+            {path: 'bookings/:id', element: null},
         ],
     },
     {
         path: '/admin',
         element: (
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="ADMIN">
                     <AdminLayout/>
                 </ProtectedRoute>
         ),
         children: [
             {index: true, element: <AdminDashboardPage/>},
-            {path: 'rooms', element: <div>Room Management</div>},
-            {path: 'users', element: <div>User Management</div>},
-            {path: 'bookings', element: <div>Booking Management</div>},
+            {path: 'rooms', element: <RoomManagementPage/>},
+            {path: 'rooms/types', element: <RoomTypesPage/>},
+            {path: 'rooms/service', element: <ServiceManagementPage/>},
+            {path: 'reservations', element: <div>Reservations Management</div>},
+            {path: 'customers', element: <div>Customers Management</div>},
+            {path: 'staff', element: <div>Staff Management</div>},
+            {path: 'payments', element: <div>Payments Management</div>},
+            {path: 'reports', element: <div>Reports Management</div>},
+            {path: 'settings', element: <div>Settings</div>},
         ],
     },
     {
         path: '/housekeeping',
         element: (
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="HOUSEKEEPING">
                     <HousekeepingLayout/>
                 </ProtectedRoute>
         ),
@@ -104,7 +136,7 @@ export const router = createBrowserRouter([
     {
         path: '/receptionist',
         element: (
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="RECEPTIONIST">
                     <RecepDashboardPage/>
                 </ProtectedRoute>
         ),
@@ -113,7 +145,7 @@ export const router = createBrowserRouter([
     {
         path: '/staff',
         element: (
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="STAFF">
                     <StaffLayout/>
                 </ProtectedRoute>
         )

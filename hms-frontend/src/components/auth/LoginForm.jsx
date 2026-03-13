@@ -23,7 +23,7 @@ const AUTH_BG_URL = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?a
 
 export function LoginForm() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, getDashboardPath } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -38,8 +38,8 @@ export function LoginForm() {
         const result = await login(email, password);
 
         if (result.success) {
-            const path = '/'; // Simple redirect for now
-            window.location.href = path;
+            const path = getDashboardPath(result.user);
+            navigate(path, { replace: true });
         } else {
             setError(result.error);
             setLoading(false);
