@@ -35,8 +35,9 @@ public class RoomImgEntity {
     @JoinColumn(name = "room_class_id", nullable = false)
     private RoomClassEntity roomClassEntity;
 
-    @Column(name = "img_url", nullable = false, length = 2048)
-    private String imgUrl;
+    @Lob
+    @Column(name = "img_data", columnDefinition = "LONGBLOB")
+    private byte[] imgData;
 
     @Column(name = "img_type", length = 50)
     private String imgType;

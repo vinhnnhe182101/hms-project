@@ -10,7 +10,6 @@ export function CustomerLayout() {
     return (
         <AppShell
             header={{ height: 70 }}
-            footer={{ height: 60 }}
             padding={0}
         >
             <AppShell.Header>
@@ -18,14 +17,10 @@ export function CustomerLayout() {
             </AppShell.Header>
 
             <AppShell.Main>
-                <Container size="lg" py="xl">
-                    <Outlet />
-                </Container>
-            </AppShell.Main>
-
-            <AppShell.Footer>
+                <Outlet />
                 <CustomerFooter />
-            </AppShell.Footer>
+            </AppShell.Main>
+            
         </AppShell>
     );
 }

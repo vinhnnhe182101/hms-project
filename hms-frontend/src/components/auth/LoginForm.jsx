@@ -1,151 +1,210 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import {
     TextInput,
     PasswordInput,
+    Checkbox,
     Button,
     Paper,
     Title,
     Text,
-    Anchor,
-    Divider,
-    Stack,
+    Container,
     Group,
+    Stack,
+    Divider,
     Box,
     Alert,
+    Overlay
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { IconBrandGoogle, IconAlertCircle } from '@tabler/icons-react';
-import { useAuth } from '../../hooks/useAuth';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { IconBrandGoogle, IconArrowLeft, IconAlertCircle, IconLock, IconMail } from '@tabler/icons-react';
+
+const AUTH_BG_URL = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=1600';
 
 export function LoginForm() {
-    const { login, getDashboardPath } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
+    const { login } = useAuth();
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
-    // Get the redirect path from location state or default to dashboard based on role
-    const from = location.state?.from?.pathname || null;
-
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const errorParam = params.get('error');
-        if (errorParam) {
-            setError(decodeURIComponent(errorParam));
-        }
-    }, [location]);
-
-    const form = useForm({
-        initialValues: {
-            email: '',
-            password: '',
-        },
-        validate: {
-            email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-            password: (value) => (value.length < 1 ? 'Password must be at least 6 characters' : null),
-        },
-    });
-
-    const handleSubmit = async (values) => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
         setLoading(true);
-        setError(null);
 
-        const result = await login(values.email, values.password);
-        setLoading(false);
+        const result = await login(email, password);
 
         if (result.success) {
-            notifications.show({
-                title: 'Welcome back!',
-                message: `Logged in as ${result.user.fullName}`,
-                color: 'green',
-            });
-
-            // Điều hướng dựa trên role từ token
-            const dashboardPath = getDashboardPath(result.user);
-            navigate(from || dashboardPath, { replace: true });
+            const path = '/'; // Simple redirect for now
+            window.location.href = path;
         } else {
             setError(result.error);
+            setLoading(false);
         }
     };
 
     const handleGoogleLogin = () => {
-        setError(null);
-        const googleAuthUrl = `${import.meta.env.VITE_BE_URL}/oauth2/authorize/google`;
-        window.location.href = googleAuthUrl;
+        window.location.href = 'http://localhost:8080/oauth2/authorize/google';
     };
 
     return (
-        <Box style={{ maxWidth: 400 }} mx="auto">
-            <Paper radius="md" p="xl" withBorder>
-                <Title order={2} ta="center" mb="md">
-                    Welcome Back!
-                </Title>
-
-                {error && (
-                    <Alert
-                        icon={<IconAlertCircle size={16} />}
-                        title="Error"
-                        color="red"
-                        mb="md"
-                        withCloseButton
-                        onClose={() => setError(null)}
-                    >
-                        {error}
-                    </Alert>
-                )}
-
-                <form onSubmit={form.onSubmit(handleSubmit)}>
-                    <Stack>
-                        <TextInput
-                            required
-                            label="Email"
-                            placeholder="your@email.com"
-                            {...form.getInputProps('email')}
-                        />
-
-                        <PasswordInput
-                            required
-                            label="Password"
-                            placeholder="Your password"
-                            {...form.getInputProps('password')}
-                        />
-
-                        <Group justify="flex-end">
-                            <Anchor component="button" size="sm" onClick={() => navigate('/forgot-password')}>
-                                Forgot password?
-                            </Anchor>
-                        </Group>
-
-                        <Button type="submit" fullWidth loading={loading}>
-                            Sign in
-                        </Button>
+        <Box
+            style={{
+                minHeight: '100vh',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundImage: `url(${AUTH_BG_URL})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '40px 20px',
+            }}
+        >
+            <Overlay color="#000" opacity={0.4} zIndex={1} />
+            
+            <Container size={420} style={{ position: 'relative', zIndex: 2, width: '100%' }}>
+                <Paper 
+                    radius="xl" 
+                    p={40} 
+                    style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}
+                >
+                    <Stack align="center" mb={30}>
+                        <Title
+                            order={1}
+                            fw={900}
+                            style={{ 
+                                letterSpacing: '2px', 
+                                color: 'var(--mantine-color-blue-9)', 
+                                fontSize: '32px',
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            FPTU HOTEL
+                        </Title>
+                        <Text c="dimmed" size="sm" ta="center" fw={500}>
+                            Welcome back! Please enter your details.
+                        </Text>
                     </Stack>
-                </form>
 
-                <Divider label="Or continue with" labelPosition="center" my="lg" />
+                    <Button
+                        variant="outline"
+                        color="gray"
+                        fullWidth
+                        onClick={handleGoogleLogin}
+                        leftSection={<IconBrandGoogle size={18} color="#4285F4" />}
+                        radius="md"
+                        size="md"
+                        styles={{
+                            root: { transition: 'transform 0.2s ease' },
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        Continue with Google
+                    </Button>
 
-                <Button
-                    fullWidth
-                    variant="default"
-                    onClick={handleGoogleLogin}
-                    loading={loading}
-                ><svg className="w-8 h-5 flex-shrink-0 mr-3" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg> Google
-                </Button>
+                    <Divider label="or continue with email" labelPosition="center" my="lg" />
 
-                <Text ta="center" mt="md">
-                    Don't have an account?{' '}
-                    <Anchor component="button" onClick={() => navigate('/register')}>
-                        Register
-                    </Anchor>
-                </Text>
-            </Paper>
+                    <form onSubmit={handleSubmit}>
+                        <Stack gap="md">
+                            <TextInput
+                                label="Email Address"
+                                placeholder="name@example.com"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
+                                leftSection={<IconMail size={16} />}
+                                radius="md"
+                                size="md"
+                            />
+                            <PasswordInput
+                                label="Password"
+                                placeholder="Enter your password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                leftSection={<IconLock size={16} />}
+                                radius="md"
+                                size="md"
+                            />
+
+                            {error && (
+                                <Alert icon={<IconAlertCircle size={16} />} color="red" radius="md" variant="light">
+                                    {error}
+                                </Alert>
+                            )}
+
+                            <Group justify="space-between" mt="xs">
+                                <Checkbox label="Remember me" color="blue" radius="xs" />
+                                <Text
+                                    size="xs"
+                                    color="blue"
+                                    fw={600}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => navigate('/auth/forgot-password')}
+                                >
+                                    Forgot password?
+                                </Text>
+                            </Group>
+
+                            <Button
+                                type="submit"
+                                fullWidth
+                                loading={loading}
+                                color="blue"
+                                size="lg"
+                                mt="xl"
+                                radius="md"
+                                style={{
+                                    boxShadow: '0 10px 15px -3px rgba(34, 139, 230, 0.3)',
+                                    height: '50px'
+                                }}
+                            >
+                                Sign In
+                            </Button>
+                        </Stack>
+                    </form>
+
+                    <Stack align="center" mt="xl" gap="md">
+                        <Text size="sm" c="dimmed">
+                            Don't have an account?{' '}
+                            <Text
+                                component="span"
+                                fw={700}
+                                color="blue"
+                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                onClick={() => navigate('/auth/register')}
+                            >
+                                Create an account
+                            </Text>
+                        </Text>
+
+                        <Group
+                            gap={5}
+                            style={{ cursor: 'pointer', opacity: 0.7 }}
+                            onClick={() => navigate('/')}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}
+                        >
+                            <IconArrowLeft size={14} />
+                            <Text size="xs" fw={500}>
+                                Back to website
+                            </Text>
+                        </Group>
+                    </Stack>
+                </Paper>
+            </Container>
         </Box>
     );
 }

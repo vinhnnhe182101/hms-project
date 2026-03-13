@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface FolioItemService {
     void createFolioItemForDeposit(FolioEntity folio, BigDecimal depositAmount);
+    void createRoomChargeItem(FolioEntity folio, BigDecimal amount);
 
     /**
      * Tạo một folio item cho khoản hoàn tiền (refund)

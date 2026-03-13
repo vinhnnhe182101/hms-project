@@ -1,283 +1,343 @@
-import { useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-    Badge,
-    Button,
-    Card,
-    Container,
-    Grid,
-    Group,
-    Image,
-    SegmentedControl,
-    Select,
-    SimpleGrid,
-    Stack,
-    Text,
-    TextInput,
-    Title
+    Container, Grid, Card, Image, Stack, Box, Text, Button,
+    Select, Group, Badge, Title, LoadingOverlay,
+    Pagination, Center, Loader, Rating
 } from '@mantine/core';
-import { IconCalendarPlus, IconSearch, IconUsers, IconRuler2 } from '@tabler/icons-react';
+import { DateTimePicker } from '@mantine/dates';
+import dayjs from 'dayjs';
+import { IconUsers, IconBed, IconChevronRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-
-const rooms = [
-    {
-        id: 101,
-        name: 'Deluxe Suite',
-        type: 'Suite',
-        price: 199,
-        capacity: 2,
-        size: '35 m2',
-        image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a',
-        tags: ['Ocean View', 'King Bed', 'Breakfast']
-    },
-    {
-        id: 202,
-        name: 'Executive Room',
-        type: 'Executive',
-        price: 299,
-        capacity: 3,
-        size: '45 m2',
-        image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b',
-        tags: ['City View', 'Workspace', 'Lounge Access']
-    },
-    {
-        id: 303,
-        name: 'Presidential Suite',
-        type: 'Suite',
-        price: 499,
-        capacity: 4,
-        size: '68 m2',
-        image: 'https://images.unsplash.com/photo-1590490360182-c33d5773345f',
-        tags: ['Jacuzzi', 'Panoramic View', 'Private Dining']
-    },
-    {
-        id: 115,
-        name: 'Signature Queen',
-        type: 'Standard',
-        price: 149,
-        capacity: 2,
-        size: '28 m2',
-        image: 'https://images.unsplash.com/photo-1631049035182-249067d7618e',
-        tags: ['Queen Bed', 'Smart TV', 'Rain Shower']
-    },
-    {
-        id: 407,
-        name: 'Family Horizon',
-        type: 'Family',
-        price: 359,
-        capacity: 5,
-        size: '58 m2',
-        image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85',
-        tags: ['2 Bedrooms', 'Kids Corner', 'Mini Kitchen']
-    },
-    {
-        id: 221,
-        name: 'Skyline Studio',
-        type: 'Standard',
-        price: 169,
-        capacity: 2,
-        size: '30 m2',
-        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39',
-        tags: ['Floor-to-ceiling Window', 'Coffee Bar', 'Fast Wi-Fi']
-    }
-];
-
-const roomTypeOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Standard', value: 'standard' },
-    { label: 'Executive', value: 'executive' },
-    { label: 'Suite', value: 'suite' },
-    { label: 'Family', value: 'family' }
-];
+import { getRoomClassList } from '../../apis/customer/roomClassApi';
 
 export default function RoomsPage() {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [roomType, setRoomType] = useState('all');
-    const [sortBy, setSortBy] = useState('price-asc');
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const filteredRooms = useMemo(() => {
-        const normalizedQuery = searchQuery.trim().toLowerCase();
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(null);
 
-        let list = rooms.filter((room) => {
-            const matchesType = roomType === 'all' || room.type.toLowerCase() === roomType;
-            const matchesQuery =
-                normalizedQuery.length === 0 ||
-                room.name.toLowerCase().includes(normalizedQuery) ||
-                room.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
+    const [checkIn, setCheckIn] = useState(dayjs().toDate());
+    const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').toDate());
 
-            return matchesType && matchesQuery;
-        });
+    const fetchRooms = async (currentPage = 0, size = pageSize, inDate = checkIn, outDate = checkOut) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const inIso = inDate ? dayjs(inDate).format('YYYY-MM-DDTHH:mm:ss') : null;
+            const outIso = outDate ? dayjs(outDate).format('YYYY-MM-DDTHH:mm:ss') : null;
 
-        list = [...list].sort((a, b) => {
-            if (sortBy === 'price-asc') return a.price - b.price;
-            if (sortBy === 'price-desc') return b.price - a.price;
-            return b.capacity - a.capacity;
-        });
+            if (inIso && outIso && (dayjs(outIso).isBefore(dayjs(inIso)) || dayjs(outIso).isSame(dayjs(inIso)))) {
+                setError('Check-out time must be after check-in time.');
+                setLoading(false);
+                return;
+            }
 
-        return list;
-    }, [searchQuery, roomType, sortBy]);
-
-    const handleBookRoom = (roomId) => {
-        if (isAuthenticated) {
-            navigate(`/booking/${roomId}`);
-            return;
+            const data = await getRoomClassList(currentPage, size, inIso, outIso);
+            if (data && data.data) {
+                setRooms(data.data);
+                setTotalPages(data.totalPages);
+                setTotalItems(data.totalItems);
+                if (data.pageSize) {
+                    const backendSize = Number(data.pageSize);
+                    if (backendSize !== pageSize) {
+                        setPageSize(backendSize);
+                    }
+                }
+            } else {
+                setRooms([]);
+                setTotalPages(0);
+                setTotalItems(0);
+            }
+        } catch (err) {
+            console.error('Error fetching room classes:', err);
+            setError(err.response?.data?.message || err.message || 'Unable to load room data. Please try again later.');
+        } finally {
+            setLoading(false);
         }
+    };
 
-        navigate('/auth/login', { state: { from: `/booking/${roomId}` } });
+    useEffect(() => {
+        fetchRooms(page, pageSize);
+    }, [page, pageSize]);
+
+    // Reset to first page when pageSize changes
+    const handlePageSizeChange = (value) => {
+        if (value) {
+            setPageSize(Number(value));
+            setPage(0);
+        }
+    };
+
+    // Format price to VND
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price);
     };
 
     return (
-        <Stack gap="xl">
-            <div
-                style={{
-                    background:
-                        'linear-gradient(120deg, rgba(16,24,40,0.96) 0%, rgba(22,101,52,0.88) 54%, rgba(250,204,21,0.75) 100%)',
-                    borderRadius: '20px',
-                    padding: '42px 36px',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}
-            >
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: '-80px',
-                        right: '-70px',
-                        width: '220px',
-                        height: '220px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.18)'
-                    }}
-                />
-                <Stack gap={8} style={{ position: 'relative' }}>
-                    <Text fw={700} tt="uppercase" size="xs" style={{ letterSpacing: '0.08em' }}>
-                        Discover your stay
-                    </Text>
-                    <Title order={1} size={42}>
-                        Rooms & Suites
+        <Box>
+            {/* Page Header */}
+            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', color: 'white', padding: '50px 0' }}>
+                <Container size="xl">
+                    <Title order={1} mb={10} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>
+                        Room Types
                     </Title>
-                    <Text size="lg" maw={700} style={{ opacity: 0.92 }}>
-                        Explore curated room types for every trip style, from compact business stays to high-end family suites.
+                    <Text style={{ fontSize: '16px', opacity: 0.85 }}>
+                        Explore our luxury room types
                     </Text>
-                </Stack>
-            </div>
+                </Container>
+            </Box>
 
-            <Card withBorder radius="lg" p="lg">
-                <Grid align="end" gutter="md">
-                    <Grid.Col span={{ base: 12, md: 5 }}>
-                        <TextInput
-                            label="Search"
-                            placeholder="Room name or amenity"
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                            leftSection={<IconSearch size={16} />}
-                        />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Select
-                            label="Sort"
-                            value={sortBy}
-                            onChange={(value) => setSortBy(value || 'price-asc')}
-                            data={[
-                                { label: 'Price: Low to High', value: 'price-asc' },
-                                { label: 'Price: High to Low', value: 'price-desc' },
-                                { label: 'Capacity', value: 'capacity-desc' }
-                            ]}
-                        />
-                    </Grid.Col>
+            {/* Main Content */}
+            <Container size="xl" py={60}>
+                <Grid>
+                    {/* Sidebar Filters */}
                     <Grid.Col span={{ base: 12, md: 3 }}>
-                        <Text size="sm" c="dimmed" mb={8}>
-                            Found {filteredRooms.length} room(s)
-                        </Text>
+                        <Box style={{ position: 'sticky', top: '20px' }}>
+                            <Stack gap="xl">
+                                {/* Search Date Filters */}
+                                <Box>
+                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Search Filters</Text>
+
+                                    <DateTimePicker
+                                        label="Check-in"
+                                        placeholder="Select date and time"
+                                        value={checkIn}
+                                        onChange={(date) => {
+                                            if (!date) return;
+                                            
+                                            const now = dayjs();
+                                            let newCheckIn = date;
+                                            
+                                            // Don't allow selecting more than 5 minutes in the past
+                                            if (dayjs(date).isBefore(now.subtract(5, 'minute'))) {
+                                                newCheckIn = now.toDate();
+                                            }
+                                            
+                                            setCheckIn(newCheckIn);
+                                            
+                                            // Ensure check-out is at least 1 hour after check-in
+                                            const minCheckOut = dayjs(newCheckIn).add(1, 'hour');
+                                            if (!checkOut || dayjs(checkOut).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
+                                            }
+                                        }}
+                                        minDate={new Date()}
+                                        mb="sm"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <DateTimePicker
+                                        label="Check-out"
+                                        placeholder="Select date and time"
+                                        value={checkOut}
+                                        onChange={(date) => {
+                                            if (!date) return;
+                                            
+                                            const minCheckOut = dayjs(checkIn).add(1, 'hour');
+                                            if (dayjs(date).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
+                                            } else {
+                                                setCheckOut(date);
+                                            }
+                                        }}
+                                        minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
+                                        mb="md"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <Button
+                                        fullWidth
+                                        color="blue"
+                                        mb="sm"
+                                        onClick={() => {
+                                            setPage(0);
+                                            fetchRooms(0, pageSize, checkIn, checkOut);
+                                        }}
+                                    >
+                                        Find available rooms
+                                    </Button>
+
+                                    <Button
+                                        variant="light"
+                                        color="gray"
+                                        fullWidth
+                                        onClick={() => {
+                                            const defaultIn = dayjs().toDate();
+                                            const defaultOut = dayjs().add(1, 'day').toDate();
+                                            setCheckIn(defaultIn);
+                                            setCheckOut(defaultOut);
+                                            setPage(0);
+                                            fetchRooms(0, pageSize, defaultIn, defaultOut);
+                                        }}
+                                    >
+                                        Reset
+                                    </Button>
+                                </Box>
+                            </Stack>
+                        </Box>
                     </Grid.Col>
-                    <Grid.Col span={12}>
-                        <SegmentedControl
-                            value={roomType}
-                            onChange={setRoomType}
-                            fullWidth
-                            data={roomTypeOptions}
-                        />
+
+                    {/* Room Grid */}
+                    <Grid.Col span={{ base: 12, md: 9 }}>
+                        <Box style={{ position: 'relative', minHeight: '200px' }}>
+                            <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+
+                            <Group justify="space-between" mb="lg">
+                                <Text size="md" fw={500}>
+                                    Found {totalItems} room types
+                                </Text>
+                                <Select
+                                    label="Page size:"
+                                    value={pageSize ? pageSize.toString() : ''}
+                                    placeholder="Loading..."
+                                    onChange={handlePageSizeChange}
+                                    data={['3', '6', '9', '12']}
+                                    style={{ width: '130px' }}
+                                    leftSectionWidth={0}
+                                    allowDeselect={false}
+                                />
+                            </Group>
+
+                            {error && (
+                                <Text c="red" ta="center" my="lg">{error}</Text>
+                            )}
+
+                            {!loading && !error && rooms.length === 0 && (
+                                <Text ta="center" my="xl" size="lg" c="dimmed">
+                                    No matching room types found.
+                                </Text>
+                            )}
+
+                            <Grid>
+                                {rooms.map((room) => (
+                                    <Grid.Col key={room.id} span={{ base: 12, sm: 6, md: 4 }}>
+                                        <Card
+                                            shadow="sm"
+                                            padding="0"
+                                            radius="md"
+                                            withBorder
+                                            style={{
+                                                height: '100%',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                                cursor: 'pointer'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(-8px)';
+                                                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = '';
+                                            }}
+                                            onClick={() => navigate(`/rooms/${room.id}`)}
+                                        >
+                                            {/* Room Image (Base64 from backend) */}
+                                            <Card.Section>
+                                                <Image
+                                                    src={room.primaryImage?.dataUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500'}
+                                                    height={220}
+                                                    alt={room.name}
+                                                    style={{ objectFit: 'cover' }}
+                                                    fallbackSrc="https://placehold.co/300x220?text=No+Image"
+                                                />
+                                            </Card.Section>
+
+                                            <Stack p="md" gap="xs" style={{ flex: 1 }}>
+                                                {/* Room name & total rooms badge */}
+                                                <Group justify="space-between" align="start">
+                                                    <Title order={3} fw={600} style={{ fontSize: '16px', flex: 1 }}>
+                                                        {room.name}
+                                                    </Title>
+                                                    <Badge variant="light" color={room.totalRooms > 0 ? "green" : "red"} radius="sm" style={{ flexShrink: 0 }}>
+                                                        {room.totalRooms} rooms available
+                                                    </Badge>
+                                                </Group>
+
+                                                {/* Average Rating */}
+                                                <Group gap={6}>
+                                                    <Rating
+                                                        value={room.averageRating || 0}
+                                                        fractions={2}
+                                                        readOnly
+                                                        size="xs"
+                                                        color="yellow"
+                                                    />
+                                                    <Text size="xs" c="dimmed">
+                                                        {room.averageRating
+                                                            ? room.averageRating.toFixed(1)
+                                                            : 'No reviews yet'}
+                                                    </Text>
+                                                </Group>
+
+                                                {/* Capacity */}
+                                                <Group gap="xs">
+                                                    <IconUsers size={15} color="var(--mantine-color-blue-6)" />
+                                                    <Text size="sm" c="dimmed">
+                                                        {room.standardCapacity} standard guests
+                                                    </Text>
+                                                </Group>
+
+                                                <Box mt="auto">
+                                                    <Group justify="space-between" mb="xs" align="flex-end">
+                                                        <Box>
+                                                            <Text fw={700} color="blue.6" style={{ fontSize: '18px' }}>
+                                                                {formatPrice(room.basePrice || 0)}
+                                                            </Text>
+                                                            <Text c="dimmed" style={{ fontSize: '12px' }}>/ night</Text>
+                                                        </Box>
+                                                    </Group>
+
+                                                    <Stack gap="xs">
+                                                        <Button
+                                                            fullWidth
+                                                            color="blue"
+                                                            style={{
+                                                                fontSize: '14px',
+                                                                padding: '8px 16px',
+                                                                fontWeight: 500
+                                                            }}
+                                                            rightSection={<IconChevronRight size={16} />}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/rooms/${room.id}`);
+                                                            }}
+                                                        >
+                                                            View Details
+                                                        </Button>
+                                                    </Stack>
+                                                </Box>
+                                            </Stack>
+                                        </Card>
+                                    </Grid.Col>
+                                ))}
+                            </Grid>
+                        </Box>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <Box mt={40} style={{ display: 'flex', justifyContent: 'center' }}>
+                                <Pagination
+                                    total={totalPages}
+                                    value={page + 1}
+                                    onChange={(p) => setPage(p - 1)}
+                                    color="blue"
+                                    size="lg"
+                                />
+                            </Box>
+                        )}
                     </Grid.Col>
                 </Grid>
-            </Card>
-
-            {filteredRooms.length === 0 ? (
-                <Card withBorder radius="md" p="xl">
-                    <Text ta="center" c="dimmed">
-                        No matching rooms found. Try changing search keyword or filter.
-                    </Text>
-                </Card>
-            ) : (
-                <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
-                    {filteredRooms.map((room) => (
-                        <Card key={room.id} withBorder radius="md" p="lg" shadow="sm">
-                            <Card.Section>
-                                <Image src={room.image} alt={room.name} h={220} />
-                            </Card.Section>
-
-                            <Stack mt="md" gap="sm">
-                                <Group justify="space-between" align="start">
-                                    <div>
-                                        <Title order={3} size="h4">
-                                            {room.name}
-                                        </Title>
-                                        <Text size="sm" c="dimmed">
-                                            Room #{room.id}
-                                        </Text>
-                                    </div>
-                                    <Badge color="teal" variant="light">
-                                        {room.type}
-                                    </Badge>
-                                </Group>
-
-                                <Group gap="md">
-                                    <Group gap={6}>
-                                        <IconUsers size={16} />
-                                        <Text size="sm">{room.capacity} guests</Text>
-                                    </Group>
-                                    <Group gap={6}>
-                                        <IconRuler2 size={16} />
-                                        <Text size="sm">{room.size}</Text>
-                                    </Group>
-                                </Group>
-
-                                <Group gap={6}>
-                                    {room.tags.map((tag) => (
-                                        <Badge key={tag} variant="dot" color="gray">
-                                            {tag}
-                                        </Badge>
-                                    ))}
-                                </Group>
-
-                                <Group justify="space-between" mt="xs">
-                                    <Text fw={700} size="xl">
-                                        ${room.price}
-                                        <Text component="span" c="dimmed" size="sm" ml={4}>
-                                            / night
-                                        </Text>
-                                    </Text>
-                                    <Button
-                                        leftSection={<IconCalendarPlus size={16} />}
-                                        onClick={() => handleBookRoom(room.id)}
-                                    >
-                                        {isAuthenticated ? 'Book now' : 'Login to book'}
-                                    </Button>
-                                </Group>
-                            </Stack>
-                        </Card>
-                    ))}
-                </SimpleGrid>
-            )}
-
-            <Container size="sm" ta="center" pb="sm">
-                <Text c="dimmed" size="sm">
-                    Need help choosing? Contact our concierge team for personalized recommendations.
-                </Text>
             </Container>
-        </Stack>
+        </Box>
     );
 }

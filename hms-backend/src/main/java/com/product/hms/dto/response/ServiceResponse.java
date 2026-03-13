@@ -1,6 +1,8 @@
 package com.product.hms.dto.response;
 
 import com.product.hms.enums.ServiceCategory;
+import lombok.Builder;
+
 import java.math.BigDecimal;
 
 /**
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
  *   <li>isActive: Trạng thái hoạt động.</li>
  * </ul>
  */
+@Builder
 public record ServiceResponse(
     Long id,
     String name,

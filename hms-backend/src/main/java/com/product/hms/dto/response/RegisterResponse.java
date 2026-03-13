@@ -17,5 +17,6 @@ public class RegisterResponse {
     private String phoneNumber;
     private String identityCard;
     private String provider;
+    private Long customerId;
     private String message;
 }
