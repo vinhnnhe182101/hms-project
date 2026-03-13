@@ -1,95 +1,64 @@
 import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
-import {BedDouble, CalendarDays, CreditCard, LogIn, LogOut, Users} from "lucide-react";
 import {NavLink} from "react-router-dom";
-
-const navItems = [
-    {to: '/bookings', label: 'Đặt phòng', icon: CalendarDays},
-    {to: '/rooms', label: 'Phòng', icon: BedDouble},
-    {to: '/occupied-rooms', label: 'Phòng đang ở', icon: Users},
-    {to: '/check-in', label: 'Check-in', icon: LogIn},
-    {to: '/check-out', label: 'Check-out', icon: LogOut},
-    {to: '/payment', label: 'Thanh toán', icon: CreditCard},
-];
+import {AppShell, Avatar, Burger} from "@mantine/core";
+import {NAV_ITEMS} from "../../constants/staff.js";
 
 export const StaffHeader = () => {
-    const {isMobileOpen, setMobileOpen} = useStaffLayout();
+    const {isMobileOpen, toggle} = useStaffLayout();
 
     return (
-            <header className="sticky top-0 z-50 border-b bg-card shadow-card">
-                <div className="flex h-16 items-center px-4 lg:px-8">
-                    <button
-                            className="mr-3 rounded-md p-2 hover:bg-accent lg:hidden"
-                            onClick={() => setMobileOpen(!isMobileOpen)}
-                            aria-label="Menu"
-                    >
-                        {isMobileOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}
-                    </button>
+            <AppShell.Header withBorder>
+                <Group h="100%" px="md" justify="space-between">
 
-                    <div className="flex items-center gap-2">
-                        <Hotel className="h-7 w-7 text-primary"/>
-                        <span className="text-lg font-semibold text-foreground">HMS</span>
-                        <span className="hidden text-sm text-muted-foreground sm:inline">| Staff Portal</span>
-                    </div>
+                    {/* LEFT */}
+                    <Group>
+                        <Burger
+                                opened={isMobileOpen}
+                                onClick={toggle}
+                                hiddenFrom="lg"
+                                size="sm"
+                        />
 
-                    {/* Desktop Nav */}
-                    <nav className="ml-8 hidden items-center gap-1 lg:flex">
-                        {navItems.map((item) => {
+                        <Group gap="xs">
+                            <Hotel size={28} color="var(--mantine-color-teal-600)"/>
+                            <Text fw={600} size="lg">
+                                HMS
+                            </Text>
+                            <Text size="sm" c="dimmed" visibleFrom="xs">
+                                | Staff Portal
+                            </Text>
+                        </Group>
+                    </Group>
+
+                    {/* DESKTOP NAV */}
+                    <Group visibleFrom="lg" gap={4}>
+                        {NAV_ITEMS.map((item) => {
                             const Icon = item.icon;
-
                             return (
                                     <NavLink
                                             key={item.to}
                                             to={item.to}
-                                            className={({isActive}) =>
-                                                    `flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                                                            isActive
-                                                                    ? 'bg-accent text-accent-foreground'
-                                                                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                                                    }`
+                                            className={({isActive}) => `
+                                    flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors
+                                    ${
+                                                    isActive
+                                                            ? "bg-teal-100 text-teal-700 hover:bg-teal-200"
+                                                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                             }
+                                `}
                                     >
-                                        <Icon className="h-4 w-4"/>
+                                        <Icon size={18}/>
                                         {item.label}
                                     </NavLink>
-                            );
+                            )
                         })}
-                    </nav>
+                    </Group>
 
-                    <div className="ml-auto flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-                            S
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Nav */}
-                {isMobileOpen && (
-                        <nav className="border-t bg-card px-4 py-3 lg:hidden">
-                            <div className="flex flex-col gap-1">
-                                {navItems.map((item) => {
-                                    const Icon = item.icon;
-
-                                    return (
-                                            <NavLink
-                                                    key={item.to}
-                                                    to={item.to}
-                                                    onClick={() => setMobileOpen(false)}
-                                                    className={({isActive}) =>
-                                                            `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
-                                                                    isActive
-                                                                            ? 'bg-accent text-accent-foreground'
-                                                                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                                                            }`
-                                                    }
-                                            >
-                                                <Icon className="h-4 w-4"/>
-                                                {item.label}
-                                            </NavLink>
-                                    );
-                                })}
-                            </div>
-                        </nav>
-                )}
-            </header>
+                    {/* AVATAR */}
+                    <Avatar color="teal" radius="xl">
+                        S
+                    </Avatar>
+                </Group>
+            </AppShell.Header>
     );
 }

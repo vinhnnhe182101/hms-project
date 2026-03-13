@@ -1,17 +1,24 @@
 import {Outlet} from 'react-router-dom';
 import {StaffHeader} from "./StaffHeader.jsx";
+import {StaffNavbar} from "./StaffNavbar.jsx";
+import {AppShell, rem} from "@mantine/core";
 
 
 export const StaffLayout = () => {
     return (
             <div className="min-h-screen bg-background">
-                {/* Header */}
+                {/* HEADER */}
                 <StaffHeader/>
 
-                {/* Content */}
-                <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
-                    <Outlet/>
-                </main>
+                {/* MOBILE NAVBAR */}
+                <StaffNavbar/>
+
+                {/* CONTENT */}
+                <AppShell.Main pt={`calc(${rem(60)} + var(--mantine-spacing-md))`}>
+                    <Container size="xl">
+                        <Outlet/>
+                    </Container>
+                </AppShell.Main>
             </div>
     );
 };

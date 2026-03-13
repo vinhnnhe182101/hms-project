@@ -15,5 +15,7 @@ interface JwtPayload {
 
 interface StaffLayoutContextType {
     isMobileOpen: boolean;
-    setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    toggle: () => void;
+    close: () => void;
+    open: () => void;
 }

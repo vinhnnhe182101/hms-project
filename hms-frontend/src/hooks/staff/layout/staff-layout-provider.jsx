@@ -1,15 +1,17 @@
 import {StaffLayoutContext} from "./staff-layout-context.jsx";
-import {useState} from "react";
+import {useDisclosure} from "@mantine/hooks";
 
 export const StaffLayoutProvider = ({children}) => {
-    const [isMobileOpen, setMobileOpen] = useState(false);
+    const [isMobileOpen, {toggle, close, open}] = useDisclosure();
 
     /**
      * @type {StaffLayoutContextType}
      */
     const value = {
         isMobileOpen,
-        setMobileOpen
+        toggle,
+        close,
+        open
     }
 
     return (
