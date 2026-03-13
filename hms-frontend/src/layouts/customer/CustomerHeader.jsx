@@ -16,6 +16,7 @@ export function CustomerHeader() {
     const location = useLocation();
     const { isAuthenticated, user, logout } = useAuth();
     const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
+    const customerBasePath = isAuthenticated ? '/user' : '';
 
     const handleLogout = async () => {
         console.log('Logout button clicked');
@@ -23,10 +24,10 @@ export function CustomerHeader() {
     };
 
     const navItems = [
-        { label: 'Home', icon: IconHome, path: '/' },
-        { label: 'Rooms', icon: IconHotelService, path: '/rooms' },
-        { label: 'Service', icon: IconBell, path: '/services' },
-        { label: 'Booking History', icon: IconHistory, path: '/history' },
+        { label: 'Home', icon: IconHome, path: `${customerBasePath || '/'}` },
+        { label: 'Rooms', icon: IconHotelService, path: `${customerBasePath}/rooms` },
+        { label: 'Service', icon: IconBell, path: `${customerBasePath}/services` },
+        { label: 'Booking History', icon: IconHistory, path: `${customerBasePath}/history` },
     ];
 
     const isActivePath = (path) => {
@@ -44,7 +45,7 @@ export function CustomerHeader() {
                         <Title
                             order={2}
                             style={{ cursor: 'pointer' }}
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(customerBasePath || '/')}
                         >
                             FPTU Hotel
                         </Title>
@@ -89,7 +90,7 @@ export function CustomerHeader() {
                                     
                                     <Menu.Item
                                         leftSection={<IconCalendarPlus size={14} />}
-                                        onClick={() => navigate('/booking')}
+                                        onClick={() => navigate(`${customerBasePath}/booking`)}
                                     >
                                         Book a Room
                                     </Menu.Item>
@@ -99,7 +100,7 @@ export function CustomerHeader() {
                                     <Menu.Label>Account</Menu.Label>
                                     <Menu.Item
                                         leftSection={<IconUser size={14} />}
-                                        onClick={() => navigate('/customer/profile')}
+                                        onClick={() => navigate(`${customerBasePath}/profile`)}
                                     >
                                         Profile
                                     </Menu.Item>
@@ -114,10 +115,10 @@ export function CustomerHeader() {
                             </Menu>
                         ) : (
                             <Group>
-                                <Button variant="light" onClick={() => navigate('/auth/login')}>
+                                <Button variant="light" onClick={() => navigate('/login')}>
                                     Login
                                 </Button>
-                                <Button onClick={() => navigate('/auth/register')}>
+                                <Button onClick={() => navigate('/register')}>
                                     Sign Up
                                 </Button>
                             </Group>
@@ -168,7 +169,7 @@ export function CustomerHeader() {
                                 variant="light"
                                 leftSection={<IconDashboard size={18} />}
                                 onClick={() => {
-                                    navigate('/customer');
+                                    navigate(customerBasePath || '/');
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -180,7 +181,7 @@ export function CustomerHeader() {
                                 variant="light"
                                 leftSection={<IconUser size={18} />}
                                 onClick={() => {
-                                    navigate('/customer/profile');
+                                    navigate(`${customerBasePath}/profile`);
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -206,7 +207,7 @@ export function CustomerHeader() {
                             <Button
                                 variant="light"
                                 onClick={() => {
-                                    navigate('/auth/login');
+                                    navigate('/login');
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -215,7 +216,7 @@ export function CustomerHeader() {
                             </Button>
                             <Button
                                 onClick={() => {
-                                    navigate('/auth/register');
+                                    navigate('/register');
                                     closeDrawer();
                                 }}
                                 fullWidth

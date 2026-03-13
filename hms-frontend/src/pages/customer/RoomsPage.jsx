@@ -1,43 +1,141 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
     Container, Grid, Card, Image, Stack, Box, Text, Button,
     Select, Group, Badge, Title, LoadingOverlay,
-    Pagination, Center, Loader, Rating
+    Pagination, Center, Loader, Rating, SegmentedControl, SimpleGrid
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { IconUsers, IconBed, IconChevronRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { getRoomClassList } from '../../apis/customer/roomClassApi';
+
+const rooms = [
+    {
+        id: 101,
+        name: 'Deluxe Suite',
+        type: 'Suite',
+        price: 199,
+        capacity: 2,
+        size: '35 m2',
+        image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a',
+        tags: ['Ocean View', 'King Bed', 'Breakfast']
+    },
+    {
+        id: 202,
+        name: 'Executive Room',
+        type: 'Executive',
+        price: 299,
+        capacity: 3,
+        size: '45 m2',
+        image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b',
+        tags: ['City View', 'Workspace', 'Lounge Access']
+    },
+    {
+        id: 303,
+        name: 'Presidential Suite',
+        type: 'Suite',
+        price: 499,
+        capacity: 4,
+        size: '68 m2',
+        image: 'https://images.unsplash.com/photo-1590490360182-c33d5773345f',
+        tags: ['Jacuzzi', 'Panoramic View', 'Private Dining']
+    },
+    {
+        id: 115,
+        name: 'Signature Queen',
+        type: 'Standard',
+        price: 149,
+        capacity: 2,
+        size: '28 m2',
+        image: 'https://images.unsplash.com/photo-1631049035182-249067d7618e',
+        tags: ['Queen Bed', 'Smart TV', 'Rain Shower']
+    },
+    {
+        id: 407,
+        name: 'Family Horizon',
+        type: 'Family',
+        price: 359,
+        capacity: 5,
+        size: '58 m2',
+        image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85',
+        tags: ['2 Bedrooms', 'Kids Corner', 'Mini Kitchen']
+    },
+    {
+        id: 221,
+        name: 'Skyline Studio',
+        type: 'Standard',
+        price: 169,
+        capacity: 2,
+        size: '30 m2',
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39',
+        tags: ['Floor-to-ceiling Window', 'Coffee Bar', 'Fast Wi-Fi']
+    }
+];
+
+const roomTypeOptions = [
+    { label: 'All', value: 'all' },
+    { label: 'Standard', value: 'standard' },
+    { label: 'Executive', value: 'executive' },
+    { label: 'Suite', value: 'suite' },
+    { label: 'Family', value: 'family' }
+];
 
 export default function RoomsPage() {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [roomType, setRoomType] = useState('all');
+    const [sortBy, setSortBy] = useState('price-asc');
 
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
     const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(9);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const [pageSize, setPageSize] = useState(null);
-
     const [checkIn, setCheckIn] = useState(dayjs().toDate());
     const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').toDate());
 
-    const fetchRooms = async (currentPage = 0, size = pageSize, inDate = checkIn, outDate = checkOut) => {
+    const filteredRooms = useMemo(() => {
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+
+        let list = rooms.filter((room) => {
+            const matchesType = roomType === 'all' || room.type?.toLowerCase() === roomType;
+            const matchesQuery =
+                normalizedQuery.length === 0 ||
+                room.name?.toLowerCase().includes(normalizedQuery) ||
+                room.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery));
+
+            return matchesType && matchesQuery;
+        });
+
+        list = [...list].sort((a, b) => {
+            if (sortBy === 'price-asc') return (a.basePrice ?? a.price ?? 0) - (b.basePrice ?? b.price ?? 0);
+            if (sortBy === 'price-desc') return (b.basePrice ?? b.price ?? 0) - (a.basePrice ?? a.price ?? 0);
+            return (b.standardCapacity ?? b.capacity ?? 0) - (a.standardCapacity ?? a.capacity ?? 0);
+        });
+
+        return list;
+    }, [searchQuery, roomType, sortBy, rooms]);
+
+    const handleBookRoom = (roomId) => {
+        if (isAuthenticated) {
+            navigate(`/booking/${roomId}`);
+        } else {
+            navigate('/login');
+        }
+    };
+
+    const fetchRooms = async (currentPage, size, inDate = null, outDate = null) => {
         setLoading(true);
         setError(null);
         try {
-            const inIso = inDate ? dayjs(inDate).format('YYYY-MM-DDTHH:mm:ss') : null;
-            const outIso = outDate ? dayjs(outDate).format('YYYY-MM-DDTHH:mm:ss') : null;
-
-            if (inIso && outIso && (dayjs(outIso).isBefore(dayjs(inIso)) || dayjs(outIso).isSame(dayjs(inIso)))) {
-                setError('Check-out time must be after check-in time.');
-                setLoading(false);
-                return;
-            }
-
+            const inIso = inDate ? dayjs(inDate).toISOString() : null;
+            const outIso = outDate ? dayjs(outDate).toISOString() : null;
             const data = await getRoomClassList(currentPage, size, inIso, outIso);
             if (data && data.data) {
                 setRooms(data.data);
@@ -95,6 +193,7 @@ export default function RoomsPage() {
 
             {/* Main Content */}
             <Container size="xl" py={60}>
+                <Card withBorder mb="xl" p="md">
                 <Grid>
                     {/* Sidebar Filters */}
                     <Grid.Col span={{ base: 12, md: 3 }}>
@@ -184,73 +283,30 @@ export default function RoomsPage() {
                             </Stack>
                         </Box>
                     </Grid.Col>
+                    <Grid.Col span={12}>
+                        <SegmentedControl
+                            value={roomType}
+                            onChange={setRoomType}
+                            fullWidth
+                            data={roomTypeOptions}
+                        />
+                    </Grid.Col>
+                </Grid>
+                </Card>
 
-                    {/* Room Grid */}
-                    <Grid.Col span={{ base: 12, md: 9 }}>
-                        <Box style={{ position: 'relative', minHeight: '200px' }}>
-                            <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-
-                            <Group justify="space-between" mb="lg">
-                                <Text size="md" fw={500}>
-                                    Found {totalItems} room types
-                                </Text>
-                                <Select
-                                    label="Page size:"
-                                    value={pageSize ? pageSize.toString() : ''}
-                                    placeholder="Loading..."
-                                    onChange={handlePageSizeChange}
-                                    data={['3', '6', '9', '12']}
-                                    style={{ width: '130px' }}
-                                    leftSectionWidth={0}
-                                    allowDeselect={false}
-                                />
-                            </Group>
-
-                            {error && (
-                                <Text c="red" ta="center" my="lg">{error}</Text>
-                            )}
-
-                            {!loading && !error && rooms.length === 0 && (
-                                <Text ta="center" my="xl" size="lg" c="dimmed">
-                                    No matching room types found.
-                                </Text>
-                            )}
-
-                            <Grid>
-                                {rooms.map((room) => (
-                                    <Grid.Col key={room.id} span={{ base: 12, sm: 6, md: 4 }}>
-                                        <Card
-                                            shadow="sm"
-                                            padding="0"
-                                            radius="md"
-                                            withBorder
-                                            style={{
-                                                height: '100%',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                                cursor: 'pointer'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(-8px)';
-                                                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.boxShadow = '';
-                                            }}
-                                            onClick={() => navigate(`/rooms/${room.id}`)}
-                                        >
-                                            {/* Room Image (Base64 from backend) */}
-                                            <Card.Section>
-                                                <Image
-                                                    src={room.primaryImage?.dataUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500'}
-                                                    height={220}
-                                                    alt={room.name}
-                                                    style={{ objectFit: 'cover' }}
-                                                    fallbackSrc="https://placehold.co/300x220?text=No+Image"
-                                                />
-                                            </Card.Section>
+            {filteredRooms.length === 0 ? (
+                <Card withBorder radius="md" p="xl">
+                    <Text ta="center" c="dimmed">
+                        No matching rooms found. Try changing search keyword or filter.
+                    </Text>
+                </Card>
+            ) : (
+                <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
+                    {filteredRooms.map((room) => (
+                        <Card key={room.id} withBorder radius="md" p="lg" shadow="sm">
+                            <Card.Section>
+                                <Image src={room.image} alt={room.name} h={220} />
+                            </Card.Section>
 
                                             <Stack p="md" gap="xs" style={{ flex: 1 }}>
                                                 {/* Room name & total rooms badge */}
@@ -318,25 +374,22 @@ export default function RoomsPage() {
                                                 </Box>
                                             </Stack>
                                         </Card>
-                                    </Grid.Col>
-                                ))}
-                            </Grid>
-                        </Box>
+                                    ))}
+                </SimpleGrid>
+            )}
 
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <Box mt={40} style={{ display: 'flex', justifyContent: 'center' }}>
-                                <Pagination
-                                    total={totalPages}
-                                    value={page + 1}
-                                    onChange={(p) => setPage(p - 1)}
-                                    color="blue"
-                                    size="lg"
-                                />
-                            </Box>
-                        )}
-                    </Grid.Col>
-                </Grid>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <Box mt={40} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Pagination
+                        total={totalPages}
+                        value={page + 1}
+                        onChange={(p) => setPage(p - 1)}
+                        color="blue"
+                        size="lg"
+                    />
+                </Box>
+            )}
             </Container>
         </Box>
     );

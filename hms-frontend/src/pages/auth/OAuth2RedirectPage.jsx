@@ -23,7 +23,7 @@ export default function OAuth2RedirectPage() {
                         message: decodeURIComponent(error),
                         color: 'red',
                     });
-                    navigate('/auth/login', { replace: true });
+                    navigate('/login', { replace: true });
                     return;
                 }
 
@@ -33,7 +33,7 @@ export default function OAuth2RedirectPage() {
                         message: 'No token received',
                         color: 'red',
                     });
-                    navigate('/auth/login', { replace: true });
+                    navigate('/login', { replace: true });
                     return;
                 }
 
@@ -44,10 +44,13 @@ export default function OAuth2RedirectPage() {
 
                 console.log('OAuth2 - Token saved, redirecting...');
 
+                const normalizedRole = String(decoded.role || '').replace(/^ROLE_/, '').toUpperCase();
                 const redirectPath =
-                    decoded.role === 'ADMIN' ? '/admin' :
-                        decoded.role === 'HOUSEKEEPING' ? '/housekeeping' :
-                            '/';
+                    normalizedRole === 'ADMIN' ? '/admin' :
+                        normalizedRole === 'HOUSEKEEPING' ? '/housekeeping' :
+                            normalizedRole === 'RECEPTIONIST' ? '/receptionist' :
+                                normalizedRole === 'STAFF' ? '/staff' :
+                                    '/user';
 
                 window.location.href = redirectPath;
 
@@ -58,7 +61,7 @@ export default function OAuth2RedirectPage() {
                     message: 'Authentication failed',
                     color: 'red',
                 });
-                navigate('/auth/login', { replace: true });
+                navigate('/login', { replace: true });
             }
         };
     handleRedirect()

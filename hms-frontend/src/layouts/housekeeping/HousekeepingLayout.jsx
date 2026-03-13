@@ -13,7 +13,7 @@ export function HousekeepingLayout() {
 
     if (!isAuthenticated) {
         console.log('HousekeepingLayout - Not authenticated, redirecting to login');
-        return <Navigate to="/auth/login" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     if (user?.role !== 'HOUSEKEEPING') {
