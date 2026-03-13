@@ -1,7 +1,8 @@
 import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
 import {NavLink} from "react-router-dom";
-import {AppShell, Avatar, Burger} from "@mantine/core";
-import {NAV_ITEMS} from "../../constants/staff.js";
+import {AppShell, Avatar, Burger, Group, Text} from "@mantine/core";
+import {NAV_ITEMS} from "../../constants/staff.jsx";
+import {Hotel} from "lucide-react";
 
 export const StaffHeader = () => {
     const {isMobileOpen, toggle} = useStaffLayout();

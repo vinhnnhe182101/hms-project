@@ -1,4 +1,7 @@
-interface JwtPayload {
+import {LucideIcon} from "lucide-react";
+import React from "react";
+
+type JwtPayload = {
     id: number;
     email: string;
     role: string;
@@ -13,9 +16,16 @@ interface JwtPayload {
     jti?: string;
 }
 
-interface StaffLayoutContextType {
+type StaffLayoutContextType = {
     isMobileOpen: boolean;
     toggle: () => void;
     close: () => void;
     open: () => void;
+}
+
+type NavItemType = {
+    to: string;
+    label: string;
+    icon: LucideIcon;
+    element: React.JSX.Element;
 }

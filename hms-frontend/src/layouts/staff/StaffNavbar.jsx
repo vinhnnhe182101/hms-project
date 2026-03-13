@@ -1,4 +1,4 @@
-import {NAV_ITEMS} from "../../constants/staff.js";
+import {NAV_ITEMS} from "../../constants/staff.jsx";
 import {AppShell} from "@mantine/core";
 import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
 import {NavLink} from "react-router-dom";
