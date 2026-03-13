@@ -1,6 +1,7 @@
 package com.product.hms.service.impl;
 
 import com.product.hms.dto.request.AssignScheduleRequest;
+import com.product.hms.dto.response.WorkScheduleResponse;
 import com.product.hms.entity.ShiftEntity;
 import com.product.hms.entity.StaffEntity;
 import com.product.hms.entity.WorkScheduleEntity;
@@ -42,7 +43,7 @@ public class WorkScheduleServiceImpl implements WorkScheduleService {
 
     @Override
     @Transactional
-    public List<WorkScheduleEntity> assignSchedule(AssignScheduleRequest request) {
+    public List<WorkScheduleResponse> assignSchedule(AssignScheduleRequest request) {
         // 1. Kiểm tra logic ngày tháng cơ bản
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("Start date must be before or equal to end date");
@@ -89,24 +90,41 @@ public class WorkScheduleServiceImpl implements WorkScheduleService {
         }
 
         // 4. Lưu hàng loạt (Batch Save)
-        return workScheduleRepository.saveAll(schedulesToSave);
+        List<WorkScheduleEntity> savedSchedules = workScheduleRepository.saveAll(schedulesToSave);
+
+        return savedSchedules.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private WorkScheduleResponse mapToResponse(WorkScheduleEntity entity) {
+        return WorkScheduleResponse.builder()
+                .id(entity.getId())
+                // Map thông tin Staff
+                .staffId(entity.getStaffEntity() != null ? entity.getStaffEntity().getId() : null)
+                .staffName(entity.getStaffEntity() != null ? entity.getStaffEntity().getFullName() : null)
+                .departmentName(entity.getStaffEntity() != null && entity.getStaffEntity().getDepartment() != null
+                        ? entity.getStaffEntity().getDepartment().name() : null)
+                // Map thông tin Shift
+                .shiftId(entity.getShiftEntity() != null ? entity.getShiftEntity().getId() : null)
+                .shiftName(entity.getShiftEntity() != null ? entity.getShiftEntity().getShiftName() : null)
+                .workDate(entity.getWorkDate()) // Thay getWorkDate() bằng hàm get ngày của bạn
+                .shiftStart(entity.getShiftEntity() != null ? entity.getShiftEntity().getStartTime() : null)
+                .shiftEnd(entity.getShiftEntity() != null ? entity.getShiftEntity().getEndTime() : null)
+                // Map status
+                .status(entity.getStatus() != null ? entity.getStatus().toString() : null)
+                .build();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<WorkScheduleEntity> getSchedulesByStaffAndDateRange(Long staffId, LocalDate startDate, LocalDate endDate) {
+    public List<WorkScheduleResponse> getSchedulesByStaffAndDateRange(Long staffId, LocalDate startDate, LocalDate endDate) {
         // Validate staff exists
-        if (!staffRepository.existsById(staffId)) {
-            throw new NotFoundException(ErrorCode.STAFF_NOT_FOUND,
-                    "Staff not found with id: " + staffId);
-        }
+        List<WorkScheduleEntity> entities = workScheduleRepository.findSchedulesByStaffAndDateRange(staffId, startDate, endDate);
 
-        // Validate date range
-        if (startDate.isAfter(endDate)) {
-            throw new IllegalArgumentException("Start date must be before or equal to end date");
-        }
-
-        return workScheduleRepository.findSchedulesByStaffAndDateRange(staffId, startDate, endDate);
+        return entities.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
