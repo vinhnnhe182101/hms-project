@@ -2,12 +2,15 @@ package com.product.hms.advice;
 
 import com.product.hms.dto.response.ErrorResponse;
 import com.product.hms.exception.ApiException;
+import com.product.hms.exception.BadRequest;
 import com.product.hms.exception.ErrorCode;
+import com.product.hms.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -29,6 +32,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.status()).body(response);
     }
 
+    @ExceptionHandler(BadRequest.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequest ex, HttpServletRequest request) {
+        ErrorResponse response = buildErrorResponse(
+                ErrorCode.INVALID_DATA.code(),
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse response = buildErrorResponse(
+                ErrorCode.RESOURCE_NOT_FOUND.code(),
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
@@ -45,6 +70,17 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
+        ErrorResponse response = buildErrorResponse(
+                "UNAUTHORIZED",
+                "Invalid email or password",
+                HttpStatus.UNAUTHORIZED,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(Exception.class)

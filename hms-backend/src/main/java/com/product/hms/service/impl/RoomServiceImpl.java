@@ -35,6 +35,15 @@ import static com.product.hms.utils.specification.sort.SortCriteria.SortDirectio
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+
+import java.sql.Timestamp;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of RoomService
@@ -84,7 +93,8 @@ public class RoomServiceImpl implements RoomService {
                 .collect(java.util.stream.Collectors.groupingBy(
                         room -> room.getRoomClassEntity().getId(),
                         LinkedHashMap::new,
-                        java.util.stream.Collectors.toList()));
+                        Collectors.toList()
+                ));
 
         return roomsByClassId.values().stream()
                 .map(classRooms -> {

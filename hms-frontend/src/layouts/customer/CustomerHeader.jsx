@@ -6,7 +6,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
     IconUser, IconLogout, IconDashboard, IconCalendarPlus,
-    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory
+    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory, IconBell
 } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -25,8 +25,8 @@ export function CustomerHeader() {
     const navItems = [
         { label: 'Home', icon: IconHome, path: '/' },
         { label: 'Rooms', icon: IconHotelService, path: '/rooms' },
-        { label: 'About', icon: IconInfoCircle, path: '/about' },
-        { label: 'Booking History', icon: IconHistory, path: '/bookings' },
+        { label: 'Service', icon: IconBell, path: '/services' },
+        { label: 'Booking History', icon: IconHistory, path: '/history' },
     ];
 
     const isActivePath = (path) => {
@@ -86,12 +86,7 @@ export function CustomerHeader() {
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Navigation</Menu.Label>
-                                    <Menu.Item
-                                        leftSection={<IconDashboard size={14} />}
-                                        onClick={() => navigate('/customer')}
-                                    >
-                                        Dashboard
-                                    </Menu.Item>
+                                    
                                     <Menu.Item
                                         leftSection={<IconCalendarPlus size={14} />}
                                         onClick={() => navigate('/booking')}
@@ -119,10 +114,10 @@ export function CustomerHeader() {
                             </Menu>
                         ) : (
                             <Group>
-                                <Button variant="light" onClick={() => navigate('/login')}>
+                                <Button variant="light" onClick={() => navigate('/auth/login')}>
                                     Login
                                 </Button>
-                                <Button onClick={() => navigate('/register')}>
+                                <Button onClick={() => navigate('/auth/register')}>
                                     Sign Up
                                 </Button>
                             </Group>
@@ -211,7 +206,7 @@ export function CustomerHeader() {
                             <Button
                                 variant="light"
                                 onClick={() => {
-                                    navigate('/login');
+                                    navigate('/auth/login');
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -220,7 +215,7 @@ export function CustomerHeader() {
                             </Button>
                             <Button
                                 onClick={() => {
-                                    navigate('/register');
+                                    navigate('/auth/register');
                                     closeDrawer();
                                 }}
                                 fullWidth
