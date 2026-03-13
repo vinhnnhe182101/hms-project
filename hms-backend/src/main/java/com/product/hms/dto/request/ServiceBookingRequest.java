@@ -1,7 +1,7 @@
 package com.product.hms.dto.request;
 
 /**
- * Request DTO for creating or updating service booking
+ * DTO yêu cầu tạo hoặc cập nhật đặt dịch vụ
  */
 public record ServiceBookingRequest(
         Long serviceId,

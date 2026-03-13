@@ -10,6 +10,23 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
+/**
+ * Entity đại diện cho yêu cầu hoàn tiền của khách hàng.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID yêu cầu hoàn tiền</li>
+ *   <li>{@link #paymentTransactionEntity} - Giao dịch thanh toán liên quan</li>
+ *   <li>{@link #amount} - Số tiền hoàn</li>
+ *   <li>{@link #reason} - Lý do hoàn tiền</li>
+ *   <li>{@link #rejectReason} - Lý do từ chối (nếu có)</li>
+ *   <li>{@link #status} - Trạng thái yêu cầu</li>
+ *   <li>{@link #requestedByEntity} - Nhân viên yêu cầu</li>
+ *   <li>{@link #approvedByEntity} - Nhân viên duyệt</li>
+ *   <li>{@link #createdAt} - Thời điểm tạo</li>
+ *   <li>{@link #updatedAt} - Thời điểm cập nhật</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

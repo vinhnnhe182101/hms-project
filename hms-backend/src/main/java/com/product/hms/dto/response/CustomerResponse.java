@@ -1,14 +1,14 @@
 package com.product.hms.dto.response;
 
 /**
- * Response DTO for customer information
+ * DTO phản hồi thông tin khách hàng.
  *
- * @param id           Customer ID
- * @param fullName     Customer full name
- * @param phoneNumber  Customer phone number
- * @param identityCard Customer identity card number
- * @param email        Customer email address
- * @param type         Customer type (REGULAR, VIP, etc.)
+ * @param id           ID khách hàng
+ * @param fullName     Họ tên khách hàng
+ * @param phoneNumber  Số điện thoại
+ * @param identityCard Số CMND/CCCD
+ * @param email        Địa chỉ email
+ * @param type         Loại khách hàng (REGULAR, VIP, ...)
  */
 public record CustomerResponse(
         Long id,
@@ -19,6 +19,3 @@ public record CustomerResponse(
         String type
 ) {
 }
-
-
-

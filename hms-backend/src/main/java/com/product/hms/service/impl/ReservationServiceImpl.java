@@ -3,6 +3,7 @@ package com.product.hms.service.impl;
 import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.ReservationSearchFilter;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.ReservationEntity;
@@ -13,16 +14,31 @@ import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.*;
 import com.product.hms.service.FolioService;
+import com.product.hms.service.ReservationRoomService;
 import com.product.hms.service.ReservationService;
-import com.product.hms.service.RoomAllocationService;
 import com.product.hms.service.impl.reservation.ReservationCheckInSupport;
 import com.product.hms.service.impl.reservation.ReservationPricingSupport;
 import com.product.hms.service.impl.reservation.ReservationResponseSupport;
 import com.product.hms.service.impl.reservation.ReservationValidationSupport;
 import com.product.hms.utils.RandomUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.product.hms.dto.response.CustomerResponse;
+import com.product.hms.dto.response.RoomClassQuantityResponse;
+import com.product.hms.repository.ReservationRepository;
+import com.product.hms.repository.ReservationRoomRepository;
+import com.product.hms.utils.specification.SpecificationUtils;
+import com.product.hms.utils.specification.search.SearchCriteria;
+import com.product.hms.utils.specification.sort.SortCriteria;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.*;
+import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.DESC;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,7 +47,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,27 +61,28 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationRoomRepository reservationRoomRepository;
     private final RoomRepository roomRepository;
-    private final RoomAllocationService roomAllocationService;
+    private final ReservationRoomService reservationRoomService;
     private final FolioService folioService;
     private final CustomerMapper customerMapper;
-
+    private final SpecificationUtils<ReservationEntity> specificationUtils;
 
     @Override
     @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
         ReservationValidationSupport.validateCreateReservationRequest(request);
 
-        CustomerEntity customer = ReservationValidationSupport.resolveCustomer(request, customerRepository, customerMapper);
+        CustomerEntity customer = ReservationValidationSupport.resolveCustomer(request, customerRepository,
+                customerMapper);
         Map<Long, RoomClassEntity> roomClassById = ReservationValidationSupport.loadAndValidateRoomClasses(
                 request,
-                roomClassRepository
-        );
+                roomClassRepository);
 
         BigDecimal depositAmount = ReservationPricingSupport.calculateDepositForRequest(request, roomClassById);
         ReservationEntity reservation = saveReservation(request, customer, depositAmount);
 
-        createAllocationsAndFolios(reservation, request, roomClassById, depositAmount);
-        return ReservationResponseSupport.buildReservationResponse(reservation, customer, roomAllocationService, customerMapper);
+        createAllocationsAndFolios(reservation, request, depositAmount);
+        return ReservationResponseSupport.buildReservationResponse(reservation, customer, reservationRoomService,
+                customerMapper);
     }
 
     @Override
@@ -77,24 +93,24 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationEntity reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException(
                         ErrorCode.RESERVATION_NOT_FOUND,
-                        "Reservation not found with ID: " + reservationId
-                ));
+                        "Reservation not found with ID: " + reservationId));
 
         ReservationValidationSupport.validateUpdateWindow(reservation);
-        CustomerEntity customer = ReservationValidationSupport.resolveCustomer(request, customerRepository, customerMapper);
+        CustomerEntity customer = ReservationValidationSupport.resolveCustomer(request, customerRepository,
+                customerMapper);
         Map<Long, RoomClassEntity> roomClassById = ReservationValidationSupport.loadAndValidateRoomClasses(
                 request,
-                roomClassRepository
-        );
+                roomClassRepository);
 
         BigDecimal depositAmount = ReservationPricingSupport.calculateDepositForRequest(request, roomClassById);
         updateReservationFields(reservation, request, customer, depositAmount);
         reservationRepository.save(reservation);
 
-        roomAllocationService.deleteAllocationsByReservation(reservation);
-        createAllocationsAndFolios(reservation, request, roomClassById, depositAmount);
+        reservationRoomService.deleteAllocationsByReservation(reservation);
+        createAllocationsAndFolios(reservation, request, depositAmount);
 
-        return ReservationResponseSupport.buildReservationResponse(reservation, customer, roomAllocationService, customerMapper);
+        return ReservationResponseSupport.buildReservationResponse(reservation, customer, reservationRoomService,
+                customerMapper);
     }
 
     @Override
@@ -103,18 +119,18 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationEntity reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException(
                         ErrorCode.RESERVATION_NOT_FOUND,
-                        "Reservation not found with ID: " + reservationId
-                ));
+                        "Reservation not found with ID: " + reservationId));
 
         ReservationValidationSupport.validateCancellationAllowed(reservation);
         boolean isEligibleForRefund = ReservationValidationSupport.isRefundEligible(reservation);
 
-        List<ReservationRoomEntity> allocations = roomAllocationService.getAllocationsByReservation(reservation);
-        for (ReservationRoomEntity allocation : allocations) {
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomService
+                .getAllocationsByReservation(reservation);
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
             if (isEligibleForRefund) {
-                folioService.createRefundItem(allocation, reservation.getTotalDeposit());
+                folioService.createRefundItem(reservationRoomEntity, reservation.getTotalDeposit());
             } else {
-                folioService.createCancellationFeeItem(allocation, reservation.getTotalDeposit());
+                folioService.createCancellationFeeItem(reservationRoomEntity, reservation.getTotalDeposit());
             }
         }
 
@@ -124,9 +140,8 @@ public class ReservationServiceImpl implements ReservationService {
         return ReservationResponseSupport.buildReservationResponse(
                 reservation,
                 reservation.getCustomerEntity(),
-                roomAllocationService,
-                customerMapper
-        );
+                reservationRoomService,
+                customerMapper);
     }
 
     @Override
@@ -135,8 +150,7 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationEntity reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException(
                         ErrorCode.RESERVATION_NOT_FOUND,
-                        "Reservation not found with ID: " + reservationId
-                ));
+                        "Reservation not found with ID: " + reservationId));
 
         ReservationValidationSupport.validateCheckInRequest(request);
         ReservationValidationSupport.validateCheckInAllowed(reservation);
@@ -145,8 +159,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservationId,
                 request,
                 reservationRoomRepository,
-                roomRepository
-        );
+                roomRepository);
 
         applyEarlyCheckInFees(reservation);
 
@@ -156,40 +169,78 @@ public class ReservationServiceImpl implements ReservationService {
         return ReservationResponseSupport.buildReservationResponse(
                 reservation,
                 reservation.getCustomerEntity(),
-                roomAllocationService,
-                customerMapper
-        );
+                reservationRoomService,
+                customerMapper);
+    }
+
+    @Override
+    public Page<ReservationResponse> search(ReservationSearchFilter filter, Pageable pageable) {
+        List<SearchCriteria> searchCriteria = new ArrayList<>();
+        searchCriteria.add(new SearchCriteria("guestName", LIKE, filter.guestName()));
+        searchCriteria.add(new SearchCriteria("status", EQUALS, filter.status()));
+        searchCriteria.add(new SearchCriteria("checkInDate", GREATER_THAN_OR_EQUAL_TO, filter.checkInDateFrom()));
+        searchCriteria.add(new SearchCriteria("checkInDate", LESS_THAN_OR_EQUAL_TO, filter.checkInDateTo()));
+        List<SortCriteria> sortCriteria = new ArrayList<>();
+        if (pageable.getSort().isEmpty()) {
+            sortCriteria.add(new SortCriteria("checkInDate", null, DESC, null));
+        }
+        var spec = specificationUtils.getSpecifications(searchCriteria, sortCriteria);
+        return reservationRepository.findAll(spec, pageable).map(this::toResponse);
+    }
+
+    private ReservationResponse toResponse(ReservationEntity entity) {
+        CustomerResponse customer = customerMapper.toResponse(entity.getCustomerEntity());
+        List<RoomClassQuantityResponse> allocations = reservationRoomRepository
+                .findByReservationEntity(entity)
+                .stream()
+                .map(allocation -> new RoomClassQuantityResponse(
+                        allocation.getId(),
+                        allocation.getRoomClassEntity() != null ? allocation.getRoomClassEntity().getId() : null,
+                        allocation.getNumberOfPeople()))
+                .toList();
+        return new ReservationResponse(
+                entity.getId(),
+                entity.getCode(),
+                customer,
+                allocations,
+                entity.getExpectedCheckIn(),
+                entity.getExpectedCheckOut(),
+                entity.getStatus() != null ? entity.getStatus().name() : null,
+                entity.getNumberOfMembers(),
+                entity.getNote(),
+                entity.getCreatedAt());
     }
 
     private void applyEarlyCheckInFees(ReservationEntity reservation) {
-        List<ReservationRoomEntity> allocations = reservationRoomRepository
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomRepository
                 .findByReservationEntity_IdAndIsActiveTrue(reservation.getId());
 
-        for (ReservationRoomEntity allocation : allocations) {
-            BigDecimal fee = calculateEarlyCheckInFee(allocation, reservation.getExpectedCheckIn());
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
+            BigDecimal fee = calculateEarlyCheckInFee(reservationRoomEntity, reservation.getExpectedCheckIn());
             if (fee.signum() > 0) {
-                folioService.applyEarlyCheckInFee(allocation, fee);
+                folioService.applyEarlyCheckInFee(reservationRoomEntity, fee);
             }
         }
     }
 
-    private BigDecimal calculateEarlyCheckInFee(ReservationRoomEntity allocation, Timestamp expectedCheckIn) {
-        if (allocation.getActualCheckIn() == null || expectedCheckIn == null) {
+    private BigDecimal calculateEarlyCheckInFee(ReservationRoomEntity reservationRoomEntity,
+            Timestamp expectedCheckIn) {
+        if (reservationRoomEntity.getActualCheckIn() == null || expectedCheckIn == null) {
             return BigDecimal.ZERO;
         }
 
-        Instant actualCheckIn = allocation.getActualCheckIn();
+        Instant actualCheckIn = reservationRoomEntity.getActualCheckIn();
         Instant expected = expectedCheckIn.toInstant();
         if (!actualCheckIn.isBefore(expected)) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal rate = determineEarlyCheckInRate(actualCheckIn, expectedCheckIn);
-        if (rate.signum() <= 0 || allocation.getPriceAtBooking() == null) {
+        if (rate.signum() <= 0 || reservationRoomEntity.getPriceAtBooking() == null) {
             return BigDecimal.ZERO;
         }
 
-        return allocation.getPriceAtBooking().multiply(rate).setScale(2, RoundingMode.HALF_UP);
+        return reservationRoomEntity.getPriceAtBooking().multiply(rate).setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal determineEarlyCheckInRate(Instant actualCheckIn, Timestamp expectedCheckIn) {
@@ -215,21 +266,18 @@ public class ReservationServiceImpl implements ReservationService {
     private void createAllocationsAndFolios(
             ReservationEntity reservation,
             ReservationRequest request,
-            Map<Long, RoomClassEntity> roomClassById,
-            BigDecimal depositAmount
-    ) {
-        List<ReservationRoomEntity> allocations = roomAllocationService.createRoomAllocations(
+            BigDecimal depositAmount) {
+        List<ReservationRoomEntity> reservationRoomEntities = reservationRoomService.createRoomAllocations(
                 reservation,
-                request,
-                roomClassById
-        );
+                request);
 
-        for (ReservationRoomEntity allocation : allocations) {
-            folioService.createFolioWithDepositItem(allocation, depositAmount);
+        for (ReservationRoomEntity reservationRoomEntity : reservationRoomEntities) {
+            folioService.createFolioWithDepositItem(reservationRoomEntity, depositAmount);
         }
     }
 
-    private ReservationEntity saveReservation(ReservationRequest request, CustomerEntity customer, BigDecimal depositAmount) {
+    private ReservationEntity saveReservation(ReservationRequest request, CustomerEntity customer,
+            BigDecimal depositAmount) {
         ReservationEntity reservation = new ReservationEntity();
         reservation.setCode(RandomUtils.generateReservationCode("RS"));
         reservation.setStatus(ReservationStatus.CONFIRMED);
@@ -243,8 +291,7 @@ public class ReservationServiceImpl implements ReservationService {
             ReservationEntity reservation,
             ReservationRequest request,
             CustomerEntity customer,
-            BigDecimal depositAmount
-    ) {
+            BigDecimal depositAmount) {
         reservation.setCustomerEntity(customer);
         reservation.setExpectedCheckIn(request.checkInDate());
         reservation.setExpectedCheckOut(request.checkOutDate());

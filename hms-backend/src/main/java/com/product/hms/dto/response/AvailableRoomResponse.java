@@ -1,14 +1,13 @@
 package com.product.hms.dto.response;
 
 /**
- * Response DTO for a single available physical room.
+ * DTO phản hồi cho một phòng vật lý còn trống.
  *
- * @param roomId     room id
- * @param roomNumber room number
+ * @param roomId     ID phòng
+ * @param roomNumber Số phòng
  */
 public record AvailableRoomResponse(
         Long roomId,
         String roomNumber
 ) {
 }
-

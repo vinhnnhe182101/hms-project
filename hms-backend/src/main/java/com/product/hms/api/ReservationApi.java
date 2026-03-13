@@ -2,9 +2,12 @@ package com.product.hms.api;
 
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.ReservationSearchFilter;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,5 +69,21 @@ public class ReservationApi {
     ) {
         ReservationResponse response = reservationService.checkInReservation(reservationId, request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Search reservations with filter and pagination.
+     *
+     * @param filter   filter DTO (guestName, status, checkInDateFrom, checkInDateTo)
+     * @param pageable Spring Data pageable
+     * @return paged result
+     */
+    @GetMapping
+    public ResponseEntity<Page<ReservationResponse>> searchReservations(
+            ReservationSearchFilter filter,
+            Pageable pageable
+    ) {
+        Page<ReservationResponse> result = reservationService.search(filter, pageable);
+        return ResponseEntity.ok(result);
     }
 }

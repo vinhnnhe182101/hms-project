@@ -1,5 +1,6 @@
 package com.product.hms.entity;
 
+import com.product.hms.enums.Department;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +11,20 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho nhân viên khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID nhân viên</li>
+ *   <li>{@link #userEntity} - Tài khoản liên kết</li>
+ *   <li>{@link #department} - Phòng ban</li>
+ *   <li>{@link #fullName} - Họ tên</li>
+ *   <li>{@link #phoneNumber} - Số điện thoại</li>
+ *   <li>{@link #status} - Trạng thái nhân viên</li>
+ *   <li>{@link #isActive} - Nhân viên còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -25,8 +40,9 @@ public class StaffEntity {
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "department", length = 100)
-    private String department;
+    private Department department;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;

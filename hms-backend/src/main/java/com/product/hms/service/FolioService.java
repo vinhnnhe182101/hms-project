@@ -2,6 +2,7 @@ package com.product.hms.service;
 
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.ServiceBookingEntity;
+import com.product.hms.entity.FolioEntity;
 
 import java.math.BigDecimal;
 
@@ -9,33 +10,67 @@ public interface FolioService {
     void createFolioWithDepositItem(ReservationRoomEntity allocation, BigDecimal depositAmount);
 
     /**
-     * Create a refund folio item (when canceling >24h before check-in)
+     * Tạo một folio item cho khoản hoàn tiền (refund) khi khách hàng hủy đặt phòng.
      *
-     * @param allocation   reservation room allocation
-     * @param refundAmount amount to refund
+     * @param allocation   reservation room allocation liên quan đến khoản hoàn tiền này
+     * @param refundAmount số tiền hoàn trả (positive value, sẽ được lưu dưới dạng âm trong folio item)
      */
     void createRefundItem(ReservationRoomEntity allocation, BigDecimal refundAmount);
 
     /**
-     * Create a cancellation fee folio item (when canceling <24h before check-in, no refund)
+     * Tạo một folio item cho khoản phí hủy phòng (cancellation fee) khi khách hàng hủy đặt phòng và không được hoàn tiền.
      *
-     * @param allocation         reservation room allocation
-     * @param cancellationAmount deposit amount that is not refunded
+     * @param allocation         reservation room allocation liên quan đến khoản phí hủy phòng này
+     * @param cancellationAmount số tiền phí hủy phòng (positive value)
      */
     void createCancellationFeeItem(ReservationRoomEntity allocation, BigDecimal cancellationAmount);
 
+    /**
+     * Áp dụng khoản phí check-in sớm (early check-in fee) khi khách hàng đến nhận phòng trước giờ quy định.
+     *
+     * @param allocation reservation room allocation liên quan đến khoản phí check-in sớm này
+     * @param feeAmount  số tiền phí check-in sớm (positive value)
+     */
     void applyEarlyCheckInFee(ReservationRoomEntity allocation, BigDecimal feeAmount);
 
+    /**
+     * Áp dụng khoản phí check-out muộn (late check-out fee) khi khách hàng trả phòng sau giờ quy định.
+     *
+     * @param allocation reservation room allocation liên quan đến khoản phí check-out muộn này
+     * @param feeAmount  số tiền phí check-out muộn (positive value)
+     */
     void applyLateCheckOutFee(ReservationRoomEntity allocation, BigDecimal feeAmount);
 
     /**
-     * Sync folio charge for service booking creation/update.
-     * If service item exists, update it; otherwise create a new one.
+     * Cập nhật khoản phí dịch vụ (service charge) khi có thay đổi về số lượng.
+     *
+     * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
      */
-    void updateServiceCharge(ServiceBookingEntity serviceBooking, BigDecimal chargeAmount);
+    void updateServiceCharge(ServiceBookingEntity serviceBooking);
 
     /**
-     * Cancel service charge and adjust folio totals when service booking is canceled.
+     * Hủy bỏ khoản phí dịch vụ (service charge) khi khách hàng hủy dịch vụ.
+     *
+     * @param serviceBooking đặt dịch vụ liên quan đến khoản phí này
      */
     void cancelServiceCharge(ServiceBookingEntity serviceBooking);
+
+    /**
+     * Cộng thêm số tiền đã trả vào folio, cập nhật totalPaid và balance.
+     * @param folio folio cần cập nhật
+     * @param paidAmount số tiền đã trả thêm
+     */
+    void addPaidAmount(FolioEntity folio, BigDecimal paidAmount);
+
+    /**
+     * Xử lý tạo FolioItem điều chỉnh khi đổi phòng.
+     * @param reservationRoom reservationRoom cũ
+     * @param newRoom phòng mới
+     * @param changeFee số tiền điều chỉnh
+     */
+    void handleRoomChangeAdjustment(
+        com.product.hms.entity.ReservationRoomEntity reservationRoom,
+        com.product.hms.entity.RoomEntity newRoom,
+        java.math.BigDecimal changeFee
+    );
 }

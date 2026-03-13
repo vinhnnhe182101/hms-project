@@ -4,18 +4,17 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * Response DTO for payment transaction
+ * DTO phản hồi giao dịch thanh toán.
  *
- * @param paymentId          Payment transaction ID
- * @param paymentCode        Payment code
- * @param paymentMethod      Payment method
- * @param selectedItemsTotal Total amount of selected folio items
- * @param depositApplied     Deposit amount applied in this payment
- * @param cashCollected      Cash/card amount actually collected in this payment
- * @param status             Payment status
- * @param remainingBalance   Remaining folio balance after payment
- * @param paymentUrl         Redirect URL for VNPAY (null for non-VNPAY methods)
- * @param createdAt          Payment timestamp
+ * @param paymentId          ID giao dịch thanh toán
+ * @param paymentCode        Mã giao dịch
+ * @param paymentMethod      Phương thức thanh toán
+ * @param selectedItemsTotal Tổng tiền các khoản mục được chọn
+ * @param depositApplied     Số tiền đặt cọc áp dụng cho thanh toán này
+ * @param cashCollected      Số tiền mặt/thẻ thực thu
+ * @param status             Trạng thái thanh toán
+ * @param paymentUrl         URL chuyển hướng VNPAY (null nếu không phải VNPAY)
+ * @param createdAt          Thời điểm thanh toán
  */
 public record PaymentResponse(
         Long paymentId,
@@ -25,7 +24,6 @@ public record PaymentResponse(
         BigDecimal depositApplied,
         BigDecimal cashCollected,
         String status,
-        BigDecimal remainingBalance,
         String paymentUrl,
         Timestamp createdAt
 ) {

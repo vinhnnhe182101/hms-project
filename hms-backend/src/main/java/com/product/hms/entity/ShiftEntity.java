@@ -9,6 +9,18 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho ca làm việc của nhân viên.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID ca làm việc</li>
+ *   <li>{@link #shiftName} - Tên ca</li>
+ *   <li>{@link #startTime} - Thời gian bắt đầu</li>
+ *   <li>{@link #endTime} - Thời gian kết thúc</li>
+ *   <li>{@link #isActive} - Ca làm việc còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

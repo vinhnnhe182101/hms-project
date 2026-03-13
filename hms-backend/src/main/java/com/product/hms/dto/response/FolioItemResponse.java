@@ -3,14 +3,14 @@ package com.product.hms.dto.response;
 import java.math.BigDecimal;
 
 /**
- * Response DTO for folio item details
+ * DTO phản hồi chi tiết khoản mục hóa đơn.
  *
- * @param id          Folio item ID
- * @param type        Type of charge (ROOM_CHARGE, SERVICE_CHARGE, EARLY_CHECKIN_FEE, etc.)
- * @param description Description of the charge
- * @param quantity    Quantity
- * @param totalPrice  Total price
- * @param status      Payment status (PAID, UNPAID, VOID)
+ * @param id          ID khoản mục
+ * @param type        Loại khoản mục (ROOM_CHARGE, SERVICE_CHARGE, ...)
+ * @param description Mô tả khoản mục
+ * @param quantity    Số lượng
+ * @param totalPrice  Tổng tiền
+ * @param status      Trạng thái thanh toán (PAID, UNPAID, VOID)
  */
 public record FolioItemResponse(
         Long id,
@@ -21,4 +21,3 @@ public record FolioItemResponse(
         String status
 ) {
 }
-

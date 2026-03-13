@@ -1,35 +1,21 @@
 package com.product.hms.service.impl;
 
-import com.product.hms.dto.request.StaffRequestDTO;
-import com.product.hms.dto.request.UserRequestDTO;
-import com.product.hms.dto.response.StaffResponseDTO;
-import com.product.hms.dto.response.UserResponseDTO;
-import com.product.hms.entity.CustomerEntity;
-import com.product.hms.entity.UserEntity;
-import com.product.hms.enums.Role;
-import com.product.hms.exception.ResourceNotFoundException;
-import com.product.hms.repository.CustomerRepository;
-import com.product.hms.repository.UserRepository;
-import com.product.hms.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import com.product.hms.entity.UserEntity;
+import com.product.hms.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements  UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
-
-
-
-
 
     @Override
     @Transactional
@@ -44,7 +30,5 @@ public class UserDetailsServiceImpl implements  UserDetailsService {
                 .disabled(!user.getIsActive())
                 .build();
     }
-
-
 
 }

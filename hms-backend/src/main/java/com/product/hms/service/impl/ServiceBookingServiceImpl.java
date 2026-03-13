@@ -39,16 +39,16 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
     @Override
     @Transactional
-    public ServiceBookingResponse createServiceBooking(Long reservationRoomId, ServiceBookingRequest request) {
-        validateRequest(request);
+    public ServiceBookingResponse createServiceBooking(Long reservationRoomId, ServiceBookingRequest serviceBookingRequest) {
+        validateRequest(serviceBookingRequest);
 
         ReservationRoomEntity reservationRoom = getReservationRoom(reservationRoomId);
         validateReservationStatus(reservationRoom);
 
-        ServiceEntity service = getService(request.serviceId());
+        ServiceEntity service = getService(serviceBookingRequest.serviceId());
         validateServiceActive(service);
 
-        ServiceBookingEntity serviceBooking = buildServiceBooking(reservationRoom, service, request);
+        ServiceBookingEntity serviceBooking = buildServiceBooking(reservationRoom, service, serviceBookingRequest);
         ServiceBookingEntity saved = serviceBookingRepository.save(serviceBooking);
 
         return buildResponse(saved);
@@ -134,11 +134,8 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
         // Only update quantity, not serviceId
         serviceBooking.setQuantity(request.quantity());
 
-        BigDecimal newAmount = serviceBooking.getPriceAtBooking()
-                .multiply(BigDecimal.valueOf(serviceBooking.getQuantity()));
-
         ServiceBookingEntity updated = serviceBookingRepository.save(serviceBooking);
-        folioService.updateServiceCharge(updated, newAmount);
+        folioService.updateServiceCharge(updated);
 
         return buildResponse(updated);
     }

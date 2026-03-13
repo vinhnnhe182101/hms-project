@@ -9,6 +9,20 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity đại diện cho loại phòng khách sạn.
+ *
+ * <p>Các thuộc tính chính:</p>
+ * <ul>
+ *   <li>{@link #id} - ID loại phòng</li>
+ *   <li>{@link #name} - Tên loại phòng</li>
+ *   <li>{@link #basePrice} - Giá cơ bản</li>
+ *   <li>{@link #standardCapacity} - Sức chứa tiêu chuẩn</li>
+ *   <li>{@link #maxCapacity} - Sức chứa tối đa</li>
+ *   <li>{@link #extraPersonFee} - Phí phụ thu người</li>
+ *   <li>{@link #isActive} - Loại phòng còn hiệu lực</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -41,7 +55,7 @@ public class RoomClassEntity {
     private BigDecimal extraPersonFee;
 
     @OneToMany(mappedBy = "roomClassEntity")
-    private List<ReservationRoomEntity> reservationRoomAllocationEntities = new ArrayList<>();
+    private List<ReservationRoomEntity> reservationRoomEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "roomClassEntity")
     private List<RoomEntity> roomEntities = new ArrayList<>();
@@ -52,6 +66,5 @@ public class RoomClassEntity {
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
 
 }

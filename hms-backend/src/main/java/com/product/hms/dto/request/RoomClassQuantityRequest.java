@@ -1,7 +1,7 @@
 package com.product.hms.dto.request;
 
 /**
- * Request DTO for room class allocation information
+ * DTO yêu cầu thông tin phân bổ loại phòng
  * <p>
  * Cho phép người dùng chỉ định rõ ràng:
  * - Họ đặt hạng phòng nào (roomClassId)
@@ -11,8 +11,8 @@ package com.product.hms.dto.request;
  * - RoomClassQuantityRequest(1L, 2) → Đặt hạng phòng Standard cho 2 người
  * - RoomClassQuantityRequest(1L, 3) → Đặt hạng phòng Standard cho 3 người (allocation riêng)
  *
- * @param roomClassId    ID of the room class
- * @param numberOfPeople Number of people for this allocation
+ * @param roomClassId    ID loại phòng
+ * @param numberOfPeople Số người cho allocation này
  */
 public record RoomClassQuantityRequest(
         Long roomClassId,
