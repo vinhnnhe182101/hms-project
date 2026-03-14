@@ -6,6 +6,8 @@ import com.product.hms.dto.response.StaffResponseDTO;
 import com.product.hms.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,20 @@ public class AdminStaffController {
     @GetMapping
     public ResponseEntity<List<StaffResponseDTO>> getAllStaff() {
         return ResponseEntity.ok(userService.getAllStaff());
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<Page<StaffResponseDTO>> getStaffPage(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isActive,
+            Pageable pageable
+    ) {
+        Page<StaffResponseDTO> page = userService.getStaffWithPagination(name, email, phoneNumber, department, status, isActive, pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
