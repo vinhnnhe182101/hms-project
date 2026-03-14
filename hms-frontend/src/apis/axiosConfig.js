@@ -11,6 +11,13 @@ const axiosInstance = axios.create({
     },
 });
 
+function toIpv4BaseUrl(url) {
+    if (typeof url !== 'string') {
+        return url;
+    }
+    return url.replace('http://localhost:', 'http://127.0.0.1:');
+}
+
 // Request interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
@@ -32,6 +39,16 @@ axiosInstance.interceptors.response.use(
         // Không xử lý gì nếu là logout request
         if (error.config?.url?.includes('/auth/logout')) {
             return Promise.reject(error);
+        }
+
+        // Fallback for environments where localhost resolution intermittently fails.
+        if (error.request && error.config && !error.config.__retriedWithIpv4) {
+            const originalBaseUrl = error.config.baseURL || BASE_URL;
+            if (typeof originalBaseUrl === 'string' && originalBaseUrl.includes('http://localhost:')) {
+                error.config.__retriedWithIpv4 = true;
+                error.config.baseURL = toIpv4BaseUrl(originalBaseUrl);
+                return axiosInstance.request(error.config);
+            }
         }
 
         if (error.response) {

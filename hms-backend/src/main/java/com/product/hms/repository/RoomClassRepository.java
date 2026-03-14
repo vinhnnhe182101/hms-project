@@ -11,10 +11,19 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 import com.product.hms.enums.ReservationStatus;
 
 @Repository
 public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long> {
+
+        Optional<RoomClassEntity> findByIdAndIsActiveTrue(Long id);
+
+        Page<RoomClassEntity> findAllByIsActiveTrue(Pageable pageable);
+
+        boolean existsByNameIgnoreCaseAndIsActiveTrue(String name);
+
+        boolean existsByNameIgnoreCaseAndIsActiveTrueAndIdNot(String name, Long id);
 
     @Query("""
             SELECT rc.id,

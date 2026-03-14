@@ -1,11 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ActionIcon,
-    Badge,
     Button,
     Group,
     Modal,
-    MultiSelect,
     NumberInput,
     Paper,
     ScrollArea,
@@ -19,88 +17,35 @@ import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import {
-    IconBath,
-    IconDeviceTv,
-    IconEye,
     IconEdit,
+    IconEye,
     IconPlus,
     IconSearch,
-    IconSwimming,
     IconTrash,
-    IconWifi,
-    IconBarbell,
-    IconBottle,
 } from '@tabler/icons-react';
-
-const amenityOptions = [
-    'Wifi',
-    'TV',
-    'Bath',
-    'Pool Access',
-    'Mini-bar',
-    'Gym Access',
-];
-
-const initialRoomTypes = [
-    {
-        id: 1,
-        name: 'Standard',
-        standardOccupancy: 1,
-        maxOccupancy: 2,
-        baseRate: 30,
-        amenities: ['Wifi', 'TV', 'Bath'],
-    },
-    {
-        id: 2,
-        name: 'Deluxe',
-        standardOccupancy: 1,
-        maxOccupancy: 2,
-        baseRate: 30,
-        amenities: ['Wifi', 'TV', 'Bath', 'Pool Access', 'Mini-bar'],
-    },
-    {
-        id: 3,
-        name: 'Suite',
-        standardOccupancy: 2,
-        maxOccupancy: 4,
-        baseRate: 50,
-        amenities: ['Wifi', 'TV', 'Bath', 'Pool Access', 'Mini-bar', 'Gym Access'],
-    },
-    {
-        id: 4,
-        name: 'Family',
-        standardOccupancy: 3,
-        maxOccupancy: 6,
-        baseRate: 50,
-        amenities: ['Wifi', 'TV', 'Bath'],
-    },
-];
+import { roomTypeApi } from '../../apis/admin/roomTypeApi';
 
 const emptyRoomType = {
     name: '',
     standardOccupancy: 1,
     maxOccupancy: 2,
     baseRate: 90,
-    amenities: [],
 };
 
-function getAmenityIcon(amenity) {
-    switch (amenity) {
-        case 'Wifi':
-            return <IconWifi size={14} />;
-        case 'TV':
-            return <IconDeviceTv size={14} />;
-        case 'Bath':
-            return <IconBath size={14} />;
-        case 'Pool Access':
-            return <IconSwimming size={14} />;
-        case 'Mini-bar':
-            return <IconBottle size={14} />;
-        case 'Gym Access':
-            return <IconBarbell size={14} />;
-        default:
-            return null;
-    }
+const currencyFormatter = new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+});
+
+function formatPrice(value) {
+    return `${currencyFormatter.format(Number(value) || 0)} đ`;
+}
+
+function getApiErrorMessage(error, fallbackMessage) {
+    return error?.response?.data?.message
+        || error?.response?.data?.error
+        || error?.message
+        || fallbackMessage;
 }
 
 function RoomTypeFormModal({ opened, mode, initialValues, onClose, onSubmit }) {
@@ -114,7 +59,6 @@ function RoomTypeFormModal({ opened, mode, initialValues, onClose, onSubmit }) {
                 value < values.standardOccupancy ? 'Max occupancy must be greater than or equal to standard occupancy' : null
             ),
             baseRate: (value) => (value <= 0 ? 'Base rate must be greater than 0' : null),
-            amenities: (value) => (value.length === 0 ? 'Select at least one amenity' : null),
         },
     });
 
@@ -148,21 +92,14 @@ function RoomTypeFormModal({ opened, mode, initialValues, onClose, onSubmit }) {
                             {...form.getInputProps('maxOccupancy')}
                         />
                         <NumberInput
-                            label="Base Rate per Night ($)"
+                            label="Base Rate per Night (đ)"
                             min={1}
-                            allowDecimal={false}
+                            decimalScale={2}
+                            fixedDecimalScale
+                            thousandSeparator=","
                             {...form.getInputProps('baseRate')}
                         />
                     </Group>
-
-                    <MultiSelect
-                        label="Amenities"
-                        placeholder="Select amenities"
-                        data={amenityOptions}
-                        searchable
-                        hidePickedOptions
-                        {...form.getInputProps('amenities')}
-                    />
 
                     <Group justify="flex-end">
                         <Button variant="default" onClick={onClose}>Cancel</Button>
@@ -192,30 +129,42 @@ function RoomTypeDetailsModal({ opened, roomType, onClose }) {
                 </Group>
                 <Group justify="space-between">
                     <Text fw={600}>Base Rate</Text>
-                    <Text>${roomType.baseRate}</Text>
+                    <Text>{formatPrice(roomType.baseRate)}</Text>
                 </Group>
-                <div>
-                    <Text fw={600} mb="xs">Amenities</Text>
-                    <Group gap="xs">
-                        {roomType.amenities.map((amenity) => (
-                            <Badge key={amenity} variant="light" color="gray" leftSection={getAmenityIcon(amenity)}>
-                                {amenity}
-                            </Badge>
-                        ))}
-                    </Group>
-                </div>
             </Stack>
         </Modal>
     );
 }
 
 export default function RoomTypesPage() {
-    const [roomTypes, setRoomTypes] = useState(initialRoomTypes);
+    const [roomTypes, setRoomTypes] = useState([]);
     const [searchValue, setSearchValue] = useState('');
     const [selectedRoomType, setSelectedRoomType] = useState(null);
     const [modalMode, setModalMode] = useState('create');
     const [formOpened, setFormOpened] = useState(false);
     const [detailsOpened, setDetailsOpened] = useState(false);
+
+    useEffect(() => {
+        let ignore = false;
+
+        roomTypeApi.getRoomTypes()
+            .then((data) => {
+                if (!ignore) {
+                    setRoomTypes(data);
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading room types:', error);
+                notifications.show({
+                    color: 'red',
+                    message: getApiErrorMessage(error, 'Failed to load room types from database.'),
+                });
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     const filteredRoomTypes = roomTypes.filter((roomType) => {
         const query = searchValue.trim().toLowerCase();
@@ -223,8 +172,7 @@ export default function RoomTypesPage() {
             return true;
         }
 
-        return roomType.name.toLowerCase().includes(query)
-            || roomType.amenities.some((amenity) => amenity.toLowerCase().includes(query));
+        return roomType.name.toLowerCase().includes(query);
     });
 
     const openCreateModal = () => {
@@ -253,33 +201,61 @@ export default function RoomTypesPage() {
         };
 
         if (modalMode === 'create') {
-            setRoomTypes((currentRoomTypes) => [
-                { id: Date.now(), ...normalizedValues },
-                ...currentRoomTypes,
-            ]);
-            notifications.show({ color: 'green', message: 'Room type created successfully.' });
-        } else {
-            setRoomTypes((currentRoomTypes) => currentRoomTypes.map((roomType) => (
-                roomType.id === selectedRoomType.id
-                    ? { ...roomType, ...normalizedValues }
-                    : roomType
-            )));
-            notifications.show({ color: 'blue', message: 'Room type updated successfully.' });
+            roomTypeApi.createRoomType(normalizedValues)
+                .then((created) => {
+                    setRoomTypes((currentRoomTypes) => [created, ...currentRoomTypes]);
+                    notifications.show({ color: 'green', message: 'Room type created and saved to database.' });
+                    setFormOpened(false);
+                })
+                .catch((error) => {
+                    console.error('Error creating room type:', error);
+                    notifications.show({
+                        color: 'red',
+                        message: getApiErrorMessage(error, 'Create room type failed.'),
+                    });
+                });
+            return;
         }
 
-        setFormOpened(false);
+        roomTypeApi.updateRoomType(selectedRoomType.id, normalizedValues)
+            .then((updated) => {
+                setRoomTypes((currentRoomTypes) => currentRoomTypes.map((roomType) => (
+                    roomType.id === selectedRoomType.id
+                        ? updated
+                        : roomType
+                )));
+                notifications.show({ color: 'green', message: 'Room type updated in database.' });
+                setFormOpened(false);
+            })
+            .catch((error) => {
+                console.error('Error updating room type:', error);
+                notifications.show({
+                    color: 'red',
+                    message: getApiErrorMessage(error, 'Update room type failed.'),
+                });
+            });
     };
 
     const handleDelete = (roomType) => {
         modals.openConfirmModal({
             title: 'Delete room type',
             centered: true,
-            children: <Text size="sm">Delete {roomType.name}? This only affects the mock data on this screen.</Text>,
+            children: <Text size="sm">Delete {roomType.name}? This action will also delete it from database.</Text>,
             labels: { confirm: 'Delete', cancel: 'Cancel' },
             confirmProps: { color: 'red' },
             onConfirm: () => {
-                setRoomTypes((currentRoomTypes) => currentRoomTypes.filter((item) => item.id !== roomType.id));
-                notifications.show({ color: 'red', message: `${roomType.name} deleted.` });
+                roomTypeApi.deleteRoomType(roomType.id)
+                    .then(() => {
+                        setRoomTypes((currentRoomTypes) => currentRoomTypes.filter((item) => item.id !== roomType.id));
+                        notifications.show({ color: 'green', message: 'Room type deleted from database.' });
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting room type:', error);
+                        notifications.show({
+                            color: 'red',
+                            message: getApiErrorMessage(error, 'Delete room type failed.'),
+                        });
+                    });
             },
         });
     };
@@ -310,8 +286,7 @@ export default function RoomTypesPage() {
                                     <Table.Th>Type Name</Table.Th>
                                     <Table.Th>Standard Occupancy</Table.Th>
                                     <Table.Th>Max Occupancy</Table.Th>
-                                    <Table.Th>Base Rate per Night ($)</Table.Th>
-                                    <Table.Th>Amenities</Table.Th>
+                                    <Table.Th>Base Rate per Night (đ)</Table.Th>
                                     <Table.Th>Action</Table.Th>
                                 </Table.Tr>
                             </Table.Thead>
@@ -321,21 +296,7 @@ export default function RoomTypesPage() {
                                         <Table.Td fw={600}>{roomType.name}</Table.Td>
                                         <Table.Td>{roomType.standardOccupancy}</Table.Td>
                                         <Table.Td>{roomType.maxOccupancy}</Table.Td>
-                                        <Table.Td>${roomType.baseRate}</Table.Td>
-                                        <Table.Td>
-                                            <Group gap="xs">
-                                                {roomType.amenities.map((amenity) => (
-                                                    <Badge
-                                                        key={amenity}
-                                                        variant="light"
-                                                        color="gray"
-                                                        leftSection={getAmenityIcon(amenity)}
-                                                    >
-                                                        {amenity}
-                                                    </Badge>
-                                                ))}
-                                            </Group>
-                                        </Table.Td>
+                                        <Table.Td>{formatPrice(roomType.baseRate)}</Table.Td>
                                         <Table.Td>
                                             <Group gap="xs" wrap="nowrap">
                                                 <ActionIcon
@@ -367,7 +328,7 @@ export default function RoomTypesPage() {
                                     </Table.Tr>
                                 )) : (
                                     <Table.Tr>
-                                        <Table.Td colSpan={6}>
+                                        <Table.Td colSpan={5}>
                                             <Text ta="center" py="lg" c="dimmed">
                                                 No room types matched the current search.
                                             </Text>
