@@ -33,6 +33,7 @@ public interface UserService {
     // Pagination & filtering for staff
     Page<StaffResponseDTO> getStaffWithPagination(String name, String email, String phoneNumber, String department, String status, Boolean isActive, Pageable pageable);
 
+    Page<UserResponseDTO> getCustomerUsersWithPagination(String email, Boolean isActive, Pageable pageable);
     // ==========================================
     // 3. AUTH & UTILS
     // ==========================================

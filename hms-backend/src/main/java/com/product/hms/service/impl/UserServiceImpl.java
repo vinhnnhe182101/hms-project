@@ -1,11 +1,11 @@
 package com.product.hms.service.impl;
 
+import com.product.hms.converters.CustomerMapper;
 import com.product.hms.dto.request.StaffAccountRequestDTO;
 import com.product.hms.dto.request.StaffRequestDTO;
-import com.product.hms.dto.request.UserRequestDTO;
-import com.product.hms.dto.response.StaffResponseDTO;
-import com.product.hms.dto.response.UserResponseDTO;
+import com.product.hms.dto.response.*;
 import com.product.hms.entity.CustomerEntity;
+import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.StaffEntity;
 import com.product.hms.entity.UserEntity;
 import com.product.hms.enums.Department;
@@ -14,21 +14,19 @@ import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.exception.ResourceNotFoundException;
-import com.product.hms.repository.CustomerRepository;
-import com.product.hms.repository.StaffRepository;
-import com.product.hms.repository.UserRepository;
+import com.product.hms.repository.*;
+import com.product.hms.repository.specification.CustomerSpecification;
 import com.product.hms.repository.specification.StaffSpecification;
 import com.product.hms.service.UserService;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,17 +34,38 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
+    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public static final String DEFAULT_STAFF_PASSWORD = "Hms@HeloCacBan";
+    // Thêm các Dependency mới phục vụ cho việc lấy Reservation
+    private final ReservationRepository reservationRepository;
+    private final ReservationRoomRepository reservationRoomRepository;
+    private final CustomerMapper customerMapper;
 
-    public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository, PasswordEncoder passwordEncoder) {
+    public static final String DEFAULT_STAFF_PASSWORD = "Hms@HelloCacBan";
+
+    public UserServiceImpl(UserRepository userRepository,
+                           StaffRepository staffRepository,
+                           CustomerRepository customerRepository,
+                           PasswordEncoder passwordEncoder,
+                           ReservationRepository reservationRepository,
+                           ReservationRoomRepository reservationRoomRepository,
+                           CustomerMapper customerMapper) {
         this.userRepository = userRepository;
         this.staffRepository = staffRepository;
+        this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.reservationRepository = reservationRepository;
+        this.reservationRoomRepository = reservationRoomRepository;
+        this.customerMapper = customerMapper;
     }
 
+    // ==========================================
+    // USER & CUSTOMER MANAGEMENT
+    // ==========================================
+
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::toUserResponseDTO)
@@ -54,10 +73,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
         UserEntity entity = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, "User not found with id: " + id));
         return toUserResponseDTO(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponseDTO> getCustomerUsersWithPagination(String email, Boolean isActive, Pageable pageable) {
+        var spec = CustomerSpecification.build(email, isActive);
+        Page<CustomerEntity> page = customerRepository.findAll(spec, pageable);
+
+        return page.map(customer -> {
+            if (customer.getUserEntity() != null) {
+                return toUserResponseDTO(customer.getUserEntity());
+            }
+            // Fallback nếu Customer chưa có UserEntity
+            return UserResponseDTO.builder()
+                    .customerId(customer.getId())
+                    .fullName(customer.getFullName())
+                    .phoneNumber(customer.getPhoneNumber())
+                    .identityCard(customer.getIdentityCard())
+                    .email(customer.getEmail())
+                    .role(Role.CUSTOMER)
+                    .isActive(customer.getIsActive())
+                    .reservations(new ArrayList<>())
+                    .build();
+        });
     }
 
     @Override
@@ -112,10 +156,8 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL, "Email already registered: " + request.getEmail());
         }
 
-        // Tạo mật khẩu mặc định (Bảo mật cơ bản: Hms@ + Số điện thoại)
         String defaultPassword = "Hms@" + request.getPhoneNumber();
 
-        // 1. Tạo User
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(request.getEmail());
         userEntity.setPassword(passwordEncoder.encode(defaultPassword));
@@ -124,7 +166,6 @@ public class UserServiceImpl implements UserService {
         userEntity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
         UserEntity savedUser = userRepository.save(userEntity);
 
-        // 2. Tạo Staff liên kết
         StaffEntity staffEntity = new StaffEntity();
         staffEntity.setFullName(request.getFullName());
         staffEntity.setPhoneNumber(request.getPhoneNumber());
@@ -144,12 +185,11 @@ public class UserServiceImpl implements UserService {
 
         entity.setFullName(request.getFullName());
         entity.setPhoneNumber(request.getPhoneNumber());
-        entity.setDepartment(Department.valueOf(request.getDepartment()));
+        entity.setDepartment(Department.valueOf(request.getDepartment().toUpperCase(Locale.ROOT)));
         entity.setStatus(request.getStatus());
 
         if (request.getIsActive() != null) {
             entity.setIsActive(request.getIsActive());
-            // Cập nhật luôn trạng thái của User đăng nhập
             if (entity.getUserEntity() != null) {
                 entity.getUserEntity().setIsActive(request.getIsActive());
                 userRepository.save(entity.getUserEntity());
@@ -165,14 +205,26 @@ public class UserServiceImpl implements UserService {
         StaffEntity entity = staffRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.STAFF_NOT_FOUND, "Staff not found with id: " + id));
 
-        entity.setIsActive(false); // Soft delete Staff
+        entity.setIsActive(false);
         staffRepository.save(entity);
 
-        // Khóa luôn tài khoản User để không đăng nhập được nữa
         if (entity.getUserEntity() != null) {
             entity.getUserEntity().setIsActive(false);
             userRepository.save(entity.getUserEntity());
         }
+    }
+
+    @Override
+    public Page<StaffResponseDTO> getStaffWithPagination(String name, String email, String phoneNumber, String department, String status, Boolean isActive, Pageable pageable) {
+        var spec = StaffSpecification.build(name, email, phoneNumber, department, status, isActive);
+        Page<StaffEntity> page = staffRepository.findAll(spec, pageable);
+        return page.map(this::toStaffResponseDTO);
+    }
+
+    @Override
+    public UserEntity findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
     // ==========================================
@@ -184,15 +236,77 @@ public class UserServiceImpl implements UserService {
         if (e.getRole() != null) {
             try { role = Role.valueOf(e.getRole()); } catch (IllegalArgumentException ignored) {}
         }
+
+        String fullName = null;
+        String phoneNumber = null;
+        String identityCard = null;
+        Long customerId = null;
+        List<ReservationResponse> reservations = new ArrayList<>();
+
+        // Kiểm tra nếu là Customer thì lấy thông tin và reservations
+        if (e.getCustomerEntity() != null) {
+            CustomerEntity customer = e.getCustomerEntity();
+            fullName = customer.getFullName();
+            phoneNumber = customer.getPhoneNumber();
+            identityCard = customer.getIdentityCard();
+            customerId = customer.getId();
+
+            // Tìm toàn bộ reservations của khách hàng này
+            List<ReservationEntity> reservationEntities = reservationRepository.findByCustomerEntity(customer);
+            if (reservationEntities != null && !reservationEntities.isEmpty()) {
+                reservations = reservationEntities.stream()
+                        .map(this::mapToReservationResponse) // Gọi hàm helper bên dưới
+                        .collect(Collectors.toList());
+            }
+        }
+        // Nếu là Staff thì lấy thông tin cơ bản
+        else if (e.getStaffEntity() != null) {
+            fullName = e.getStaffEntity().getFullName();
+            phoneNumber = e.getStaffEntity().getPhoneNumber();
+            // Staff không có CustomerID hay CCCD trong schema hiện tại
+        }
+
         return UserResponseDTO.builder()
                 .id(e.getId())
+                .fullName(fullName)
+                .phoneNumber(phoneNumber)
+                .identityCard(identityCard)
                 .email(e.getEmail())
                 .role(role)
                 .provider(e.getProvider())
                 .isActive(e.getIsActive())
-                .staffId(e.getStaffEntity() != null ? e.getStaffEntity().getId() : null)
-                .customerId(e.getCustomerEntity() != null ? e.getCustomerEntity().getId() : null)
+                .reservations(reservations) // Gắn list reservations vào đây
+                .customerId(customerId)
                 .build();
+    }
+
+    /**
+     * Helper Method: Chuyển ReservationEntity sang ReservationResponse
+     * Hàm này tái tạo lại logic map giống y hệt ở ReservationServiceImpl
+     */
+    private ReservationResponse mapToReservationResponse(ReservationEntity entity) {
+        CustomerResponse customer = customerMapper.toResponse(entity.getCustomerEntity());
+
+        List<RoomClassQuantityResponse> allocations = reservationRoomRepository
+                .findByReservationEntity(entity)
+                .stream()
+                .map(allocation -> new RoomClassQuantityResponse(
+                        allocation.getId(),
+                        allocation.getRoomClassEntity() != null ? allocation.getRoomClassEntity().getId() : null,
+                        allocation.getNumberOfPeople()))
+                .toList();
+
+        return new ReservationResponse(
+                entity.getId(),
+                entity.getCode(),
+                customer,
+                allocations,
+                entity.getExpectedCheckIn(),
+                entity.getExpectedCheckOut(),
+                entity.getStatus() != null ? entity.getStatus().name() : null,
+                entity.getNumberOfMembers(),
+                entity.getNote(),
+                entity.getCreatedAt());
     }
 
     private StaffResponseDTO toStaffResponseDTO(StaffEntity e) {
@@ -200,23 +314,11 @@ public class UserServiceImpl implements UserService {
                 .id(e.getId())
                 .fullName(e.getFullName())
                 .phoneNumber(e.getPhoneNumber())
-                .department(e.getDepartment().name())
+                .department(e.getDepartment() != null ? e.getDepartment().name() : null)
                 .status(e.getStatus())
                 .isActive(e.getIsActive())
                 .userId(e.getUserEntity() != null ? e.getUserEntity().getId() : null)
                 .email(e.getUserEntity() != null ? e.getUserEntity().getEmail() : null)
                 .build();
-    }
-    @Override
-    public UserEntity findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-    }
-
-    @Override
-    public Page<StaffResponseDTO> getStaffWithPagination(String name, String email, String phoneNumber, String department, String status, Boolean isActive, Pageable pageable) {
-        var spec = StaffSpecification.build(name, email, phoneNumber, department, status, isActive);
-        Page<StaffEntity> page = staffRepository.findAll(spec, pageable);
-        return page.map(this::toStaffResponseDTO);
     }
 }

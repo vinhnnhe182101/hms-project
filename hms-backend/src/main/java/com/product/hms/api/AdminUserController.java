@@ -29,12 +29,12 @@ public class AdminUserController {
     }
 
     @GetMapping("/customers/page")
-    public ResponseEntity<Page<CustomerResponse>> getCustomersPage(
+    public ResponseEntity<Page<UserResponseDTO>> getCustomersPage(
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Boolean isActive,
             Pageable pageable
     ) {
-        Page<CustomerResponse> page = customerService.getCustomersWithPagination(email, isActive, pageable);
+        Page<UserResponseDTO> page = userService.getCustomerUsersWithPagination(email, isActive, pageable);
         return ResponseEntity.ok(page);
     }
 
