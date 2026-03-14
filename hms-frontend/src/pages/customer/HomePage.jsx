@@ -5,7 +5,7 @@ import {
     IconToolsKitchen2, IconSwimming, IconSparkles, IconArrowRight,
     IconStar, IconChevronRight, IconQuote
 } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // THÊM useLocation
 import '@mantine/carousel/styles.css';
 import { getHomeData } from '../../apis/customer/homeApi';
 
@@ -29,13 +29,23 @@ const HERO_IMAGES = [
 
 export default function HomePage() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [featuredRooms, setFeaturedRooms] = useState([]);
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // ✅ CHỈ gọi API khi đang ở route '/'
+        if (location.pathname !== '/') {
+            console.log('HomePage: Not at root path, skipping API call');
+            return;
+        }
+
         const fetchAllHomeData = async () => {
+            console.log('HomePage: Fetching home data...');
+            setLoading(true);
             try {
                 const data = await getHomeData();
                 setFeaturedRooms(data.featuredRooms || []);
@@ -43,10 +53,18 @@ export default function HomePage() {
                 setTestimonials(data.testimonials || []);
             } catch (error) {
                 console.error('Error loading home data:', error);
+            } finally {
+                setLoading(false);
             }
         };
+
         fetchAllHomeData();
-    }, []);
+
+        // Cleanup function
+        return () => {
+            console.log('HomePage: Unmounting or path changed');
+        };
+    }, [location.pathname]); // ✅ Chạy lại khi path thay đổi
 
     const formatPrice = (price) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price || 0);
@@ -56,6 +74,11 @@ export default function HomePage() {
         if (category === 'MINIBAR') return <IconToolsKitchen2 size={32} />;
         return <IconSwimming size={32} />;
     };
+
+    // Nếu không phải route '/', không render gì cả
+    if (location.pathname !== '/') {
+        return null;
+    }
 
     return (
         <Box>
@@ -179,7 +202,7 @@ export default function HomePage() {
 
                     <Grid gutter="xl">
                         {featuredRooms.slice(0, 3).map((room, idx) => (
-                            <Grid.Col key={room.id} span={{ base: 12, sm: 6, md: 4 }}>
+                            <Grid.Col key={room.id || idx} span={{ base: 12, sm: 6, md: 4 }}>
                                 <Card
                                     radius="xl"
                                     p="md"
@@ -353,36 +376,36 @@ export default function HomePage() {
                         <Grid.Col span={{ base: 12, md: 7 }}>
                             <Stack gap="xl">
                                 {testimonials.slice(0, 2).map((item, index) => (
-                                    <Paper 
-                                        key={index} 
-                                        p={40} 
-                                        radius="xl" 
-                                        withBorder 
-                                        style={{ 
+                                    <Paper
+                                        key={index}
+                                        p={40}
+                                        radius="xl"
+                                        withBorder
+                                        style={{
                                             position: 'relative',
                                             boxShadow: index === 0 ? '0 20px 40px rgba(0,0,0,0.05)' : 'none',
                                             backgroundColor: index === 0 ? '#fff' : '#F8F9FA'
                                         }}
                                     >
-                                        <IconQuote 
-                                            size={48} 
-                                            style={{ 
-                                                position: 'absolute', 
-                                                top: 20, 
-                                                right: 40, 
-                                                opacity: 0.1, 
-                                                color: 'var(--mantine-color-blue-6)' 
-                                            }} 
+                                        <IconQuote
+                                            size={48}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 20,
+                                                right: 40,
+                                                opacity: 0.1,
+                                                color: 'var(--mantine-color-blue-6)'
+                                            }}
                                         />
                                         <Text size="lg" fw={500} style={{ fontStyle: 'italic', lineHeight: 1.6 }}>
                                             "{item.comment}"
                                         </Text>
                                         <Group mt="xl">
                                             <Avatar size="lg" radius="xl" color="blue">
-                                                {item.name.charAt(0)}
+                                                {item.name?.charAt(0) || 'G'}
                                             </Avatar>
                                             <Box>
-                                                <Text fw={700}>{item.name}</Text>
+                                                <Text fw={700}>{item.name || 'Guest'}</Text>
                                                 <Text size="xs" c="dimmed">Verified Guest • {item.date || 'March 2024'}</Text>
                                                 <Rating size="xs" value={5} readOnly mt={4} />
                                             </Box>
@@ -412,7 +435,7 @@ export default function HomePage() {
                                 Ready to Experience the Extraordinary?
                             </Title>
                             <Text maw={600} opacity={0.8} size="lg">
-                                Join thousands of satisfied guests and book your dream vacation at FPTU Hotel today.
+                                Join thousands of satisfied guests and book your dream vacation at HMS Hotel today.
                             </Text>
                             <Button
                                 size="xl"

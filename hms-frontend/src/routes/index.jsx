@@ -23,9 +23,6 @@ import {AuthLayout} from "../layouts/AuthLayout.jsx";
 import OAuth2RedirectPage from "../pages/auth/OAuth2RedirectPage.jsx";
 import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
-import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
-import RoomsPage from "../pages/customer/RoomsPage.jsx";
-import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import {StaffLayout} from "../layouts/staff/StaffLayout.jsx";
 
@@ -39,128 +36,29 @@ import ReportsPage from '../pages/housekeeping/ReportsPage.jsx';
 import {NAV_ITEMS} from "../constants/staff.jsx";
 import StaffManagementPage from '../pages/admin/StaffManagementPage.jsx';
 import UserManagementPage from "../pages/admin/UserManagementPage.jsx"
+
 export const router = createBrowserRouter([
-    // Public Customer Routes
-    {
-        path: '/',
-        element: <CustomerLayout/>,
-        children: [
-            {index: true, element: <HomePage/>},
-            {path: 'rooms', element: <RoomsPage/>},
-            {path: 'rooms/:id', element: <RoomDetailPage/>},
-            {path: 'services', element: <ServicesPage/>},
-            {path: 'services/checkout', element: <ProtectedRoute><ServiceCheckoutPage/></ProtectedRoute>},
-            {path: 'booking', element: <ProtectedRoute><BookingPage/></ProtectedRoute>},
-            {path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage/></ProtectedRoute>},
-            {path: 'history', element: <BookingHistoryPage/>},
-            {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
-        ],
-    },
-    {
-        path: '/user',
-        element: (
-                <ProtectedRoute>
-                    <CustomerLayout/>
-                </ProtectedRoute>
-        ),
-        children: [
-            {index: true, element: <HomePage/>},
-            {path: 'rooms', element: <RoomsPage/>},
-            {path: 'rooms/:id', element: <RoomDetailPage/>},
-            {path: 'services', element: <ServicesPage/>},
-            {path: 'services/checkout', element: <ServiceCheckoutPage/>},
-            {path: 'booking', element: <BookingPage/>},
-            {path: 'booking/checkout', element: <CheckoutPage/>},
-            {path: 'history', element: <BookingHistoryPage/>},
-        ],
-    },
-
-    // Auth Routes
-    {
-        path: '/',
-        element: <AuthLayout/>,
-        children: [
-            {path: 'login', element: <LoginPage/>},
-            {path: 'register', element: <RegisterPage/>},
-            {path: 'forgot-password', element: <div>Forgot Password</div>},
-        ],
-    },
-    {
-        path: '/auth',
-        element: <AuthLayout/>,
-        children: [
-            {path: 'login', element: <LoginPage/>},
-            {path: 'register', element: <RegisterPage/>},
-            {path: 'forgot-password', element: <div>Forgot Password</div>},
-        ],
-    },
-
-
-    // OAuth2 Redirect
-    {
-        path: '/oauth2/redirect',
-        element: <OAuth2RedirectPage/>,
-    },
-
-    // Booking Routes (Protected)
-    {
-        path: '/booking',
-        element: (
-            <ProtectedRoute>
-                <CustomerLayout/>
-            </ProtectedRoute>
-        ),
-        children: [
-            {path: ':roomId', element: <div>Booking Page</div>},
-        ],
-    },
-
-    // Customer Protected Routes
-    {
-        path: '/customer',
-        element: (
-            <ProtectedRoute>
-                <CustomerLayout/>
-            </ProtectedRoute>
-        ),
-        children: [
-            {index: true, element: <HomePage/>},
-            {path: 'bookings', element: <BookingHistoryPage/>},
-            {path: 'bookings/:id', element: null},
-            {path: 'profile', element: <div>Profile Page</div>},
-        ],
-    },
-
-    // Admin Routes
+    // ===== ROLE-SPECIFIC ROUTES (Ưu tiên cao nhất) =====
     {
         path: '/admin',
         element: (
-                <ProtectedRoute requiredRole="ADMIN">
-                    <AdminLayout/>
-                </ProtectedRoute>
-
+            <ProtectedRoute requiredRole="ADMIN">
+                <AdminLayout/>
+            </ProtectedRoute>
         ),
         children: [
             {index: true, element: <AdminDashboardPage/>},
-            {path: 'rooms', element: <div>Room Management</div>},
-            {path: 'users', element: <div>User Management</div>},
-            {path: 'bookings', element: <div>Booking Management</div>},
-            {path: 'staff', element: <div>Staff Management</div>},
-            {path: 'reports', element: <div>Reports</div>},
             {path: 'rooms', element: <RoomManagementPage/>},
             {path: 'rooms/types', element: <RoomTypesPage/>},
             {path: 'rooms/service', element: <ServiceManagementPage/>},
             {path: 'staff', element: <StaffManagementPage />},
-            {path: 'reservations', element: <div>Reservations Management</div>},
             {path: 'customers', element: <UserManagementPage />},
-            {path: 'staff', element: <div>Staff Management</div>},
+            {path: 'reservations', element: <div>Reservations Management</div>},
             {path: 'payments', element: <div>Payments Management</div>},
             {path: 'reports', element: <div>Reports Management</div>},
             {path: 'settings', element: <div>Settings</div>},
         ],
     },
-
-    // Housekeeping Routes
     {
         path: '/housekeeping',
         element: (
@@ -177,14 +75,12 @@ export const router = createBrowserRouter([
             {path: 'reports', element: <ReportsPage/>},
         ],
     },
-
-    // Receptionist Routes
     {
         path: '/receptionist',
         element: (
-                <ProtectedRoute requiredRole="RECEPTIONIST">
-                    <RecepDashboardPage/>
-                </ProtectedRoute>
+            <ProtectedRoute requiredRole="RECEPTIONIST">
+                <RecepDashboardPage/>
+            </ProtectedRoute>
         ),
         children: [
             {index: true, element: <RecepDashboardPage/>},
@@ -193,26 +89,20 @@ export const router = createBrowserRouter([
             {path: 'reservations', element: <div>Reservations</div>},
         ],
     },
-
-    // Staff Routes
     {
         path: '/staff',
         element: (
-                <ProtectedRoute requiredRole="STAFF">
-                    <StaffLayout/>
-                </ProtectedRoute>
+            <ProtectedRoute requiredRole="STAFF">
+                <StaffLayout/>
+            </ProtectedRoute>
         ),
         children: [
             {index: true, element: <div>Staff Dashboard</div>},
-            // Map tự động từ NAV_ITEMS sang định dạng object của Router
             ...NAV_ITEMS.map(item => {
                 const relativePath = item.to
-                        .replace(/^\//, '')        // Bỏ dấu / ở đầu (nếu có)
-                        .replace(/^staff\//, '')   // Bỏ chữ staff/ ở đầu
-                        .replace(/^\//, '');
-                console.log("Mapping staff route:", item.to);
-                console.log("Path:", relativePath);
-
+                    .replace(/^\//, '')
+                    .replace(/^staff\//, '')
+                    .replace(/^\//, '');
                 return {
                     path: relativePath,
                     element: item.element
@@ -221,7 +111,59 @@ export const router = createBrowserRouter([
         ],
     },
 
-    // Error Routes
+    // ===== CUSTOMER PROTECTED ROUTES =====
+    {
+        path: '/user',
+        element: (
+            <ProtectedRoute>
+                <CustomerLayout/>
+            </ProtectedRoute>
+        ),
+        children: [
+            {index: true, element: <HomePage/>},
+            {path: 'rooms', element: <RoomsPage/>},
+            {path: 'rooms/:id', element: <RoomDetailPage/>},
+            {path: 'services', element: <ServicesPage/>},
+            {path: 'services/checkout', element: <ServiceCheckoutPage/>},
+            {path: 'booking', element: <BookingPage/>},
+            {path: 'booking/checkout', element: <CheckoutPage/>},
+            {path: 'history', element: <BookingHistoryPage/>},
+        ],
+    },
+
+    // ===== PUBLIC ROUTES (Dùng CustomerLayout) =====
+    {
+        path: '/',
+        element: <CustomerLayout/>,
+        children: [
+            {index: true, element: <HomePage/>},
+            {path: 'rooms', element: <RoomsPage/>},
+            {path: 'rooms/:id', element: <RoomDetailPage/>},
+            {path: 'services', element: <ServicesPage/>},
+            {path: 'services/checkout', element: <ProtectedRoute><ServiceCheckoutPage/></ProtectedRoute>},
+            {path: 'booking', element: <ProtectedRoute><BookingPage/></ProtectedRoute>},
+            {path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage/></ProtectedRoute>},
+            {path: 'history', element: <ProtectedRoute><BookingHistoryPage/></ProtectedRoute>},
+            {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
+        ],
+    },
+
+    // ===== AUTH LAYOUT RIÊNG (nếu muốn layout khác cho auth) =====
+    {
+        path: '/',
+        element: <AuthLayout/>,
+        children: [
+            {path: 'login', element: <LoginPage/>},
+            {path: 'register', element: <RegisterPage/>},
+            {path: 'forgot-password', element: <div>Forgot Password</div>},
+        ],
+    },
+
+    // ===== SPECIAL ROUTES =====
+    {
+        path: '/oauth2/redirect',
+        element: <OAuth2RedirectPage/>,
+    },
     {
         path: '/unauthorized',
         element: <UnauthorizedPage/>,

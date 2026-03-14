@@ -1,5 +1,5 @@
+// src/components/auth/RegisterForm.jsx
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
     TextInput,
     PasswordInput,
@@ -7,182 +7,244 @@ import {
     Paper,
     Title,
     Text,
-    Container,
-    Group,
+    Anchor,
     Stack,
+    Group,
     Box,
+    Stepper,
     Alert,
-    Overlay
+    Container,
 } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle, IconUser, IconMail, IconLock } from '@tabler/icons-react';
-import { authApi } from '../../apis/auth/authApi';
-
-const AUTH_BG_URL = 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1600&auto=format&fit=crop';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 export function RegisterForm() {
+    const { register } = useAuth();
     const navigate = useNavigate();
-
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [active, setActive] = useState(0);
+    const [error, setError] = useState(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-        try {
-            const result = await authApi.register({ email, password, fullName });
-            if (result.success || result.data) {
-                navigate('/login');
+    const form = useForm({
+        initialValues: {
+            email: '',
+            password: '',
+            confirmPassword: '',
+            fullName: '',
+            phoneNumber: '',
+            identityCard: '',
+        },
+        validate: {
+            email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
+            password: (value) => (value.length < 6 ? 'Password must be at least 6 characters' : null),
+            confirmPassword: (value, values) =>
+                value !== values.password ? 'Passwords do not match' : null,
+            fullName: (value) => {
+                if (active === 1 && !value) return 'Full name is required';
+                if (value && value.length < 2) return 'Name is too short';
+                return null;
+            },
+            phoneNumber: (value) => {
+                if (active === 1 && !value) return 'Phone number is required';
+                if (value && !/^\d{10,11}$/.test(value)) return 'Phone number must be 10-11 digits';
+                return null;
+            },
+            identityCard: (value) => {
+                if (value && !/^\d{9,12}$/.test(value)) return 'Identity card must be 9-12 digits';
+                return null;
+            },
+        },
+        validateInputOnChange: true,
+    });
+
+    const nextStep = () => {
+        if (active === 0) {
+            // Chỉ validate 3 field của step 1
+            const emailError = form.validateField('email');
+            const passwordError = form.validateField('password');
+            const confirmError = form.validateField('confirmPassword');
+
+            console.log('Step 1 validation:', {
+                email: emailError,
+                password: passwordError,
+                confirm: confirmError
+            });
+
+            // Kiểm tra nếu không có lỗi
+            if (!emailError.hasError && !passwordError.hasError && !confirmError.hasError) {
+                setActive(1);
             } else {
-                setError(result.message || 'Registration failed');
+                notifications.show({
+                    title: 'Validation Error',
+                    message: 'Please check your account information',
+                    color: 'red'
+                });
             }
-        } catch (err) {
-            const msg = err?.response?.data?.message || 'Registration failed. Please try again.';
-            setError(msg);
-        } finally {
-            setLoading(false);
+        }
+    };
+
+    const prevStep = () => setActive(0);
+
+    const handleSubmit = async (values) => {
+        // Validate tất cả các field trước khi submit
+        const errors = form.validate();
+        if (errors.hasErrors) {
+            notifications.show({
+                title: 'Error',
+                message: 'Please fill in all required fields correctly',
+                color: 'red'
+            });
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        const userData = {
+            email: values.email,
+            password: values.password,
+            fullName: values.fullName,
+            phoneNumber: values.phoneNumber,
+            identityCard: values.identityCard || null,
+        };
+
+        console.log('Submitting registration:', userData);
+
+        const result = await register(userData);
+        setLoading(false);
+
+        if (result.success) {
+            notifications.show({
+                title: 'Success',
+                message: result.message || 'Registration successful! Please login.',
+                color: 'green',
+            });
+            setTimeout(() => {
+                navigate('/login');
+            }, 1500);
+        } else {
+            setError(result.error);
+            notifications.show({
+                title: 'Error',
+                message: result.error || 'Registration failed',
+                color: 'red',
+            });
         }
     };
 
     return (
-        <Box
-            style={{
-                minHeight: '100vh',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundImage: `url(${AUTH_BG_URL})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                padding: '40px 20px',
-            }}
-        >
-            <Overlay color="#000" opacity={0.4} zIndex={1} />
+        <Container size="md" px="md">
+            <Paper radius="md" p="xl" shadow="md">
+                <Title order={2} ta="center" mb="lg">
+                    Create Customer Account
+                </Title>
 
-            <Container size={420} style={{ position: 'relative', zIndex: 2, width: '100%' }}>
-                <Paper
-                    radius="xl"
-                    p={40}
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}
-                >
-                    <Stack align="center" mb={30}>
-                        <Title
-                            order={1}
-                            fw={900}
-                            style={{
-                                letterSpacing: '2px',
-                                color: 'var(--mantine-color-blue-9)',
-                                fontSize: '32px',
-                                textTransform: 'uppercase'
-                            }}
-                        >
-                            FPTU HOTEL
-                        </Title>
-                        <Text c="dimmed" size="sm" ta="center" fw={500}>
-                            Create your account to start booking.
-                        </Text>
-                    </Stack>
+                {error && (
+                    <Alert
+                        icon={<IconAlertCircle size={16} />}
+                        title="Registration Failed"
+                        color="red"
+                        mb="md"
+                        withCloseButton
+                        onClose={() => setError(null)}
+                    >
+                        {error}
+                    </Alert>
+                )}
 
-                    <form onSubmit={handleSubmit}>
+                <Stepper active={active} onStepClick={setActive} mb="xl" size="sm">
+                    <Stepper.Step label="Account" description="Create account">
                         <Stack gap="md">
                             <TextInput
+                                required
+                                label="Email"
+                                placeholder="your@email.com"
+                                size="md"
+                                {...form.getInputProps('email')}
+                            />
+                            <PasswordInput
+                                required
+                                label="Password"
+                                placeholder="Your password"
+                                size="md"
+                                {...form.getInputProps('password')}
+                            />
+                            <PasswordInput
+                                required
+                                label="Confirm Password"
+                                placeholder="Confirm your password"
+                                size="md"
+                                {...form.getInputProps('confirmPassword')}
+                            />
+                            <Text size="sm" c="dimmed" fs="italic">
+                                Note: You are registering as a Customer. Staff accounts are created by Admin.
+                            </Text>
+                        </Stack>
+                    </Stepper.Step>
+
+                    <Stepper.Step label="Personal" description="Personal information">
+                        <Stack gap="md">
+                            <TextInput
+                                required
                                 label="Full Name"
                                 placeholder="Your full name"
-                                required
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                disabled={loading}
-                                leftSection={<IconUser size={16} />}
-                                radius="md"
                                 size="md"
+                                {...form.getInputProps('fullName')}
                             />
-
                             <TextInput
-                                label="Email Address"
-                                placeholder="name@example.com"
                                 required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={loading}
-                                leftSection={<IconMail size={16} />}
-                                radius="md"
+                                label="Phone Number"
+                                placeholder="Your phone number"
                                 size="md"
+                                {...form.getInputProps('phoneNumber')}
                             />
-
-                            <PasswordInput
-                                label="Password"
-                                placeholder="Create a password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={loading}
-                                leftSection={<IconLock size={16} />}
-                                radius="md"
+                            <TextInput
+                                label="Identity Card"
+                                placeholder="ID/Passport number (optional)"
                                 size="md"
+                                {...form.getInputProps('identityCard')}
                             />
-
-                            {error && (
-                                <Alert icon={<IconAlertCircle size={16} />} color="red" radius="md" variant="light">
-                                    {error}
-                                </Alert>
-                            )}
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                loading={loading}
-                                color="blue"
-                                size="lg"
-                                mt="xl"
-                                radius="md"
-                                style={{
-                                    boxShadow: '0 10px 15px -3px rgba(34, 139, 230, 0.3)',
-                                    height: '50px'
-                                }}
-                            >
-                                Register Now
-                            </Button>
                         </Stack>
-                    </form>
+                    </Stepper.Step>
 
-                    <Stack align="center" mt="xl" gap="md">
-                        <Text size="sm" c="dimmed">
-                            Already have an account?{' '}
-                            <Text
-                                component="span"
-                                fw={700}
-                                color="blue"
-                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                onClick={() => navigate('/login')}
-                            >
-                                Sign in here
+                    <Stepper.Completed>
+                        <Stack align="center" py="xl">
+                            <Text size="lg" fw={500}>All set!</Text>
+                            <Text c="dimmed" ta="center">
+                                Click register to create your customer account.
                             </Text>
-                        </Text>
+                        </Stack>
+                    </Stepper.Completed>
+                </Stepper>
 
-                        <Group
-                            gap={5}
-                            style={{ cursor: 'pointer', opacity: 0.7 }}
-                            onClick={() => navigate('/')}
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}
-                        >
-                            <IconArrowLeft size={14} />
-                            <Text size="xs" fw={500}>
-                                Back to website
-                            </Text>
-                        </Group>
-                    </Stack>
-                </Paper>
-            </Container>
-        </Box>
+                <Group justify="space-between" mt="xl">
+                    {active === 1 && (
+                        <Button variant="default" onClick={prevStep} size="md">
+                            Back
+                        </Button>
+                    )}
+                    {active === 0 && (
+                        <Button onClick={nextStep} size="md">
+                            Next
+                        </Button>
+                    )}
+                    {active === 1 && (
+                        <Button onClick={() => form.onSubmit(handleSubmit)()} loading={loading} size="md">
+                            Register
+                        </Button>
+                    )}
+                </Group>
+
+                <Text ta="center" mt="lg">
+                    Already have an account?{' '}
+                    <Anchor component="button" onClick={() => navigate('/login')}>
+                        Login
+                    </Anchor>
+                </Text>
+            </Paper>
+        </Container>
     );
 }
