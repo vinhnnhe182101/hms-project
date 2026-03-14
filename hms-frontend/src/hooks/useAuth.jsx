@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
                 fullName: decoded.fullName,
                 provider: decoded.provider,
             });
-        } catch (error) {
+        } catch {
             localStorage.removeItem("accessToken");
         } finally {
             setLoading(false);
@@ -160,8 +160,8 @@ export const AuthProvider = ({ children }) => {
                 console.log("getDashboardPath: Redirecting to /staff");
                 return "/staff";
             case "CUSTOMER":
-                console.log("getDashboardPath: Redirecting to /customer");
-                return "/user";
+                console.log("getDashboardPath: Redirecting to /");
+                return "/";
             default:
                 console.log("getDashboardPath: Unknown role, redirecting to /");
                 return "/";

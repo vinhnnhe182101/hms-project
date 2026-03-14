@@ -17,8 +17,8 @@ import java.util.*;
 @Scope("prototype")
 public class SpecificationUtils<T> {
     private ObjectProvider<GenericSpecification<T>> genericSpecificationObjectProvider;
-    private Map<SearchCriteria, LogicalOperator> searchCriteriaLogicalOperatorMap;
-    private Map<SortCriteria, LogicalOperator> sortCriteriaLogicalOperatorMap;
+    private Map<SearchCriteria, LogicalOperator> searchCriteriaLogicalOperatorMap = new LinkedHashMap<>();
+    private Map<SortCriteria, LogicalOperator> sortCriteriaLogicalOperatorMap = new LinkedHashMap<>();
 
     @Autowired
     public void setGenericSpecificationObjectProvider(ObjectProvider<GenericSpecification<T>> genericSpecificationObjectProvider) {
@@ -26,11 +26,17 @@ public class SpecificationUtils<T> {
     }
 
     public SpecificationUtils<T> addSearchCriteria(SearchCriteria searchCriteria, LogicalOperator logicalOperator) {
+        if (searchCriteriaLogicalOperatorMap == null) {
+            searchCriteriaLogicalOperatorMap = new LinkedHashMap<>();
+        }
         searchCriteriaLogicalOperatorMap.put(searchCriteria, logicalOperator);
         return this;
     }
 
     public SpecificationUtils<T> addSortCriteria(SortCriteria sortCriteria, LogicalOperator logicalOperator) {
+        if (sortCriteriaLogicalOperatorMap == null) {
+            sortCriteriaLogicalOperatorMap = new LinkedHashMap<>();
+        }
         sortCriteriaLogicalOperatorMap.put(sortCriteria, logicalOperator);
         return this;
     }
@@ -57,8 +63,8 @@ public class SpecificationUtils<T> {
     }
 
     public SpecificationUtils<T> reset() {
-        this.searchCriteriaLogicalOperatorMap = new HashMap<>();
-        this.sortCriteriaLogicalOperatorMap = new HashMap<>();
+        this.searchCriteriaLogicalOperatorMap = new LinkedHashMap<>();
+        this.sortCriteriaLogicalOperatorMap = new LinkedHashMap<>();
         return this;
     }
 
@@ -155,12 +161,21 @@ public class SpecificationUtils<T> {
     }
 
     public Specification<T> getSpecifications(List<SearchCriteria> searchCriterias, List<SortCriteria> sortCriterias) {
-        for (SearchCriteria searchCriteria : searchCriterias) {
-            this.searchCriteriaLogicalOperatorMap.put(searchCriteria, LogicalOperator.AND);
+        // Clear previous state because this utility instance can be reused across requests.
+        reset();
+
+        if (searchCriterias != null) {
+            for (SearchCriteria searchCriteria : searchCriterias) {
+                this.searchCriteriaLogicalOperatorMap.put(searchCriteria, LogicalOperator.AND);
+            }
         }
-        for (SortCriteria sortCriteria : sortCriterias) {
-            this.sortCriteriaLogicalOperatorMap.put(sortCriteria, LogicalOperator.AND);
+
+        if (sortCriterias != null) {
+            for (SortCriteria sortCriteria : sortCriterias) {
+                this.sortCriteriaLogicalOperatorMap.put(sortCriteria, LogicalOperator.AND);
+            }
         }
+
         return getSpecification();
     }
 

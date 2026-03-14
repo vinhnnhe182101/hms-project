@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.request.CreateRoomRequest;
 import com.product.hms.dto.request.RoomSearchFilter;
 import com.product.hms.dto.response.*;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,12 @@ public interface RoomService {
      * @return Trang kết quả tìm kiếm phòng
      */
     Page<RoomResponse> search(RoomSearchFilter filter, Pageable pageable);
+
+    RoomResponse createRoom(CreateRoomRequest request);
+
+    RoomResponse updateRoom(Long id, CreateRoomRequest request);
+
+    void deleteRoom(Long id);
 
     /**
      * Lấy thông tin về số lượng phòng trống theo từng hạng phòng cho khoảng thời
