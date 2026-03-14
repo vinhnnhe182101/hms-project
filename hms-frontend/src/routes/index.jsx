@@ -168,7 +168,7 @@ export const router = createBrowserRouter([
                 }
             })
         ],
-    }, ,
+    },
     {
         path: '/oauth2/redirect',
         element: <OAuth2RedirectPage/>,
