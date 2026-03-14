@@ -8,6 +8,7 @@ import ServiceManagementPage from "../../pages/admin/ServiceManagementPage.jsx";
 import StaffManagementPage from "../../pages/admin/StaffManagementPage.jsx";
 import UserManagementPage from "../../pages/admin/UserManagementPage.jsx"
 import ScheduleManagementPage from "../../pages/admin/ScheduleManagementPage.jsx";
+import TaskManagementPage from "../../pages/admin/TaskManagementPage.jsx";
 
 export const AdminRoutes = (
     <Route
@@ -26,6 +27,7 @@ export const AdminRoutes = (
         <Route path="reservations" element={<div>Reservations Management</div>}/>
         <Route path="staff" element={<StaffManagementPage />}/>
         <Route path="schedules" element={<ScheduleManagementPage />}/>
+        <Route path="tasks" element={<TaskManagementPage />}/>
         <Route path="payments" element={<div>Payments Management</div>}/>
         <Route path="reports" element={<div>Reports Management</div>}/>
         <Route path="settings" element={<div>Settings</div>}/>

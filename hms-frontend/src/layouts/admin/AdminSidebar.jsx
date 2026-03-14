@@ -11,7 +11,8 @@ import {
     IconBed,
     IconCategory,
     IconTool,
-    IconCalendarEvent // Import thêm icon cho phần Lịch làm việc
+    IconCalendarEvent, // Import icon cho phần Lịch làm việc
+    IconListCheck      // Import thêm icon cho phần Quản lý Task
 } from '@tabler/icons-react';
 
 export function AdminSidebar() {
@@ -23,8 +24,8 @@ export function AdminSidebar() {
         { label: 'Reservations', icon: IconCalendarStats, to: '/admin/reservations' },
         { label: 'Customers', icon: IconUsers, to: '/admin/customers' },
         { label: 'Staff', icon: IconUsers, to: '/admin/staff' },
-        // Thêm mục Schedules vào ngay dưới Staff
         { label: 'Schedules', icon: IconCalendarEvent, to: '/admin/schedules' },
+        { label: 'Tasks', icon: IconListCheck, to: '/admin/housekeeping-tasks' },
         { label: 'Payments', icon: IconCoin, to: '/admin/payments' },
         { label: 'Reports', icon: IconReport, to: '/admin/reports' },
     ];

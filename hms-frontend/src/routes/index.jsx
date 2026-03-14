@@ -37,6 +37,7 @@ import {NAV_ITEMS} from "../constants/staff.jsx";
 import StaffManagementPage from '../pages/admin/StaffManagementPage.jsx';
 import UserManagementPage from "../pages/admin/UserManagementPage.jsx"
 import ScheduleManagementPage from "../pages/admin/ScheduleManagementPage.jsx";
+import TaskManagementPage from "../pages/admin/TaskManagementPage.jsx";
 export const router = createBrowserRouter([
     // ===== ROLE-SPECIFIC ROUTES (Ưu tiên cao nhất) =====
     {
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
             {path: 'staff', element: <StaffManagementPage />},
             {path: 'customers', element: <UserManagementPage />},
             {path: 'schedules', element: <ScheduleManagementPage />},
+            {path: 'housekeeping-tasks', element: <TaskManagementPage />},
             {path: 'payments', element: <div>Payments Management</div>},
             {path: 'reports', element: <div>Reports Management</div>},
             {path: 'settings', element: <div>Settings</div>},
