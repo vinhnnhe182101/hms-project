@@ -1,25 +1,28 @@
+
 package com.product.hms.dto.response;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@Builder
 public class TaskCountResponse {
-    private long scheduled;     // Chờ làm
-    private long inProgress;    // Đang làm
-    private long completed;      // Hoàn thành
-    private long total;          // Tổng số
-    
-    // Tính phần trăm hoàn thành
-    public double getCompletionRate() {
-        if (total == 0) return 0;
-        return Math.round((completed * 100.0 / total) * 10) / 10.0;
-    }
-    
-    // Text hiển thị
-    public String getSummaryText() {
-        return String.format("Completed %d/%d task (%.1f%%)",
-            completed, total, getCompletionRate());
+    private long scheduled;
+    private long inProgress;
+    private long completed;
+    private long total;
+    private double completionRate;
+
+    public static TaskCountResponse of(long scheduled, long inProgress, long completed) {
+        long total = scheduled + inProgress + completed;
+        double rate = total > 0 ? Math.round((completed * 100.0 / total) * 10) / 10.0 : 0;
+
+        return TaskCountResponse.builder()
+                .scheduled(scheduled)
+                .inProgress(inProgress)
+                .completed(completed)
+                .total(total)
+                .completionRate(rate)
+                .build();
     }
 }

@@ -1,12 +1,14 @@
 // src/hooks/useAuth.jsx
 import * as React from "react";
-import {createContext, useContext, useEffect, useState} from "react";
-import {authApi} from "../apis/authApi";
-import {jwtDecode} from "jwt-decode";
+import { createContext, useContext, useEffect, useState } from "react";
+import { authApi } from "../apis/authApi";
+import { jwtDecode } from "jwt-decode";
+import { notifications } from "@mantine/notifications";
 
+/** @type {AuthContextType} */
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({children}) => {
+export const AuthProvider = ({ children }) => {
     /**
      * @type {[UserResponseDTO, React.Dispatch<UserResponseDTO>]}
      */
@@ -77,7 +79,7 @@ export const AuthProvider = ({children}) => {
             localStorage.setItem("accessToken", token);
             setUser(userData);
 
-            return {success: true, user: userData};
+            return { success: true, user: userData };
         } catch (error) {
             return {
                 success: false,
@@ -114,7 +116,12 @@ export const AuthProvider = ({children}) => {
     const logout = () => {
         localStorage.removeItem("accessToken");
         setUser(null);
-        window.location.href = "/";
+        window.location.href = "/user";
+        notifications.show({
+            title: 'Success',
+            message: `You have been logged out successfully.`,
+            color: 'green',
+        });
     };
 
     /**
@@ -126,28 +133,38 @@ export const AuthProvider = ({children}) => {
     const hasRole = (roles) => {
         if (!user) return false;
         return Array.isArray(roles)
-                ? roles.includes(user.role)
-                : user.role === roles;
+            ? roles.includes(user.role)
+            : user.role === roles;
     };
 
     const getDashboardPath = (targetUser) => {
-        if (!targetUser) return "/";
+        if (!targetUser) {
+            console.log("getDashboardPath: No user provided, returning /");
+            return "/";
+        }
 
-        // Support both ADMIN and ROLE_ADMIN style payloads.
-        const role = String(targetUser.role || "").replace(/^ROLE_/, "").toUpperCase();
+        console.log("getDashboardPath: User role =", targetUser.role);
+        console.log("getDashboardPath: Full user object =", targetUser);
 
-        switch (role) {
+        switch (targetUser.role) {
             case "ADMIN":
+                console.log("getDashboardPath: Redirecting to /admin");
                 return "/admin";
             case "HOUSEKEEPING":
+                console.log("getDashboardPath: Redirecting to /housekeeping");
                 return "/housekeeping";
             case "RECEPTIONIST":
+                console.log("getDashboardPath: Redirecting to /receptionist");
                 return "/receptionist";
             case "STAFF":
+                console.log("getDashboardPath: Redirecting to /staff");
                 return "/staff";
             case "CUSTOMER":
-            default:
+                console.log("getDashboardPath: Redirecting to /customer");
                 return "/user";
+            default:
+                console.log("getDashboardPath: Unknown role, redirecting to /");
+                return "/";
         }
     };
 

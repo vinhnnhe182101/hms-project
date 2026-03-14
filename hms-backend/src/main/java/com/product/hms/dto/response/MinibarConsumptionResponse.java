@@ -1,30 +1,25 @@
+// dto/response/housekeeping/MinibarConsumptionResponse.java
 package com.product.hms.dto.response;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 
 @Getter
-@Setter
+@Builder
 public class MinibarConsumptionResponse {
     private Long id;
     private String roomNumber;
     private String assetName;
-    private String categoryName;
-    private Integer quantityConsumed;
-    private Double priceAtTime;
-    private Double totalPrice;
-    private String reportedBy;
+    private Integer quantity;
+    private BigDecimal price;
+    private Double total;
+    private String status;
     private Timestamp createdAt;
-    private Integer remainingQuantity;
-    
-    public String getFormattedCreatedAt() {
-        if (createdAt == null) return "";
-        return new SimpleDateFormat("HH:mm dd/MM/yyyy").format(createdAt);
-    }
-    
-    public String getTotalPriceDisplay() {
-        return String.format("%,.0f VND", totalPrice);
+
+    public String getFormattedTotal() {
+        return String.format("$%.2f", total);
     }
 }

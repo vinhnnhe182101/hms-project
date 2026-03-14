@@ -42,12 +42,23 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // JwtTokenProvider.java
     public String generateToken(UserEntity user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", user.getId());
-        claims.put("role", user.getRole());
         claims.put("provider", user.getProvider());
-        claims.put("email", user.getEmail() );
+        claims.put("email", user.getEmail());
+
+        // Xử lý role: Thêm prefix ROLE_ để khớp với Spring Security
+        if ("STAFF".equals(user.getRole())) {
+            if (user.getStaffEntity() != null && user.getStaffEntity().getDepartment() != null) {
+                claims.put("role",user.getStaffEntity().getDepartment().name());
+            } else {
+                claims.put("role", "STAFF");
+            }
+        } else {
+            claims.put("role",user.getRole());
+        }
 
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
@@ -71,6 +82,16 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+
+
+    public String getRoleFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("role", String.class);
+    }
     public boolean validateToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);

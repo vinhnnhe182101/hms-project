@@ -5,7 +5,7 @@ import {
     IconHome,
     IconChecklist,
     IconCalendar,
-    IconClipboardList,
+    IconChartBar,
     IconUser
 } from '@tabler/icons-react';
 import { useHousekeepingTasks } from '../../hooks/useHousekeepingTasks';
@@ -36,14 +36,8 @@ export function HousekeepingBottomNav() {
         },
         {
             path: '/housekeeping/reports',
-            icon: IconClipboardList,
+            icon: IconChartBar,
             label: 'Reports',
-            badge: null
-        },
-        {
-            path: '/housekeeping/profile',
-            icon: IconUser,
-            label: 'Profile',
             badge: null
         },
     ];
@@ -65,7 +59,8 @@ export function HousekeepingBottomNav() {
                 left: 0,
                 right: 0,
                 zIndex: 100,
-                backgroundColor: 'white'
+                backgroundColor: 'white',
+                boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.05)'
             }}
         >
             <Group justify="space-around" h={70} gap={0}>
@@ -83,30 +78,43 @@ export function HousekeepingBottomNav() {
                             gap: 4,
                             color: isActive(item.path)
                                 ? 'var(--mantine-color-blue-6)'
-                                : 'var(--mantine-color-gray-6)'
+                                : 'var(--mantine-color-gray-5)',
+                            transition: 'all 0.2s ease',
+                            transform: isActive(item.path) ? 'scale(1.05)' : 'scale(1)'
                         }}
                         onClick={() => navigate(item.path)}
                     >
                         <div style={{ position: 'relative' }}>
-                            <item.icon size={24} stroke={1.5} />
+                            <item.icon size={26} stroke={1.8} />
                             {item.badge > 0 && (
                                 <Badge
                                     size="xs"
                                     color="red"
+                                    variant="filled"
                                     style={{
                                         position: 'absolute',
-                                        top: -8,
-                                        right: -8,
-                                        minWidth: 18,
-                                        height: 18,
-                                        padding: 0
+                                        top: -10,
+                                        right: -10,
+                                        minWidth: 20,
+                                        height: 20,
+                                        padding: 0,
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        border: '2px solid white'
                                     }}
                                 >
-                                    {item.badge}
+                                    {item.badge > 9 ? '9+' : item.badge}
                                 </Badge>
                             )}
                         </div>
-                        <Text size="xs" fw={500}>
+                        <Text
+                            size="xs"
+                            fw={isActive(item.path) ? 600 : 400}
+                            style={{
+                                fontSize: 11,
+                                letterSpacing: 0.3
+                            }}
+                        >
                             {item.label}
                         </Text>
                     </ActionIcon>

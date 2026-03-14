@@ -1,46 +1,49 @@
+// src/layouts/housekeeping/HousekeepingLayout.jsx
 import { Outlet } from 'react-router-dom';
-import { AppShell, Container } from '@mantine/core';
+import { AppShell, Container, Box } from '@mantine/core';
 import { HousekeepingHeader } from './HousekeepingHeader';
 import { useAuth } from '../../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import {HousekeepingBottomNav} from "./HousekeepingBottomNav.jsx";
+import { HousekeepingBottomNav } from './HousekeepingBottomNav';
 
 export function HousekeepingLayout() {
     const { user, isAuthenticated } = useAuth();
 
-    console.log('HousekeepingLayout - user:', user);
-    console.log('HousekeepingLayout - isAuthenticated:', isAuthenticated);
-
     if (!isAuthenticated) {
-        console.log('HousekeepingLayout - Not authenticated, redirecting to login');
         return <Navigate to="/login" replace />;
     }
 
     if (user?.role !== 'HOUSEKEEPING') {
-        console.log(`HousekeepingLayout - Wrong role: ${user?.role}, redirecting to home`);
         return <Navigate to="/unauthorized" replace />;
     }
 
     return (
         <AppShell
-            header={{ height: 60 }}
-            footer={{ height: 70 }} // Thêm footer cho mobile navigation
+            header={{ height: 70 }}
+            footer={{ height: 80 }}
             padding={0}
+            styles={{
+                main: {
+                    background: 'linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%)'
+                }
+            }}
         >
-            <AppShell.Header>
+            <AppShell.Header withBorder={false}>
                 <HousekeepingHeader />
             </AppShell.Header>
 
-            <AppShell.Main style={{
-                paddingBottom: '70px',
-                minHeight: 'calc(100vh - 130px)'
-            }}>
-                <Container size="lg" px="sm" py="md">
+            <AppShell.Main>
+                <Box
+                    style={{
+                        padding: '20px 16px 90px 16px',
+                        minHeight: 'calc(100vh - 150px)'
+                    }}
+                >
                     <Outlet />
-                </Container>
+                </Box>
             </AppShell.Main>
 
-            <AppShell.Footer>
+            <AppShell.Footer withBorder={false}>
                 <HousekeepingBottomNav />
             </AppShell.Footer>
         </AppShell>
