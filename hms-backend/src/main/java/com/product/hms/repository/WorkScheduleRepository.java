@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface WorkScheduleRepository extends JpaRepository<WorkScheduleEntity, Long> {
@@ -30,5 +31,25 @@ public interface WorkScheduleRepository extends JpaRepository<WorkScheduleEntity
     List<WorkScheduleEntity> findActiveSchedulesByStaffAndDate(
             @Param("staffId") Long staffId,
             @Param("workDate") LocalDate workDate);
+
+    // Find schedule by staff and date range
+    List<WorkScheduleEntity> findByStaffEntityIdAndWorkDateBetween(
+            Long staffId, LocalDate startDate, LocalDate endDate);
+
+    // Find schedule by staff and specific date
+    Optional<WorkScheduleEntity> findByStaffEntityIdAndWorkDate(Long staffId, LocalDate workDate);
+
+    // Find all schedules in date range
+    List<WorkScheduleEntity> findByWorkDateBetween(LocalDate startDate, LocalDate endDate);
+
+    // Find schedules by shift
+    List<WorkScheduleEntity> findByShiftEntityId(Long shiftId);
+
+    // Check if staff is scheduled on date
+    @Query("SELECT COUNT(w) > 0 FROM WorkScheduleEntity w " +
+            "WHERE w.staffEntity.id = :staffId AND w.workDate = :date")
+    boolean existsByStaffEntityIdAndWorkDate(
+            @Param("staffId") Long staffId,
+            @Param("date") LocalDate date);
 }
 

@@ -2,58 +2,39 @@
 import axiosInstance from './axiosConfig';
 
 export const housekeepingApi = {
-    getMyTasks: async () => {
-        try {
-            const response = await axiosInstance.get('/housekeeping/tasks/my-tasks');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-            throw error;
-        }
-    },
+    // ==================== TASKS API ====================
+    getMyTasks: () => axiosInstance.get('/housekeeping/tasks/my-tasks'),
+    getTodayTasks: () => axiosInstance.get('/housekeeping/tasks/today'),
+    getTaskById: (id) => axiosInstance.get(`/housekeeping/tasks/${id}`),
+    startTask: (taskId) => axiosInstance.post(`/housekeeping/tasks/${taskId}/start`),
+    completeTask: (taskId) => axiosInstance.post(`/housekeeping/tasks/${taskId}/complete`),
+    getTaskCounts: () => axiosInstance.get('/housekeeping/tasks/counts'),
 
-    getTodayTasks: async () => {
-        try {
-            const response = await axiosInstance.get('/housekeeping/tasks/today');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching today tasks:', error);
-            throw error;
-        }
-    },
+    // ==================== MINIBAR API ====================
+    getMinibarItems: (roomId) => axiosInstance.get(`/housekeeping/minibar/rooms/${roomId}`),
+    reportMinibarConsumption: (data) => axiosInstance.post('/housekeeping/minibar/consume', data),
+    getMinibarHistory: (reservationId) => axiosInstance.get(`/housekeeping/minibar/history/${reservationId}`),
 
-    getTasksByStatus: async (status) => {
-        try {
-            const response = await axiosInstance.get(`/housekeeping/tasks/status/${status}`);
-            return response.data;
-        } catch (error) {
-            console.error(`Error fetching ${status} tasks:`, error);
-            throw error;
-        }
-    },
+    // ==================== DAMAGE API ====================
+    reportDamage: (data) => axiosInstance.post('/housekeeping/damage/report', data),
+    getMyDamageReports: () => axiosInstance.get('/housekeeping/damage/my-reports'),
+    resolveDamage: (reportId) => axiosInstance.post(`/housekeeping/damage/${reportId}/resolve`),
 
-    getTaskCounts: async () => {
-        try {
-            const response = await axiosInstance.get('/housekeeping/tasks/counts');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching task counts:', error);
-            throw error;
-        }
+    // ==================== SCHEDULE API ====================
+    getMySchedule: (startDate, endDate) => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        return axiosInstance.get(`/housekeeping/schedule/my-schedule?${params.toString()}`);
     },
-    // POST endpoints (mới)
-    startTask: async (taskId) => {
-        const response = await axiosInstance.post(`/housekeeping/tasks/${taskId}/start`);
-        return response.data;
-    },
+    getTodaySchedule: () => axiosInstance.get('/housekeeping/schedule/today'),
+    getScheduleSummary: () => axiosInstance.get('/housekeeping/schedule/summary'),
 
-    completeTask: async (taskId) => {
-        const response = await axiosInstance.post(`/housekeeping/tasks/${taskId}/complete`);
-        return response.data;
-    },
-
-    updateTaskStatus: async (data) => {
-        const response = await axiosInstance.put('/housekeeping/tasks/status', data);
-        return response.data;
+    // ==================== REPORTS API ====================
+    getPerformanceReport: (startDate, endDate) => {
+        const params = new URLSearchParams();
+        params.append('startDate', startDate);
+        params.append('endDate', endDate);
+        return axiosInstance.get(`/housekeeping/reports/performance?${params.toString()}`);
     }
 };

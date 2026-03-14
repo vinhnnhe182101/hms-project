@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
+import java.security.Timestamp;
 
 /**
  * Entity đại diện cho báo cáo hư hỏng tài sản/phòng.
@@ -63,5 +64,10 @@ public class DamageReportEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
+    @Lob
+    @Column(name = "description")
+    private String description;
 }

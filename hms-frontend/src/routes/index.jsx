@@ -1,3 +1,4 @@
+// src/routes/index.jsx
 import {createBrowserRouter} from 'react-router-dom';
 import {CustomerLayout} from '../layouts/customer/CustomerLayout';
 import {AdminLayout} from '../layouts/admin/AdminLayout';
@@ -11,17 +12,20 @@ import {AuthLayout} from "../layouts/AuthLayout.jsx";
 import OAuth2RedirectPage from "../pages/auth/OAuth2RedirectPage.jsx";
 import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
-import MobileTasksPage from "../pages/housekeeping/MobileTasksPage.jsx";
 import BookingHistoryPage from "../pages/customer/BookingHistoryPage.jsx";
 import RoomsPage from "../pages/customer/RoomsPage.jsx";
 import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import {StaffLayout} from "../layouts/staff/StaffLayout.jsx";
 
-function BookingDetailPage() {
-    return null;
-}
+// Import Housekeeping Pages
+import DashboardPage from '../pages/housekeeping/DashboardPage.jsx';
+import TasksPage from '../pages/housekeeping/TasksPage.jsx';
+import TaskDetailPage from '../pages/housekeeping/TaskDetailPage.jsx';
+import SchedulePage from '../pages/housekeeping/SchedulePage.jsx';
+import ReportsPage from '../pages/housekeeping/ReportsPage.jsx';
 
 export const router = createBrowserRouter([
+    // Public Customer Routes
     {
         path: '/',
         element: <CustomerLayout/>,
@@ -30,6 +34,8 @@ export const router = createBrowserRouter([
             {path: 'rooms', element: <RoomsPage/>},
         ],
     },
+
+    // Auth Routes
     {
         path: '/',
         element: <AuthLayout/>,
@@ -39,77 +45,115 @@ export const router = createBrowserRouter([
             {path: 'forgot-password', element: <div>Forgot Password</div>},
         ],
     },
+
+    // OAuth2 Redirect
+    {
+        path: '/oauth2/redirect',
+        element: <OAuth2RedirectPage/>,
+    },
+
+    // Booking Routes (Protected)
     {
         path: '/booking',
         element: (
-                <ProtectedRoute>
-                    <CustomerLayout/>
-                </ProtectedRoute>
+            <ProtectedRoute>
+                <CustomerLayout/>
+            </ProtectedRoute>
         ),
-        children: [],
+        children: [
+            {path: ':roomId', element: <div>Booking Page</div>},
+        ],
     },
+
+    // Customer Protected Routes
     {
         path: '/customer',
         element: (
-                <ProtectedRoute>
-                    <CustomerLayout/>
-                </ProtectedRoute>
+            <ProtectedRoute>
+                <CustomerLayout/>
+            </ProtectedRoute>
         ),
         children: [
+            {index: true, element: <HomePage/>},
             {path: 'bookings', element: <BookingHistoryPage/>},
-            {path: 'bookings/:id', element: <BookingDetailPage/>},
+            {path: 'profile', element: <div>Profile Page</div>},
         ],
     },
+
+    // Admin Routes
     {
         path: '/admin',
         element: (
-                <ProtectedRoute>
-                    <AdminLayout/>
-                </ProtectedRoute>
+            <ProtectedRoute requiredRole="ADMIN">
+                <AdminLayout/>
+            </ProtectedRoute>
         ),
         children: [
             {index: true, element: <AdminDashboardPage/>},
             {path: 'rooms', element: <div>Room Management</div>},
             {path: 'users', element: <div>User Management</div>},
             {path: 'bookings', element: <div>Booking Management</div>},
+            {path: 'staff', element: <div>Staff Management</div>},
+            {path: 'reports', element: <div>Reports</div>},
         ],
     },
+
+    // Housekeeping Routes
     {
         path: '/housekeeping',
         element: (
-                <ProtectedRoute>
-                    <HousekeepingLayout/>
-                </ProtectedRoute>
+            <ProtectedRoute requiredRole="HOUSEKEEPING">
+                <HousekeepingLayout/>
+            </ProtectedRoute>
         ),
         children: [
-            {index: true, element: <MobileTasksPage/>},
-            {path: 'tasks', element: <MobileTasksPage/>},
+            {index: true, element: <DashboardPage/>},
+            {path: 'dashboard', element: <DashboardPage/>},
+            {path: 'tasks', element: <TasksPage/>},
+            {path: 'tasks/:taskId', element: <TaskDetailPage/>},
+            {path: 'schedule', element: <SchedulePage/>},
+            {path: 'reports', element: <ReportsPage/>},
         ],
     },
+
+    // Receptionist Routes
     {
         path: '/receptionist',
         element: (
-                <ProtectedRoute>
-                    <RecepDashboardPage/>
-                </ProtectedRoute>
+            <ProtectedRoute requiredRole="RECEPTIONIST">
+                <RecepDashboardPage/>
+            </ProtectedRoute>
         ),
-        children: [],
+        children: [
+            {index: true, element: <RecepDashboardPage/>},
+            {path: 'checkin', element: <div>Check-in</div>},
+            {path: 'checkout', element: <div>Check-out</div>},
+            {path: 'reservations', element: <div>Reservations</div>},
+        ],
     },
+
+    // Staff Routes
     {
         path: '/staff',
         element: (
-                <ProtectedRoute>
-                    <StaffLayout/>
-                </ProtectedRoute>
-        )
+            <ProtectedRoute requiredRole="STAFF">
+                <StaffLayout/>
+            </ProtectedRoute>
+        ),
+        children: [
+            {index: true, element: <div>Staff Dashboard</div>},
+            {path: 'tasks', element: <div>Staff Tasks</div>},
+        ],
     },
-    {
-        path: '/oauth2/redirect',
-        element: <OAuth2RedirectPage/>,
-    },
+
+    // Error Routes
     {
         path: '/unauthorized',
         element: <UnauthorizedPage/>,
+    },
+    {
+        path: '/404',
+        element: <NotFoundPage/>,
     },
     {
         path: '*',
