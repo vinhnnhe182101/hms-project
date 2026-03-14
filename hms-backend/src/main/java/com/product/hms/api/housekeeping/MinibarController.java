@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/housekeeping/minibar")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('HOUSEKEEPING')")
+@PreAuthorize("hasAuthority('HOUSEKEEPING')")
 public class MinibarController {
 
     private final MinibarService minibarService;

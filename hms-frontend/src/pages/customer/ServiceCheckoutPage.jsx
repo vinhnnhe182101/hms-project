@@ -67,7 +67,7 @@ export default function ServiceCheckoutPage() {
         return (
             <Container py={60} ta="center">
                 <Title order={2} mb="md">Your cart is empty</Title>
-                <Button onClick={() => navigate('/services')} color="blue">
+                <Button onClick={() => navigate('/user/services')} color="blue">
                     Back to services list
                 </Button>
             </Container>
@@ -190,7 +190,7 @@ export default function ServiceCheckoutPage() {
                 icon: <IconCheck size={16} />,
                 autoClose: 8000
             });
-            navigate('/services');
+            navigate('/user/services');
         } catch (error) {
             notifications.show({
                 title: 'Error',
@@ -207,7 +207,7 @@ export default function ServiceCheckoutPage() {
         <Box style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', padding: '40px 0' }}>
             <Container size="md">
                 <Anchor
-                    onClick={() => navigate('/services')}
+                    onClick={() => navigate('/user/services')}
                     c="dimmed"
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}
                 >
@@ -334,7 +334,7 @@ export default function ServiceCheckoutPage() {
                         <Button
                             variant="default"
                             size="lg"
-                            onClick={() => navigate('/services')}
+                            onClick={() => navigate('/user/services')}
                         >
                             Cancel
                         </Button>

@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/housekeeping/tasks")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('HOUSEKEEPING')")
+@PreAuthorize("hasAuthority('HOUSEKEEPING')")
 public class HousekeepingTaskController {
 
     @Qualifier("housekeepingTaskServiceV2")
@@ -25,6 +27,8 @@ public class HousekeepingTaskController {
 
     @GetMapping("/my-tasks")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getMyTasks() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Current authorities: " + auth.getAuthorities());
         List<TaskResponse> tasks = taskService.getMyTasks();
         return ResponseEntity.ok(
                 ApiResponse.success("Lấy danh sách công việc thành công", tasks)

@@ -39,7 +39,6 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
             WHERE rc.isActive = true
             GROUP BY rc.id, rc.name, rc.standardCapacity, rc.maxCapacity, rc.basePrice, rc.extraPersonFee
-            ORDER BY rc.id ASC
             """)
     Page<Object[]> findRoomClassSummary(@Param("checkIn") Timestamp checkIn,
                                         @Param("checkOut") Timestamp checkOut,
@@ -58,7 +57,6 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
             LEFT JOIN RoomEntity r ON r.roomClassEntity.id = rc.id AND r.isActive = true
             WHERE rc.isActive = true
             GROUP BY rc.id, rc.name, rc.standardCapacity, rc.maxCapacity, rc.basePrice, rc.extraPersonFee
-            ORDER BY rc.id ASC
             """)
     Page<Object[]> findRoomClassSummaryWithoutDate(Pageable pageable);
 

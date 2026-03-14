@@ -38,7 +38,7 @@ export default function HomePage() {
 
     useEffect(() => {
         // ✅ CHỈ gọi API khi đang ở route '/'
-        if (location.pathname !== '/') {
+        if (location.pathname !== '/user') {
             console.log('HomePage: Not at root path, skipping API call');
             return;
         }
@@ -76,7 +76,7 @@ export default function HomePage() {
     };
 
     // Nếu không phải route '/', không render gì cả
-    if (location.pathname !== '/') {
+    if (location.pathname !== '/user') {
         return null;
     }
 
@@ -151,7 +151,7 @@ export default function HomePage() {
                                                 size="xl"
                                                 color="blue"
                                                 radius="md"
-                                                onClick={() => navigate('/booking')}
+                                                onClick={() => navigate('/user/booking')}
                                                 rightSection={<IconArrowRight size={20} />}
                                                 style={{ height: '56px', padding: '0 40px', boxShadow: '0 8px 24px rgba(34, 139, 230, 0.4)' }}
                                             >
@@ -162,7 +162,7 @@ export default function HomePage() {
                                                 variant="white"
                                                 color="dark"
                                                 radius="md"
-                                                onClick={() => navigate('/rooms')}
+                                                onClick={() => navigate('/user/rooms')}
                                                 style={{ height: '56px', padding: '0 40px' }}
                                             >
                                                 Explore Rooms
@@ -194,7 +194,7 @@ export default function HomePage() {
                             color="blue"
                             size="lg"
                             rightSection={<IconChevronRight size={18} />}
-                            onClick={() => navigate('/rooms')}
+                            onClick={() => navigate('/user/rooms')}
                         >
                             View All Rooms
                         </Button>
@@ -221,7 +221,7 @@ export default function HomePage() {
                                         e.currentTarget.style.transform = 'translateY(0)';
                                         e.currentTarget.style.boxShadow = 'none';
                                     }}
-                                    onClick={() => navigate(`/rooms/${room.id}`)}
+                                    onClick={() => navigate(`/user/rooms/${room.id}`)}
                                 >
                                     <Card.Section style={{ position: 'relative' }}>
                                         <Image
@@ -314,7 +314,7 @@ export default function HomePage() {
                                         e.currentTarget.querySelector('.service-icon').style.backgroundColor = 'var(--mantine-color-blue-0)';
                                         e.currentTarget.querySelector('.service-icon svg').style.color = 'var(--mantine-color-blue-6)';
                                     }}
-                                    onClick={() => navigate('/services')}
+                                    onClick={() => navigate('/user/services')}
                                 >
                                     <Box
                                         className="service-icon"
@@ -443,7 +443,7 @@ export default function HomePage() {
                                 color="blue"
                                 mt="xl"
                                 radius="md"
-                                onClick={() => navigate('/booking')}
+                                onClick={() => navigate('/user/booking')}
                                 style={{ height: '60px', padding: '0 50px', fontWeight: 700 }}
                             >
                                 Reserve Your Room Now

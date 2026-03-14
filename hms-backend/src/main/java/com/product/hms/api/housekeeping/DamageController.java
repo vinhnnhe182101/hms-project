@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/housekeeping/damage")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('HOUSEKEEPING')")
+@PreAuthorize("hasAuthority('HOUSEKEEPING')")
 public class DamageController {
 
     private final DamageService damageService;

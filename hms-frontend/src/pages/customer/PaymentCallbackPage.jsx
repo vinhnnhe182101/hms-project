@@ -31,7 +31,7 @@ export default function PaymentCallbackPage() {
                         icon: <IconCheck size={16} />,
                         autoClose: 5000
                     });
-                    navigate('/');
+                    navigate('/user');
                 } else {
                     // Thất bại (hoặc vnp_ResponseCode != 00)
                     const errorMsg = data.vnp_ResponseCode ? `Mã lỗi: ${data.vnp_ResponseCode}` : `Lỗi hệ thống: ${data.RspCode}`;
@@ -43,7 +43,7 @@ export default function PaymentCallbackPage() {
                         autoClose: 10000
                     });
                     // Quay lại trang booking để người dùng có thể đặt lại
-                    navigate('/booking');
+                    navigate('/user/booking');
                 }
             } catch (error) {
                 console.error('Error verifying payment:', error);
@@ -53,7 +53,7 @@ export default function PaymentCallbackPage() {
                     color: 'red',
                     icon: <IconX size={16} />
                 });
-                navigate('/');
+                navigate('/user');
             }
         };
 

@@ -16,7 +16,7 @@ export function CustomerHeader() {
     const location = useLocation();
     const { isAuthenticated, user, logout } = useAuth();
     const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
-    const customerBasePath = isAuthenticated ? '/user' : '';
+    const customerBasePath = '/user';
 
     const handleLogout = async () => {
         console.log('Logout button clicked');
@@ -31,7 +31,7 @@ export function CustomerHeader() {
     ];
 
     const isActivePath = (path) => {
-        if (path === '/') return location.pathname === '/';
+        if (path === '/user') return location.pathname === '/user';
         return location.pathname.startsWith(path);
     };
 
@@ -45,7 +45,7 @@ export function CustomerHeader() {
                         <Title
                             order={2}
                             style={{ cursor: 'pointer' }}
-                            onClick={() => navigate(customerBasePath || '/')}
+                            onClick={() => navigate('/user')}
                         >
                             FPTU Hotel
                         </Title>
@@ -87,7 +87,7 @@ export function CustomerHeader() {
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Navigation</Menu.Label>
-                                    
+
                                     <Menu.Item
                                         leftSection={<IconCalendarPlus size={14} />}
                                         onClick={() => navigate(`${customerBasePath}/booking`)}
@@ -169,7 +169,7 @@ export function CustomerHeader() {
                                 variant="light"
                                 leftSection={<IconDashboard size={18} />}
                                 onClick={() => {
-                                    navigate(customerBasePath || '/');
+                                    navigate('/user');
                                     closeDrawer();
                                 }}
                                 fullWidth

@@ -10,7 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.security.Timestamp;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,6 +78,17 @@ public class FolioItemEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = new Timestamp(System.currentTimeMillis());
+        }
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+    }
 }

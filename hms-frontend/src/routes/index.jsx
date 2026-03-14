@@ -1,5 +1,5 @@
 // src/routes/index.jsx
-import {createBrowserRouter} from 'react-router-dom';
+import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {CustomerLayout} from '../layouts/customer/CustomerLayout.jsx';
 import {AdminLayout} from '../layouts/admin/AdminLayout.jsx';
 import {HousekeepingLayout} from '../layouts/housekeeping/HousekeepingLayout.jsx';
@@ -111,29 +111,9 @@ export const router = createBrowserRouter([
         ],
     },
 
-    // ===== CUSTOMER PROTECTED ROUTES =====
+    // ===== CUSTOMER ROUTES (Public & Protected) =====
     {
         path: '/user',
-        element: (
-            <ProtectedRoute>
-                <CustomerLayout/>
-            </ProtectedRoute>
-        ),
-        children: [
-            {index: true, element: <HomePage/>},
-            {path: 'rooms', element: <RoomsPage/>},
-            {path: 'rooms/:id', element: <RoomDetailPage/>},
-            {path: 'services', element: <ServicesPage/>},
-            {path: 'services/checkout', element: <ServiceCheckoutPage/>},
-            {path: 'booking', element: <BookingPage/>},
-            {path: 'booking/checkout', element: <CheckoutPage/>},
-            {path: 'history', element: <BookingHistoryPage/>},
-        ],
-    },
-
-    // ===== PUBLIC ROUTES (Dùng CustomerLayout) =====
-    {
-        path: '/',
         element: <CustomerLayout/>,
         children: [
             {index: true, element: <HomePage/>},
@@ -147,7 +127,10 @@ export const router = createBrowserRouter([
             {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
         ],
     },
-
+    {
+        path: '/',
+        element: <Navigate to="/user" replace />,
+    },
     // ===== AUTH LAYOUT RIÊNG (nếu muốn layout khác cho auth) =====
     {
         path: '/',

@@ -30,7 +30,8 @@ public class HomeRoomClassApi {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkIn,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkOut,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(required = false) String sortBy
     ) {
         if (checkIn == null) {
             checkIn = LocalDateTime.now();
@@ -44,7 +45,14 @@ public class HomeRoomClassApi {
             checkOut = checkIn.plusDays(1);
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Sort sort = Sort.by("id").ascending();
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("basePrice").ascending();
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("basePrice").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<RoomClassResponse> resultPage = roomClassService.getRoomClassList(
                 Timestamp.valueOf(checkIn),
                 Timestamp.valueOf(checkOut),
