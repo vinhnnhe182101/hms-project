@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/housekeeping/schedule")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('HOUSEKEEPING')")
+@PreAuthorize("hasAuthority('HOUSEKEEPING')")
 public class ScheduleController {
 
     private final ScheduleService scheduleService;

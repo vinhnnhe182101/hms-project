@@ -94,6 +94,7 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/oauth2/**"
                         ).permitAll()
+//                        .requestMatchers("/api/housekeeping/**").hasAuthority("HOUSEKEEPING")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

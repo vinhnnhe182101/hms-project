@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/housekeeping/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('HOUSEKEEPING')")
+@PreAuthorize("hasAuthority('HOUSEKEEPING')")
 public class ReportsController {
     
     private final ReportsService reportsService;
