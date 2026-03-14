@@ -129,7 +129,7 @@ export default function BookingPage() {
                 total: quantities[r.id] * r.basePrice * nights,
             }));
 
-        navigate('/booking/checkout', {
+        navigate('/user/booking/checkout', {
             state: { checkIn, checkOut, nights, guests, rooms: selected }
         });
     };

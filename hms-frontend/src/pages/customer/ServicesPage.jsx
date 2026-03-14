@@ -357,7 +357,7 @@ export default function ServicesPage() {
                                                 fontWeight: 600,
                                                 padding: '14px'
                                             }}
-                                            onClick={() => navigate('/services/checkout', { state: { cart } })}
+                                            onClick={() => navigate('/user/services/checkout', { state: { cart } })}
                                         >
                                             Place Order
                                         </Button>

@@ -53,7 +53,7 @@ export default function CheckoutPage() {
         return (
             <Container py={60} ta="center">
                 <Title order={2} c="red" mb="md">Booking information not found</Title>
-                <Button onClick={() => navigate('/booking')}>Back to Booking Page</Button>
+                <Button onClick={() => navigate('/user/booking')}>Back to Booking Page</Button>
             </Container>
         );
     }
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
                     icon: <IconCheck size={16} />,
                     autoClose: 8000
                 });
-                navigate('/');
+                navigate('/user');
             }
         } catch (error) {
             console.error('Error creating booking:', error);

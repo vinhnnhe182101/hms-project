@@ -1,14 +1,14 @@
 // src/hooks/useAuth.jsx
 import * as React from "react";
-import {createContext, useContext, useEffect, useState} from "react";
-import {authApi} from "../apis/authApi";
-import {jwtDecode} from "jwt-decode";
-import {notifications} from "@mantine/notifications";
+import { createContext, useContext, useEffect, useState } from "react";
+import { authApi } from "../apis/authApi";
+import { jwtDecode } from "jwt-decode";
+import { notifications } from "@mantine/notifications";
 
 /** @type {AuthContextType} */
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({children}) => {
+export const AuthProvider = ({ children }) => {
     /**
      * @type {[UserResponseDTO, React.Dispatch<UserResponseDTO>]}
      */
@@ -79,7 +79,7 @@ export const AuthProvider = ({children}) => {
             localStorage.setItem("accessToken", token);
             setUser(userData);
 
-            return {success: true, user: userData};
+            return { success: true, user: userData };
         } catch (error) {
             return {
                 success: false,
@@ -116,7 +116,7 @@ export const AuthProvider = ({children}) => {
     const logout = () => {
         localStorage.removeItem("accessToken");
         setUser(null);
-        window.location.href = "/";
+        window.location.href = "/user";
         notifications.show({
             title: 'Success',
             message: `You have been logged out successfully.`,
@@ -133,8 +133,8 @@ export const AuthProvider = ({children}) => {
     const hasRole = (roles) => {
         if (!user) return false;
         return Array.isArray(roles)
-                ? roles.includes(user.role)
-                : user.role === roles;
+            ? roles.includes(user.role)
+            : user.role === roles;
     };
 
     const getDashboardPath = (targetUser) => {
