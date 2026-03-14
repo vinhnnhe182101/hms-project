@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import java.util.Locale;
 
 public class StaffSpecification {
 
@@ -35,12 +36,16 @@ public class StaffSpecification {
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("phoneNumber")), "%" + phoneNumber.toLowerCase() + "%"));
             }
 
+            // ĐÃ SỬA LỖI LỌC PHÒNG BAN TẠI ĐÂY
             if (department != null && !department.isBlank()) {
                 try {
-                    Department dep = Department.valueOf(department);
-                    predicate = cb.and(predicate, cb.equal(root.get("department"), dep));
-                } catch (IllegalArgumentException ignored) {
-                    // If invalid enum provided, no department filter will be applied
+                    // Ép chuỗi truyền vào thành IN HOA để luôn khớp với Enum
+                    Department depEnum = Department.valueOf(department.toUpperCase(Locale.ROOT));
+                    predicate = cb.and(predicate, cb.equal(root.get("department"), depEnum));
+                } catch (IllegalArgumentException e) {
+                    // Nếu Frontend truyền lên 1 department sai (vd: "ABC"), ta cho Predicate trả về FALSE (1=0)
+                    // Như vậy API sẽ trả về danh sách rỗng, thay vì trả về toàn bộ nhân viên như cũ.
+                    predicate = cb.and(predicate, cb.disjunction());
                 }
             }
 

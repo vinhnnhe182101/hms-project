@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public static final String DEFAULT_STAFF_PASSWORD = "Hms@HelloCacBan";
+    public static final String DEFAULT_STAFF_PASSWORD = "Hms@HeloCacBan";
 
     public UserServiceImpl(UserRepository userRepository, StaffRepository staffRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -127,7 +128,7 @@ public class UserServiceImpl implements UserService {
         StaffEntity staffEntity = new StaffEntity();
         staffEntity.setFullName(request.getFullName());
         staffEntity.setPhoneNumber(request.getPhoneNumber());
-        staffEntity.setDepartment(Department.valueOf(request.getDepartment()));
+        staffEntity.setDepartment(Department.valueOf(request.getDepartment().toUpperCase(Locale.ROOT)));
         staffEntity.setStatus(request.getStatus());
         staffEntity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
         staffEntity.setUserEntity(savedUser);
@@ -199,7 +200,7 @@ public class UserServiceImpl implements UserService {
                 .id(e.getId())
                 .fullName(e.getFullName())
                 .phoneNumber(e.getPhoneNumber())
-                .department(e.getDepartment().toString())
+                .department(e.getDepartment().name())
                 .status(e.getStatus())
                 .isActive(e.getIsActive())
                 .userId(e.getUserEntity() != null ? e.getUserEntity().getId() : null)

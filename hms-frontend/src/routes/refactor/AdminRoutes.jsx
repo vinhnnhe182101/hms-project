@@ -2,10 +2,10 @@ import {Route} from "react-router-dom";
 import {ProtectedRoute} from "../ProtectedRoute.jsx";
 import {AdminLayout} from "../../layouts/admin/AdminLayout.jsx";
 import AdminDashboardPage from "../../pages/admin/DashboardPage.jsx";
-import StaffManagementPage from "../../page/admin/StaffManagementPage.jsx"; // <-- THÊM DÒNG NÀY
 import RoomManagementPage from "../../pages/admin/RoomManagementPage.jsx";
 import RoomTypesPage from "../../pages/admin/RoomTypesPage.jsx";
 import ServiceManagementPage from "../../pages/admin/ServiceManagementPage.jsx";
+import StaffManagementPage from "../../pages/admin/StaffManagementPage.jsx";
 
 export const AdminRoutes = (
     <Route
@@ -22,7 +22,7 @@ export const AdminRoutes = (
         <Route path="rooms/service" element={<ServiceManagementPage/>}/>
         <Route path="reservations" element={<div>Reservations Management</div>}/>
         <Route path="customers" element={<div>Customers Management</div>}/>
-        <Route path="staff" element={<div>StaffManagementPage</div>}/>
+        <Route path="staff" element={<StaffManagementPage />}/>
         <Route path="payments" element={<div>Payments Management</div>}/>
         <Route path="reports" element={<div>Reports Management</div>}/>
         <Route path="settings" element={<div>Settings</div>}/>

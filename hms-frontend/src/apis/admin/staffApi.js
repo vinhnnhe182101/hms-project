@@ -1,27 +1,28 @@
-import axios from 'axios';
+import axiosInstance from '../axiosConfig';
 
-// Thay thế bằng axios instance của bạn nếu có
-const API_URL = '/api/v1/admin/staff';
+// Vì axiosInstance đã có baseURL là '.../api', nên ta chỉ cần phần còn lại
+const API_URL = '/v1/admin/staff';
 
 export const staffApi = {
     // Lấy danh sách phân trang và filter
     getStaffs: async (params) => {
-        const response = await axios.get(`${API_URL}/page`, { params });
+        // Đổi axios.get thành axiosInstance.get
+        const response = await axiosInstance.get(`${API_URL}/page`, { params });
         return response.data;
     },
     // Lấy chi tiết nhân viên
     getStaffById: async (id) => {
-        const response = await axios.get(`${API_URL}/${id}`);
+        const response = await axiosInstance.get(`${API_URL}/${id}`);
         return response.data;
     },
     // Tạo mới tài khoản nhân viên
     createStaff: async (data) => {
-        const response = await axios.post(API_URL, data);
+        const response = await axiosInstance.post(API_URL, data);
         return response.data;
     },
     // Xóa/Vô hiệu hóa nhân viên
     deleteStaff: async (id) => {
-        const response = await axios.delete(`${API_URL}/${id}`);
+        const response = await axiosInstance.delete(`${API_URL}/${id}`);
         return response.data;
     }
 };
