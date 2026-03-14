@@ -27,7 +27,8 @@ import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import {StaffLayout} from "../layouts/staff/StaffLayout.jsx";
 import {NAV_ITEMS} from "../constants/staff.jsx";
 import StaffManagementPage from '../pages/admin/StaffManagementPage.jsx';
-import UserManagementPage from "../pages/admin/UserManagementPage.jsx"
+import UserManagementPage from "../pages/admin/UserManagementPage.jsx";
+import ScheduleManagementPage from "../pages/admin/ScheduleManagementPage.jsx";
 export const router = createBrowserRouter([
     {
         path: '/',
@@ -117,6 +118,7 @@ export const router = createBrowserRouter([
             {path: 'staff', element: <StaffManagementPage />},
             {path: 'reservations', element: <div>Reservations Management</div>},
             {path: 'customers', element: <UserManagementPage />},
+            {path: 'schedules', element: <ScheduleManagementPage />},
             {path: 'staff', element: <div>Staff Management</div>},
             {path: 'payments', element: <div>Payments Management</div>},
             {path: 'reports', element: <div>Reports Management</div>},

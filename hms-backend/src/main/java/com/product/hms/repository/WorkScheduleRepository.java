@@ -21,6 +21,11 @@ public interface WorkScheduleRepository extends JpaRepository<WorkScheduleEntity
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT ws FROM WorkScheduleEntity ws WHERE ws.workDate BETWEEN :startDate AND :endDate ORDER BY ws.workDate ASC")
+    List<WorkScheduleEntity> findSchedulesByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
     /**
      * Find all active work schedules for a staff member on a specific date.
      * Used for overnight shift checking.
