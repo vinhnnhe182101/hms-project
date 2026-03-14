@@ -6,7 +6,6 @@ import {
     IconHotelService,
     IconUsers,
     IconCalendarStats,
-    IconSettings,
     IconReport,
     IconCoin,
     IconBed,
@@ -24,7 +23,6 @@ export function AdminSidebar() {
         { label: 'Staff', icon: IconUsers, to: '/admin/staff' },
         { label: 'Payments', icon: IconCoin, to: '/admin/payments' },
         { label: 'Reports', icon: IconReport, to: '/admin/reports' },
-        { label: 'Settings', icon: IconSettings, to: '/admin/settings' },
     ];
 
     return (
