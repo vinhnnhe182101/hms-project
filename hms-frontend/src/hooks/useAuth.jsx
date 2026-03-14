@@ -4,6 +4,7 @@ import {createContext, useContext, useEffect, useState} from "react";
 import {authApi} from "../apis/authApi";
 import {jwtDecode} from "jwt-decode";
 
+/** @type {AuthContextType} */
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({children}) => {
@@ -130,20 +131,24 @@ export const AuthProvider = ({children}) => {
                 : user.role === roles;
     };
 
-    const getDashboardPath = (user) => {
-        if (!user) return "/";
+    const getDashboardPath = (targetUser) => {
+        if (!targetUser) return "/";
 
-        switch (user.role) {
+        // Support both ADMIN and ROLE_ADMIN style payloads.
+        const role = String(targetUser.role || "").replace(/^ROLE_/, "").toUpperCase();
+
+        switch (role) {
             case "ADMIN":
                 return "/admin";
             case "HOUSEKEEPING":
                 return "/housekeeping";
-            case "CUSTOMER":
-                return "/";
             case "RECEPTIONIST":
                 return "/receptionist";
+            case "STAFF":
+                return "/staff";
+            case "CUSTOMER":
             default:
-                return "/";
+                return "/user";
         }
     };
 

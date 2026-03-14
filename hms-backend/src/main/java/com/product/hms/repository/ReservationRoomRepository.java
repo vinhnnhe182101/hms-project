@@ -29,11 +29,17 @@ public interface ReservationRoomRepository extends JpaRepository<ReservationRoom
      */
     void deleteByReservationEntity(ReservationEntity reservationEntity);
 
+    @Query("SELECT rr FROM ReservationRoomEntity rr " +
+           "JOIN rr.reservationEntity res " +
+           "WHERE res.customerEntity.id = :customerId " +
+           "AND rr.isActive = true " +
+           "AND res.status IN :statuses")
+    List<ReservationRoomEntity> findActiveAllocationsByCustomer(
+            @org.springframework.data.repository.query.Param("customerId") Long customerId,
+            @org.springframework.data.repository.query.Param("statuses") List<com.product.hms.enums.ReservationStatus> statuses);
+
     /**
      * Tìm kiếm tất cả các ReservationRoomEntity theo id của ReservationEntity và isActive = true
-     *
-     * @param reservationId id của ReservationEntity cần tìm kiếm
-     * @return Danh sách các ReservationRoomEntity thỏa mãn điều kiện
      */
     List<ReservationRoomEntity> findByReservationEntity_IdAndIsActiveTrue(Long reservationId);
 

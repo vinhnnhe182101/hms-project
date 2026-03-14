@@ -6,8 +6,11 @@ import com.product.hms.entity.CustomerEntity;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.CustomerRepository;
+import com.product.hms.repository.specification.CustomerSpecification;
 import com.product.hms.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,5 +32,12 @@ public class CustomerServiceImpl implements CustomerService {
                 ));
 
         return customerMapper.toResponse(customer);
+    }
+
+    @Override
+    public Page<CustomerResponse> getCustomersWithPagination(String email, Boolean isActive, Pageable pageable) {
+        var spec = CustomerSpecification.build(email, isActive);
+        Page<CustomerEntity> page = customerRepository.findAll(spec, pageable);
+        return page.map(customerMapper::toResponse);
     }
 }

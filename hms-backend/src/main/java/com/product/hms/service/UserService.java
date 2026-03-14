@@ -7,6 +7,8 @@ import com.product.hms.dto.request.UserRequestDTO;
 import com.product.hms.dto.response.StaffResponseDTO;
 import com.product.hms.dto.response.UserResponseDTO;
 import com.product.hms.enums.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,10 @@ public interface UserService {
     StaffResponseDTO updateStaff(Long id, StaffRequestDTO request);
     void deleteStaff(Long id);
 
+    // Pagination & filtering for staff
+    Page<StaffResponseDTO> getStaffWithPagination(String name, String email, String phoneNumber, String department, String status, Boolean isActive, Pageable pageable);
+
+    Page<UserResponseDTO> getCustomerUsersWithPagination(String email, Boolean isActive, Pageable pageable);
     // ==========================================
     // 3. AUTH & UTILS
     // ==========================================

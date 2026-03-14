@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.entity.FolioEntity;
 import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.entity.ServiceBookingEntity;
 import com.product.hms.entity.FolioEntity;
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 
 public interface FolioService {
     void createFolioWithDepositItem(ReservationRoomEntity allocation, BigDecimal depositAmount);
+    FolioEntity createFolioForBooking(ReservationRoomEntity allocation, BigDecimal totalAmount);
 
     /**
      * Tạo một folio item cho khoản hoàn tiền (refund) khi khách hàng hủy đặt phòng.
@@ -40,6 +42,13 @@ public interface FolioService {
      * @param feeAmount  số tiền phí check-out muộn (positive value)
      */
     void applyLateCheckOutFee(ReservationRoomEntity allocation, BigDecimal feeAmount);
+
+    /**
+     * Thêm mới khoản phí dịch vụ (service charge) vào folio.
+     *
+     * @param serviceBooking đặt dịch vụ mới cần thêm phí
+     */
+    void addServiceCharge(ServiceBookingEntity serviceBooking);
 
     /**
      * Cập nhật khoản phí dịch vụ (service charge) khi có thay đổi về số lượng.

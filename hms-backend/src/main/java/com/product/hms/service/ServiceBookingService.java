@@ -2,12 +2,20 @@ package com.product.hms.service;
 
 import com.product.hms.dto.request.ServiceBookingRequest;
 import com.product.hms.dto.request.UpdateServiceBookingRequest;
+import com.product.hms.dto.request.ServiceBookingRequestDTO;
+import com.product.hms.dto.response.ActiveAllocationResponseDTO;
 import com.product.hms.dto.response.ServiceBookingResponse;
+
+import java.util.List;
 
 /**
  * Service interface for service booking operations
  */
 public interface ServiceBookingService {
+
+    List<ActiveAllocationResponseDTO> getActiveAllocationsByCustomer(Long customerId);
+
+    void createServiceBookings(ServiceBookingRequestDTO request);
 
     /**
      * Tao một booking dịch vụ mới cho một reservation room. Chỉ được phép khi trạng thái của reservation là CHECKED_IN.

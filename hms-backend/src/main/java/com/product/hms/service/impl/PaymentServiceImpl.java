@@ -9,6 +9,13 @@ import com.product.hms.entity.PaymentTransactionEntity;
 import com.product.hms.enums.PaymentMethod;
 import com.product.hms.enums.PaymentTransactionStatus;
 import com.product.hms.enums.PaymentTransactionType;
+import com.product.hms.entity.ReservationEntity;
+import com.product.hms.entity.ReservationRoomEntity;
+import com.product.hms.enums.ReservationRoomStatus;
+import com.product.hms.enums.ReservationStatus;
+import com.product.hms.repository.ReservationRoomRepository;
+import com.product.hms.exception.BadRequestException;
+import com.product.hms.exception.ErrorCode;
 import com.product.hms.repository.FolioItemRepository;
 import com.product.hms.repository.FolioRepository;
 import com.product.hms.repository.PaymentAllocationRepository;
@@ -40,8 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentAllocationService paymentAllocationService;
     private final FolioService folioService;
     private final FolioItemService folioItemService;
+    private final ReservationRoomRepository reservationRoomRepository;
 
-    @Value("${vnpay.return-url:http://localhost:8080/api/v1/payment/vnpay-ipn}")
+    @Value("${vnpay.return-url}")
     private String vnPayReturnUrl;
 
     @Override
@@ -160,15 +168,41 @@ public class PaymentServiceImpl implements PaymentService {
                     folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
 
                     folioRepository.save(folio);
+
+                    if (folio.getReservationRoomEntity() != null
+                            && folio.getReservationRoomEntity().getReservationEntity() != null) {
+                        var res = folio.getReservationRoomEntity().getReservationEntity();
+                        if (ReservationStatus.PENDING_DEPOSIT.equals(res.getStatus())) {
+                           res.setStatus(ReservationStatus.CONFIRMED);
+                           // NOTE: Do ReservationEntity dc quản lý bằng Hibernate session nếu Transaction,
+                           // thay đổi này sẽ dc flush tự động. Nếu không chắc, nên autowired reservationRepo vào lưu lại
+                        }
+                    }
                 }
             } else {
                 transaction.setStatus(PaymentTransactionStatus.FAILED.getDbValue());
+                
+                // Hủy reservation và các phòng liên quan nếu thanh toán thất bại
+                FolioEntity folio = transaction.getFolioEntity();
+                if (folio != null && folio.getReservationRoomEntity() != null) {
+                    ReservationEntity reservation = folio.getReservationRoomEntity().getReservationEntity();
+                    if (reservation != null) {
+                        reservation.setStatus(ReservationStatus.CANCELLED);
+                        // Cập nhật trạng thái cho tất cả các phòng trong reservation này
+                        List<ReservationRoomEntity> rooms = reservationRoomRepository.findByReservationEntity(reservation);
+                        for (ReservationRoomEntity room : rooms) {
+                            room.setStatus(ReservationRoomStatus.CANCELLED);
+                        }
+                        reservationRoomRepository.saveAll(rooms);
+                    }
+                }
             }
 
             paymentTransactionRepository.save(transaction);
             // 6. Phản hồi thành công cho VNPAY
             response.put("RspCode", "00");
             response.put("Message", "Confirm Success");
+            response.put("vnp_ResponseCode", vnpResponseCode); // Trả về để frontend biết kết quả thanh toán thực tế
 
         } catch (Exception e) {
             response.put("RspCode", "99");

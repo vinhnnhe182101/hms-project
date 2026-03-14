@@ -34,6 +34,19 @@ public class FolioItemServiceImpl implements FolioItemService {
     }
 
     @Override
+    public void createRoomChargeItem(FolioEntity folio, BigDecimal amount) {
+        FolioItemEntity folioItem = new FolioItemEntity();
+        folioItem.setFolioEntity(folio);
+        folioItem.setType(FolioItemType.ROOM_CHARGE);
+        folioItem.setDescription(Description.ROOM_CHARGE);
+        folioItem.setQuantity(1);
+        folioItem.setTotalPrice(amount);
+        folioItem.setStatus(FolioItemStatus.UNPAID);
+        folioItem.setIsActive(true);
+        folioItemRepository.save(folioItem);
+    }
+
+    @Override
     public void createRefundItem(FolioEntity folioEntity, BigDecimal refundAmount) {
         FolioItemEntity folioItemEntity = new FolioItemEntity();
         folioItemEntity.setFolioEntity(folioEntity);

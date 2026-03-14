@@ -74,9 +74,6 @@ public class ReservationEntity {
     @OneToMany(mappedBy = "reservationEntity")
     private List<DamageReportEntity> damageReportEntities = new ArrayList<>();
 
-    @OneToOne
-    private FolioEntity folioEntity;
-
     @OneToMany(mappedBy = "reservationEntity")
     private List<RatingEntity> ratingEntities = new ArrayList<>();
 

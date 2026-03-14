@@ -82,7 +82,6 @@ public class VnPayUtil {
         }
 
         sb.append(query)
-                .append("&vnp_SecureHashType=HMACSHA512")
                 .append("&vnp_SecureHash=")
                 .append(secureHash);
 
@@ -94,16 +93,15 @@ public class VnPayUtil {
         Collections.sort(fieldNames);
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < fieldNames.size(); i++) {
-            String fieldName = fieldNames.get(i);
+        for (String fieldName : fieldNames) {
             String fieldValue = params.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
+                if (sb.length() > 0) {
+                    sb.append("&");
+                }
                 sb.append(urlEncode(fieldName))
                         .append("=")
                         .append(urlEncode(fieldValue));
-                if (i < fieldNames.size() - 1) {
-                    sb.append("&");
-                }
             }
         }
         return sb.toString();
@@ -114,16 +112,15 @@ public class VnPayUtil {
         Collections.sort(fieldNames);
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < fieldNames.size(); i++) {
-            String fieldName = fieldNames.get(i);
+        for (String fieldName : fieldNames) {
             String fieldValue = params.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                sb.append(fieldName)
-                        .append("=")
-                        .append(fieldValue);
-                if (i < fieldNames.size() - 1) {
+                if (sb.length() > 0) {
                     sb.append("&");
                 }
+                sb.append(fieldName)
+                        .append("=")
+                        .append(urlEncode(fieldValue));
             }
         }
         return sb.toString();
@@ -131,7 +128,7 @@ public class VnPayUtil {
 
     public String hmacSHA512(String key, String data) {
         try {
-            if (key == null || data == null) {
+            if (key == null || key.isBlank() || data == null) {
                 return "";
             }
             Mac hmac512 = Mac.getInstance("HmacSHA512");

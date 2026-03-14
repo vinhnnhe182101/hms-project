@@ -24,6 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+import com.product.hms.dto.request.ServiceBookingRequestDTO;
+import com.product.hms.dto.response.ActiveAllocationResponseDTO;
 
 /**
  * Implementation of ServiceBookingService
@@ -38,6 +42,53 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
     private final FolioService folioService;
 
     @Override
+    public List<ActiveAllocationResponseDTO> getActiveAllocationsByCustomer(Long customerId) {
+        List<ReservationStatus> statuses = List.of(ReservationStatus.IN_HOUSE);
+        List<ReservationRoomEntity> allocations = reservationRoomRepository.findActiveAllocationsByCustomer(customerId, statuses);
+
+        return allocations.stream().map(a -> {
+            ActiveAllocationResponseDTO dto = new ActiveAllocationResponseDTO();
+            dto.setAllocationId(a.getId());
+            dto.setReservationId(a.getReservationEntity().getId());
+
+            String roomName = (a.getRoomEntity() != null) ? "Phòng " + a.getRoomEntity().getRoomNumber() : "Phòng đang chờ xếp";
+            String className = (a.getRoomClassEntity() != null) ? a.getRoomClassEntity().getName() : "";
+
+            dto.setRoomNumber(roomName);
+            dto.setRoomClassName(className);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void createServiceBookings(ServiceBookingRequestDTO request) {
+        if (request.getCustomerId() == null || request.getItems() == null || request.getItems().isEmpty()) {
+            throw new RuntimeException("Dữ liệu đặt dịch vụ không hợp lệ");
+        }
+
+        for (ServiceBookingRequestDTO.ServiceItem item : request.getItems()) {
+            ReservationRoomEntity reservationRoom = reservationRoomRepository.findById(item.getAllocationId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin phòng sử dụng"));
+
+            ServiceEntity service = serviceRepository.findById(item.getServiceId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ: " + item.getServiceId()));
+
+            ServiceBookingEntity serviceBookingEntity = new ServiceBookingEntity();
+            serviceBookingEntity.setReservationRoomEntity(reservationRoom);
+            serviceBookingEntity.setServiceEntity(service);
+            serviceBookingEntity.setQuantity(item.getQuantity());
+            serviceBookingEntity.setPriceAtBooking(service.getPrice());
+            serviceBookingEntity.setStatus(ServiceBookingStatus.PENDING);
+            serviceBookingEntity.setIsActive(true);
+
+            serviceBookingEntity = serviceBookingRepository.save(serviceBookingEntity);
+
+            folioService.addServiceCharge(serviceBookingEntity);
+        }
+    }
+
+    @Override
     @Transactional
     public ServiceBookingResponse createServiceBooking(Long reservationRoomId, ServiceBookingRequest serviceBookingRequest) {
         validateRequest(serviceBookingRequest);
@@ -50,6 +101,8 @@ public class ServiceBookingServiceImpl implements ServiceBookingService {
 
         ServiceBookingEntity serviceBooking = buildServiceBooking(reservationRoom, service, serviceBookingRequest);
         ServiceBookingEntity saved = serviceBookingRepository.save(serviceBooking);
+
+        folioService.addServiceCharge(saved);
 
         return buildResponse(saved);
     }

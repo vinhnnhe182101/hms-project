@@ -1,23 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
-    Badge,
-    Button,
-    Card,
-    Container,
-    Grid,
-    Group,
-    Image,
-    SegmentedControl,
-    Select,
-    SimpleGrid,
-    Stack,
-    Text,
-    TextInput,
-    Title
+    Container, Grid, Card, Image, Stack, Box, Text, Button,
+    Select, Group, Badge, Title, LoadingOverlay,
+    Pagination, Center, Loader, Rating, SegmentedControl, SimpleGrid
 } from '@mantine/core';
-import { IconCalendarPlus, IconSearch, IconUsers, IconRuler2 } from '@tabler/icons-react';
+import { DateTimePicker } from '@mantine/dates';
+import dayjs from 'dayjs';
+import { IconUsers, IconBed, IconChevronRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getRoomClassList } from '../../apis/customer/roomClassApi';
 
 const rooms = [
     {
@@ -98,101 +90,198 @@ export default function RoomsPage() {
     const [roomType, setRoomType] = useState('all');
     const [sortBy, setSortBy] = useState('price-asc');
 
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(9);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [checkIn, setCheckIn] = useState(dayjs().toDate());
+    const [checkOut, setCheckOut] = useState(dayjs().add(1, 'day').toDate());
+
     const filteredRooms = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
 
         let list = rooms.filter((room) => {
-            const matchesType = roomType === 'all' || room.type.toLowerCase() === roomType;
+            const matchesType = roomType === 'all' || room.type?.toLowerCase() === roomType;
             const matchesQuery =
                 normalizedQuery.length === 0 ||
-                room.name.toLowerCase().includes(normalizedQuery) ||
-                room.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
+                room.name?.toLowerCase().includes(normalizedQuery) ||
+                room.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery));
 
             return matchesType && matchesQuery;
         });
 
         list = [...list].sort((a, b) => {
-            if (sortBy === 'price-asc') return a.price - b.price;
-            if (sortBy === 'price-desc') return b.price - a.price;
-            return b.capacity - a.capacity;
+            if (sortBy === 'price-asc') return (a.basePrice ?? a.price ?? 0) - (b.basePrice ?? b.price ?? 0);
+            if (sortBy === 'price-desc') return (b.basePrice ?? b.price ?? 0) - (a.basePrice ?? a.price ?? 0);
+            return (b.standardCapacity ?? b.capacity ?? 0) - (a.standardCapacity ?? a.capacity ?? 0);
         });
 
         return list;
-    }, [searchQuery, roomType, sortBy]);
+    }, [searchQuery, roomType, sortBy, rooms]);
 
     const handleBookRoom = (roomId) => {
         if (isAuthenticated) {
             navigate(`/booking/${roomId}`);
-            return;
+        } else {
+            navigate('/login');
         }
+    };
 
-        navigate('/auth/login', { state: { from: `/booking/${roomId}` } });
+    const fetchRooms = async (currentPage, size, inDate = null, outDate = null) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const inIso = inDate ? dayjs(inDate).toISOString() : null;
+            const outIso = outDate ? dayjs(outDate).toISOString() : null;
+            const data = await getRoomClassList(currentPage, size, inIso, outIso);
+            if (data && data.data) {
+                setRooms(data.data);
+                setTotalPages(data.totalPages);
+                setTotalItems(data.totalItems);
+                if (data.pageSize) {
+                    const backendSize = Number(data.pageSize);
+                    if (backendSize !== pageSize) {
+                        setPageSize(backendSize);
+                    }
+                }
+            } else {
+                setRooms([]);
+                setTotalPages(0);
+                setTotalItems(0);
+            }
+        } catch (err) {
+            console.error('Error fetching room classes:', err);
+            setError(err.response?.data?.message || err.message || 'Unable to load room data. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRooms(page, pageSize);
+    }, [page, pageSize]);
+
+    // Reset to first page when pageSize changes
+    const handlePageSizeChange = (value) => {
+        if (value) {
+            setPageSize(Number(value));
+            setPage(0);
+        }
+    };
+
+    // Format price to VND
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price);
     };
 
     return (
-        <Stack gap="xl">
-            <div
-                style={{
-                    background:
-                        'linear-gradient(120deg, rgba(16,24,40,0.96) 0%, rgba(22,101,52,0.88) 54%, rgba(250,204,21,0.75) 100%)',
-                    borderRadius: '20px',
-                    padding: '42px 36px',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}
-            >
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: '-80px',
-                        right: '-70px',
-                        width: '220px',
-                        height: '220px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.18)'
-                    }}
-                />
-                <Stack gap={8} style={{ position: 'relative' }}>
-                    <Text fw={700} tt="uppercase" size="xs" style={{ letterSpacing: '0.08em' }}>
-                        Discover your stay
-                    </Text>
-                    <Title order={1} size={42}>
-                        Rooms & Suites
+        <Box>
+            {/* Page Header */}
+            <Box style={{ backgroundColor: 'var(--mantine-color-blue-9)', color: 'white', padding: '50px 0' }}>
+                <Container size="xl">
+                    <Title order={1} mb={10} style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>
+                        Room Types
                     </Title>
-                    <Text size="lg" maw={700} style={{ opacity: 0.92 }}>
-                        Explore curated room types for every trip style, from compact business stays to high-end family suites.
+                    <Text style={{ fontSize: '16px', opacity: 0.85 }}>
+                        Explore our luxury room types
                     </Text>
-                </Stack>
-            </div>
+                </Container>
+            </Box>
 
-            <Card withBorder radius="lg" p="lg">
-                <Grid align="end" gutter="md">
-                    <Grid.Col span={{ base: 12, md: 5 }}>
-                        <TextInput
-                            label="Search"
-                            placeholder="Room name or amenity"
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                            leftSection={<IconSearch size={16} />}
-                        />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Select
-                            label="Sort"
-                            value={sortBy}
-                            onChange={(value) => setSortBy(value || 'price-asc')}
-                            data={[
-                                { label: 'Price: Low to High', value: 'price-asc' },
-                                { label: 'Price: High to Low', value: 'price-desc' },
-                                { label: 'Capacity', value: 'capacity-desc' }
-                            ]}
-                        />
-                    </Grid.Col>
+            {/* Main Content */}
+            <Container size="xl" py={60}>
+                <Card withBorder mb="xl" p="md">
+                <Grid>
+                    {/* Sidebar Filters */}
                     <Grid.Col span={{ base: 12, md: 3 }}>
-                        <Text size="sm" c="dimmed" mb={8}>
-                            Found {filteredRooms.length} room(s)
-                        </Text>
+                        <Box style={{ position: 'sticky', top: '20px' }}>
+                            <Stack gap="xl">
+                                {/* Search Date Filters */}
+                                <Box>
+                                    <Text fw={600} mb="md" style={{ fontSize: '16px' }}>Search Filters</Text>
+
+                                    <DateTimePicker
+                                        label="Check-in"
+                                        placeholder="Select date and time"
+                                        value={checkIn}
+                                        onChange={(date) => {
+                                            if (!date) return;
+                                            
+                                            const now = dayjs();
+                                            let newCheckIn = date;
+                                            
+                                            // Don't allow selecting more than 5 minutes in the past
+                                            if (dayjs(date).isBefore(now.subtract(5, 'minute'))) {
+                                                newCheckIn = now.toDate();
+                                            }
+                                            
+                                            setCheckIn(newCheckIn);
+                                            
+                                            // Ensure check-out is at least 1 hour after check-in
+                                            const minCheckOut = dayjs(newCheckIn).add(1, 'hour');
+                                            if (!checkOut || dayjs(checkOut).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
+                                            }
+                                        }}
+                                        minDate={new Date()}
+                                        mb="sm"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <DateTimePicker
+                                        label="Check-out"
+                                        placeholder="Select date and time"
+                                        value={checkOut}
+                                        onChange={(date) => {
+                                            if (!date) return;
+                                            
+                                            const minCheckOut = dayjs(checkIn).add(1, 'hour');
+                                            if (dayjs(date).isBefore(minCheckOut)) {
+                                                setCheckOut(minCheckOut.toDate());
+                                            } else {
+                                                setCheckOut(date);
+                                            }
+                                        }}
+                                        minDate={checkIn ? dayjs(checkIn).add(1, 'minute').toDate() : new Date()}
+                                        mb="md"
+                                        clearable={false}
+                                        valueFormat="HH:mm DD/MM/YYYY"
+                                    />
+
+                                    <Button
+                                        fullWidth
+                                        color="blue"
+                                        mb="sm"
+                                        onClick={() => {
+                                            setPage(0);
+                                            fetchRooms(0, pageSize, checkIn, checkOut);
+                                        }}
+                                    >
+                                        Find available rooms
+                                    </Button>
+
+                                    <Button
+                                        variant="light"
+                                        color="gray"
+                                        fullWidth
+                                        onClick={() => {
+                                            const defaultIn = dayjs().toDate();
+                                            const defaultOut = dayjs().add(1, 'day').toDate();
+                                            setCheckIn(defaultIn);
+                                            setCheckOut(defaultOut);
+                                            setPage(0);
+                                            fetchRooms(0, pageSize, defaultIn, defaultOut);
+                                        }}
+                                    >
+                                        Reset
+                                    </Button>
+                                </Box>
+                            </Stack>
+                        </Box>
                     </Grid.Col>
                     <Grid.Col span={12}>
                         <SegmentedControl
@@ -203,7 +292,7 @@ export default function RoomsPage() {
                         />
                     </Grid.Col>
                 </Grid>
-            </Card>
+                </Card>
 
             {filteredRooms.length === 0 ? (
                 <Card withBorder radius="md" p="xl">
@@ -219,65 +308,89 @@ export default function RoomsPage() {
                                 <Image src={room.image} alt={room.name} h={220} />
                             </Card.Section>
 
-                            <Stack mt="md" gap="sm">
-                                <Group justify="space-between" align="start">
-                                    <div>
-                                        <Title order={3} size="h4">
-                                            {room.name}
-                                        </Title>
-                                        <Text size="sm" c="dimmed">
-                                            Room #{room.id}
-                                        </Text>
-                                    </div>
-                                    <Badge color="teal" variant="light">
-                                        {room.type}
-                                    </Badge>
-                                </Group>
+                                            <Stack p="md" gap="xs" style={{ flex: 1 }}>
+                                                {/* Room name & total rooms badge */}
+                                                <Group justify="space-between" align="start">
+                                                    <Title order={3} fw={600} style={{ fontSize: '16px', flex: 1 }}>
+                                                        {room.name}
+                                                    </Title>
+                                                    <Badge variant="light" color={room.totalRooms > 0 ? "green" : "red"} radius="sm" style={{ flexShrink: 0 }}>
+                                                        {room.totalRooms} rooms available
+                                                    </Badge>
+                                                </Group>
 
-                                <Group gap="md">
-                                    <Group gap={6}>
-                                        <IconUsers size={16} />
-                                        <Text size="sm">{room.capacity} guests</Text>
-                                    </Group>
-                                    <Group gap={6}>
-                                        <IconRuler2 size={16} />
-                                        <Text size="sm">{room.size}</Text>
-                                    </Group>
-                                </Group>
+                                                {/* Average Rating */}
+                                                <Group gap={6}>
+                                                    <Rating
+                                                        value={room.averageRating || 0}
+                                                        fractions={2}
+                                                        readOnly
+                                                        size="xs"
+                                                        color="yellow"
+                                                    />
+                                                    <Text size="xs" c="dimmed">
+                                                        {room.averageRating
+                                                            ? room.averageRating.toFixed(1)
+                                                            : 'No reviews yet'}
+                                                    </Text>
+                                                </Group>
 
-                                <Group gap={6}>
-                                    {room.tags.map((tag) => (
-                                        <Badge key={tag} variant="dot" color="gray">
-                                            {tag}
-                                        </Badge>
+                                                {/* Capacity */}
+                                                <Group gap="xs">
+                                                    <IconUsers size={15} color="var(--mantine-color-blue-6)" />
+                                                    <Text size="sm" c="dimmed">
+                                                        {room.standardCapacity} standard guests
+                                                    </Text>
+                                                </Group>
+
+                                                <Box mt="auto">
+                                                    <Group justify="space-between" mb="xs" align="flex-end">
+                                                        <Box>
+                                                            <Text fw={700} color="blue.6" style={{ fontSize: '18px' }}>
+                                                                {formatPrice(room.basePrice || 0)}
+                                                            </Text>
+                                                            <Text c="dimmed" style={{ fontSize: '12px' }}>/ night</Text>
+                                                        </Box>
+                                                    </Group>
+
+                                                    <Stack gap="xs">
+                                                        <Button
+                                                            fullWidth
+                                                            color="blue"
+                                                            style={{
+                                                                fontSize: '14px',
+                                                                padding: '8px 16px',
+                                                                fontWeight: 500
+                                                            }}
+                                                            rightSection={<IconChevronRight size={16} />}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/rooms/${room.id}`);
+                                                            }}
+                                                        >
+                                                            View Details
+                                                        </Button>
+                                                    </Stack>
+                                                </Box>
+                                            </Stack>
+                                        </Card>
                                     ))}
-                                </Group>
-
-                                <Group justify="space-between" mt="xs">
-                                    <Text fw={700} size="xl">
-                                        ${room.price}
-                                        <Text component="span" c="dimmed" size="sm" ml={4}>
-                                            / night
-                                        </Text>
-                                    </Text>
-                                    <Button
-                                        leftSection={<IconCalendarPlus size={16} />}
-                                        onClick={() => handleBookRoom(room.id)}
-                                    >
-                                        {isAuthenticated ? 'Book now' : 'Login to book'}
-                                    </Button>
-                                </Group>
-                            </Stack>
-                        </Card>
-                    ))}
                 </SimpleGrid>
             )}
 
-            <Container size="sm" ta="center" pb="sm">
-                <Text c="dimmed" size="sm">
-                    Need help choosing? Contact our concierge team for personalized recommendations.
-                </Text>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <Box mt={40} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Pagination
+                        total={totalPages}
+                        value={page + 1}
+                        onChange={(p) => setPage(p - 1)}
+                        color="blue"
+                        size="lg"
+                    />
+                </Box>
+            )}
             </Container>
-        </Stack>
+        </Box>
     );
 }

@@ -6,7 +6,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
     IconUser, IconLogout, IconDashboard, IconCalendarPlus,
-    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory
+    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory, IconBell
 } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -16,6 +16,7 @@ export function CustomerHeader() {
     const location = useLocation();
     const { isAuthenticated, user, logout } = useAuth();
     const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
+    const customerBasePath = isAuthenticated ? '/user' : '';
 
     const handleLogout = async () => {
         console.log('Logout button clicked');
@@ -23,10 +24,10 @@ export function CustomerHeader() {
     };
 
     const navItems = [
-        { label: 'Home', icon: IconHome, path: '/' },
-        { label: 'Rooms', icon: IconHotelService, path: '/rooms' },
-        { label: 'About', icon: IconInfoCircle, path: '/about' },
-        { label: 'Booking History', icon: IconHistory, path: '/bookings' },
+        { label: 'Home', icon: IconHome, path: `${customerBasePath || '/'}` },
+        { label: 'Rooms', icon: IconHotelService, path: `${customerBasePath}/rooms` },
+        { label: 'Service', icon: IconBell, path: `${customerBasePath}/services` },
+        { label: 'Booking History', icon: IconHistory, path: `${customerBasePath}/history` },
     ];
 
     const isActivePath = (path) => {
@@ -44,7 +45,7 @@ export function CustomerHeader() {
                         <Title
                             order={2}
                             style={{ cursor: 'pointer' }}
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(customerBasePath || '/')}
                         >
                             FPTU Hotel
                         </Title>
@@ -86,15 +87,10 @@ export function CustomerHeader() {
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Navigation</Menu.Label>
-                                    <Menu.Item
-                                        leftSection={<IconDashboard size={14} />}
-                                        onClick={() => navigate('/customer')}
-                                    >
-                                        Dashboard
-                                    </Menu.Item>
+                                    
                                     <Menu.Item
                                         leftSection={<IconCalendarPlus size={14} />}
-                                        onClick={() => navigate('/booking')}
+                                        onClick={() => navigate(`${customerBasePath}/booking`)}
                                     >
                                         Book a Room
                                     </Menu.Item>
@@ -104,7 +100,7 @@ export function CustomerHeader() {
                                     <Menu.Label>Account</Menu.Label>
                                     <Menu.Item
                                         leftSection={<IconUser size={14} />}
-                                        onClick={() => navigate('/customer/profile')}
+                                        onClick={() => navigate(`${customerBasePath}/profile`)}
                                     >
                                         Profile
                                     </Menu.Item>
@@ -173,7 +169,7 @@ export function CustomerHeader() {
                                 variant="light"
                                 leftSection={<IconDashboard size={18} />}
                                 onClick={() => {
-                                    navigate('/customer');
+                                    navigate(customerBasePath || '/');
                                     closeDrawer();
                                 }}
                                 fullWidth
@@ -185,7 +181,7 @@ export function CustomerHeader() {
                                 variant="light"
                                 leftSection={<IconUser size={18} />}
                                 onClick={() => {
-                                    navigate('/customer/profile');
+                                    navigate(`${customerBasePath}/profile`);
                                     closeDrawer();
                                 }}
                                 fullWidth

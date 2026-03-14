@@ -1,6 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.dto.request.AssignScheduleRequest;
+import com.product.hms.dto.response.WorkScheduleResponse;
 import com.product.hms.entity.StaffEntity;
 import com.product.hms.entity.WorkScheduleEntity;
 
@@ -10,9 +11,9 @@ import java.util.List;
 
 public interface WorkScheduleService {
 
-    List<WorkScheduleEntity> assignSchedule(AssignScheduleRequest request);
+    List<WorkScheduleResponse> assignSchedule(AssignScheduleRequest request);
 
-    List<WorkScheduleEntity> getSchedulesByStaffAndDateRange(Long staffId, LocalDate startDate, LocalDate endDate);
+    List<WorkScheduleResponse> getSchedulesByStaffAndDateRange(Long staffId, LocalDate startDate, LocalDate endDate);
 
     void deleteSchedule(Long scheduleId);
 
