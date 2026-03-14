@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.product.hms.converters.RoomClassMapper;
+import com.product.hms.dto.request.CreateRoomRequest;
 import com.product.hms.dto.request.RoomSearchFilter;
 import com.product.hms.dto.response.AvailableRoomResponse;
 import com.product.hms.dto.response.RoomClassAvailabilityResponse;
@@ -22,6 +23,7 @@ import com.product.hms.dto.response.RoomResponse;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomEntity;
 import com.product.hms.exception.BadRequestException;
+import com.product.hms.exception.BusinessException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.RoomClassRepository;
@@ -30,6 +32,7 @@ import com.product.hms.service.RoomService;
 import com.product.hms.utils.specification.SpecificationUtils;
 import com.product.hms.utils.specification.search.SearchCriteria;
 import com.product.hms.utils.specification.sort.SortCriteria;
+import org.springframework.dao.DataIntegrityViolationException;
 import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.*;
 import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.*;
 
@@ -57,6 +60,104 @@ public class RoomServiceImpl implements RoomService {
     private final RoomClassRepository roomClassRepository;
     private final RoomClassMapper roomClassMapper;
     private final SpecificationUtils<RoomEntity> specificationUtils;
+
+    @Override
+    public RoomResponse createRoom(CreateRoomRequest request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "request must be provided");
+        }
+
+        String roomNumber = request.roomNumber() == null ? null : request.roomNumber().trim();
+        if (roomNumber == null || roomNumber.isBlank()) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "roomNumber is required");
+        }
+
+        RoomClassEntity roomClass = validateAndGetRoomClass(request.roomClassId());
+
+        var existingRoomOpt = roomRepository.findByRoomNumberIgnoreCase(roomNumber);
+        if (existingRoomOpt.isPresent()) {
+            RoomEntity existingRoom = existingRoomOpt.get();
+            if (Boolean.TRUE.equals(existingRoom.getIsActive())) {
+                throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Room number already exists: " + roomNumber);
+            }
+
+            // Reuse inactive room record so the unique room number is not blocked by old soft-delete data.
+            existingRoom.setRoomClassEntity(roomClass);
+            existingRoom.setStatus(request.status());
+            existingRoom.setDescription(request.description());
+            existingRoom.setIsActive(true);
+            RoomEntity restored = roomRepository.save(existingRoom);
+            return toResponse(restored);
+        }
+
+        RoomEntity entity = new RoomEntity();
+        entity.setRoomNumber(roomNumber);
+        entity.setRoomClassEntity(roomClass);
+        entity.setStatus(request.status());
+        entity.setDescription(request.description());
+        entity.setIsActive(true);
+
+        RoomEntity saved = roomRepository.save(entity);
+        return toResponse(saved);
+    }
+
+    @Override
+    public RoomResponse updateRoom(Long id, CreateRoomRequest request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "request must be provided");
+        }
+
+        RoomEntity entity = roomRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        ErrorCode.ROOM_NOT_FOUND,
+                        "Room not found with id: " + id
+                ));
+
+        if (!Boolean.TRUE.equals(entity.getIsActive())) {
+            throw new NotFoundException(ErrorCode.ROOM_NOT_FOUND, "Room not found with id: " + id);
+        }
+
+        String roomNumber = request.roomNumber() == null ? null : request.roomNumber().trim();
+        if (roomNumber == null || roomNumber.isBlank()) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "roomNumber is required");
+        }
+
+        if (roomRepository.existsByRoomNumberIgnoreCaseAndIdNot(roomNumber, id)) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Room number already exists: " + roomNumber);
+        }
+
+        RoomClassEntity roomClass = validateAndGetRoomClass(request.roomClassId());
+
+        entity.setRoomNumber(roomNumber);
+        entity.setRoomClassEntity(roomClass);
+        entity.setStatus(request.status());
+        entity.setDescription(request.description());
+
+        RoomEntity updated = roomRepository.save(entity);
+        return toResponse(updated);
+    }
+
+    @Override
+    public void deleteRoom(Long id) {
+        RoomEntity entity = roomRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        ErrorCode.ROOM_NOT_FOUND,
+                        "Room not found with id: " + id
+                ));
+
+        if (!Boolean.TRUE.equals(entity.getIsActive())) {
+            throw new NotFoundException(ErrorCode.ROOM_NOT_FOUND, "Room not found with id: " + id);
+        }
+
+        try {
+            roomRepository.delete(entity);
+        } catch (DataIntegrityViolationException ex) {
+            throw new BusinessException(
+                    ErrorCode.ROOM_CHANGE_NOT_ALLOWED,
+                    "Cannot delete room because it is referenced by existing records"
+            );
+        }
+    }
 
     @Override
     public List<RoomClassAvailabilityResponse> getAvailableRooms(Timestamp checkInDate, Timestamp checkOutDate) {
@@ -245,6 +346,7 @@ public class RoomServiceImpl implements RoomService {
         searchCriteria.add(new SearchCriteria("roomNumber", LIKE, filter.roomNumber()));
         searchCriteria.add(new SearchCriteria("roomClassEntity.id", EQUALS, filter.roomClassId()));
         searchCriteria.add(new SearchCriteria("status", EQUALS, filter.status()));
+        searchCriteria.add(new SearchCriteria("isActive", EQUALS, true));
         List<SortCriteria> sortCriteria = new ArrayList<>();
         if (pageable.getSort().isEmpty()) {
             sortCriteria.add(new SortCriteria("roomNumber", null, ASC, null));

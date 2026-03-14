@@ -36,7 +36,6 @@ export function HousekeepingHeader() {
                         color="blue"
                         size="xs"
                         variant="light"
-                        variant="light"
                         style={{ marginTop: 2 }}
                     >
                         Housekeeping
