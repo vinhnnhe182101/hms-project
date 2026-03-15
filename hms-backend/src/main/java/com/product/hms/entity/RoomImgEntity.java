@@ -36,7 +36,7 @@ public class RoomImgEntity {
     private RoomClassEntity roomClassEntity;
 
     @Lob
-    @Column(name = "img_data", columnDefinition = "LONGBLOB")
+    @Column(name = "img_url", columnDefinition = "LONGBLOB")
     private byte[] imgData;
 
     @Column(name = "img_type", length = 50)

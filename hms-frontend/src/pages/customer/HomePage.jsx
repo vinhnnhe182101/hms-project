@@ -5,7 +5,7 @@ import {
     IconToolsKitchen2, IconSwimming, IconSparkles, IconArrowRight,
     IconStar, IconChevronRight, IconQuote
 } from '@tabler/icons-react';
-import { useNavigate, useLocation } from 'react-router-dom'; // THÊM useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import '@mantine/carousel/styles.css';
 import { getHomeData } from '../../apis/customer/homeApi';
 
@@ -36,10 +36,13 @@ export default function HomePage() {
     const [testimonials, setTestimonials] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // ✅ Các path được phép hiển thị HomePage
+    const allowedPaths = ['/', '/user', '/user/'];
+
     useEffect(() => {
-        // ✅ CHỈ gọi API khi đang ở route '/'
-        if (location.pathname !== '/') {
-            console.log('HomePage: Not at root path, skipping API call');
+        // ✅ Kiểm tra path có được phép không
+        if (!allowedPaths.includes(location.pathname)) {
+            console.log('HomePage: Not at allowed path, skipping API call');
             return;
         }
 
@@ -60,11 +63,15 @@ export default function HomePage() {
 
         fetchAllHomeData();
 
-        // Cleanup function
         return () => {
             console.log('HomePage: Unmounting or path changed');
         };
-    }, [location.pathname]); // ✅ Chạy lại khi path thay đổi
+    }, [location.pathname]);
+
+    // ✅ Kiểm tra trước khi render
+    if (!allowedPaths.includes(location.pathname)) {
+        return null;
+    }
 
     const formatPrice = (price) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price || 0);
@@ -75,10 +82,6 @@ export default function HomePage() {
         return <IconSwimming size={32} />;
     };
 
-    // Nếu không phải route '/', không render gì cả
-    if (location.pathname !== '/') {
-        return null;
-    }
 
     return (
         <Box>
@@ -94,7 +97,11 @@ export default function HomePage() {
                             width: '12px',
                             height: '12px',
                             transition: 'width 250ms ease',
-                            '&[data-active]': { width: '40px' },
+                        },
+                        indicators: {
+                            '& [data-active]': {
+                                width: '40px',
+                            },
                         },
                     }}
                 >

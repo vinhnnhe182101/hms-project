@@ -344,11 +344,7 @@ export const useHousekeepingTasks = () => {
                 fetchTodaySchedule(),
                 fetchScheduleSummary()
             ]);
-            notifications.show({
-                title: 'Success',
-                message: 'Data refreshed successfully',
-                color: 'green'
-            });
+
         } catch (error) {
             console.error('Refresh error:', error);
         } finally {
