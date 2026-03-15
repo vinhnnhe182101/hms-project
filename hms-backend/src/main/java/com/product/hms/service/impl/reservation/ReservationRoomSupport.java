@@ -9,6 +9,7 @@ import com.product.hms.enums.ReservationStatus;
 import com.product.hms.enums.RoomStatus;
 import com.product.hms.repository.ReservationRoomRepository;
 import com.product.hms.repository.RoomRepository;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class ReservationRoomSupport {
     /**
      * Lấy FolioEntity theo ReservationRoomEntity. Nếu không tìm thấy sẽ throw BusinessException.
      *
-     * @param folioRepository Repository folio
+     * @param folioRepository       Repository folio
      * @param reservationRoomEntity ReservationRoom cần lấy folio
      * @return FolioEntity tương ứng
      */
@@ -32,7 +33,7 @@ public class ReservationRoomSupport {
      * Lấy danh sách RoomOccupantEntity đang active theo ReservationRoomEntity.
      *
      * @param roomOccupantRepository Repository occupant
-     * @param reservationRoomEntity ReservationRoom cần lấy occupant
+     * @param reservationRoomEntity  ReservationRoom cần lấy occupant
      * @return Danh sách RoomOccupantEntity active
      */
     public static List<com.product.hms.entity.RoomOccupantEntity> getActiveRoomOccupantsByReservationRoom(
@@ -46,7 +47,7 @@ public class ReservationRoomSupport {
      * Lấy danh sách FolioItemEntity đang active theo FolioEntity.
      *
      * @param folioItemRepository Repository folio item
-     * @param folioEntity Folio cần lấy item
+     * @param folioEntity         Folio cần lấy item
      * @return Danh sách FolioItemEntity active
      */
     public static List<com.product.hms.entity.FolioItemEntity> getActiveFolioItemsByFolio(
@@ -109,7 +110,6 @@ public class ReservationRoomSupport {
      */
     public static void updateNoteIfNeeded(String note, ReservationRoomEntity reservationRoom, ReservationRoomRepository reservationRoomRepository) {
         if (note != null && !note.isBlank()) {
-            reservationRoom.setNote(note);
             reservationRoomRepository.save(reservationRoom);
         }
     }

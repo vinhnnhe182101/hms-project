@@ -4,6 +4,7 @@ import com.product.hms.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@FieldNameConstants
 @Table(name = "reservation", schema = "hms_db")
 public class ReservationEntity {
     @Id

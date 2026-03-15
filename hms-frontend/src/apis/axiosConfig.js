@@ -54,12 +54,15 @@ axiosInstance.interceptors.response.use(
         if (error.response) {
             switch (error.response.status) {
                 case 401:
-                    // Chỉ thông báo, không tự động xóa token và redirect
+                    localStorage.removeItem('accessToken');
                     notifications.show({
                         title: 'Session Expired',
                         message: 'Please login again',
                         color: 'red',
                     });
+                    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+                        window.location.href = '/login';
+                    }
                     break;
                 case 403:
                     notifications.show({
@@ -85,7 +88,7 @@ axiosInstance.interceptors.response.use(
         } else if (error.request) {
             notifications.show({
                 title: 'Network Error',
-                message: 'Please check your internet connection',
+                message: 'Cannot reach backend server on port 8080.',
                 color: 'red',
             });
         }

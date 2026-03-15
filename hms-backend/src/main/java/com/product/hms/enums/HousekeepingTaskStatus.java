@@ -5,6 +5,5 @@ public enum HousekeepingTaskStatus {
     IN_PROGRESS,
     COMPLETED,
     CANCELLED,
-    ASSIGNED
 }
 

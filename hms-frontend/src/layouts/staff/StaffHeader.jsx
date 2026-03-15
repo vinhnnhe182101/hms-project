@@ -1,7 +1,7 @@
 import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
 import {NavLink} from "react-router-dom";
 import {AppShell, Avatar, Burger, Group, Text} from "@mantine/core";
-import {NAV_ITEMS} from "../../constants/staff.jsx";
+import {STAFF_NAVBAR_ITEMS} from "../../constants/staff.jsx";
 import {Hotel} from "lucide-react";
 
 export const StaffHeader = () => {
@@ -33,12 +33,12 @@ export const StaffHeader = () => {
 
                     {/* DESKTOP NAV */}
                     <Group visibleFrom="lg" gap={4}>
-                        {NAV_ITEMS.map((item) => {
+                        {STAFF_NAVBAR_ITEMS.map((item) => {
                             const Icon = item.icon;
                             return (
                                     <NavLink
-                                            key={item.to}
-                                            to={item.to}
+                                            key={item.path}
+                                            to={item.path}
                                             className={({isActive}) => `
                                     flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors
                                     ${

@@ -56,4 +56,27 @@ public interface HousekeepingTaskRepository extends JpaRepository<HousekeepingTa
 
     // Find task by id and assignee
     Optional<HousekeepingTaskEntity> findByIdAndAssigneeEntityId(Long id, Long assigneeId);
+    /**
+     * Đếm số tasks của nhân viên trong khoảng thời gian
+     */
+    @Query("SELECT COUNT(t) FROM HousekeepingTaskEntity t " +
+            "WHERE t.assigneeEntity.id = :staffId " +
+            "AND t.assignedAt BETWEEN :start AND :end")
+    int countByAssigneeEntityIdAndAssignedAtBetween(
+            @Param("staffId") Long staffId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    /**
+     * Đếm số tasks đã hoàn thành của nhân viên trong khoảng thời gian
+     */
+    @Query("SELECT COUNT(t) FROM HousekeepingTaskEntity t " +
+            "WHERE t.assigneeEntity.id = :staffId " +
+            "AND t.status = :status " +
+            "AND t.assignedAt BETWEEN :start AND :end")
+    int countByAssigneeEntityIdAndStatusAndAssignedAtBetween(
+            @Param("staffId") Long staffId,
+            @Param("status") String status,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }
