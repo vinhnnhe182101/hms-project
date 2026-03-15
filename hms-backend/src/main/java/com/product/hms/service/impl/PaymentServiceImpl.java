@@ -1,25 +1,17 @@
 package com.product.hms.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.product.hms.dto.request.PaymentRequest;
 import com.product.hms.dto.response.PaymentResponse;
-import com.product.hms.entity.FolioEntity;
-import com.product.hms.entity.FolioItemEntity;
-import com.product.hms.entity.PaymentAllocationEntity;
-import com.product.hms.entity.PaymentTransactionEntity;
+import com.product.hms.entity.*;
 import com.product.hms.enums.PaymentMethod;
 import com.product.hms.enums.PaymentTransactionStatus;
 import com.product.hms.enums.PaymentTransactionType;
-import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomEntity;
 import com.product.hms.enums.ReservationRoomStatus;
 import com.product.hms.enums.ReservationStatus;
-import com.product.hms.repository.ReservationRoomRepository;
+import com.product.hms.repository.*;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
-import com.product.hms.repository.FolioItemRepository;
-import com.product.hms.repository.FolioRepository;
-import com.product.hms.repository.PaymentAllocationRepository;
-import com.product.hms.repository.PaymentTransactionRepository;
 import com.product.hms.service.FolioItemService;
 import com.product.hms.service.FolioService;
 import com.product.hms.service.PaymentAllocationService;
@@ -48,6 +40,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final FolioService folioService;
     private final FolioItemService folioItemService;
     private final ReservationRoomRepository reservationRoomRepository;
+    private final VnPayTransactionDetailRepository vnPayTransactionDetailRepository;
+    private final ObjectMapper objectMapper;
+    private final ReservationRepository reservationRepository;
 
     @Value("${vnpay.return-url}")
     private String vnPayReturnUrl;
@@ -124,7 +119,6 @@ public class PaymentServiceImpl implements PaymentService {
             String amountStr = params.get("vnp_Amount");
 
             // 2. Kiểm tra sự tồn tại của giao dịch trong DB
-            // Sử dụng findByTransactionReference có kèm PESSIMISTIC_WRITE để tránh Race Condition
             Optional<PaymentTransactionEntity> optionalTransaction =
                     paymentTransactionRepository.findByTransactionReference(vnpTxnRef);
 
@@ -136,7 +130,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             PaymentTransactionEntity transaction = optionalTransaction.get();
 
-            // 3. Kiểm tra số tiền (VNPAY nhân 100 lần số tiền thực tế)
+            // 3. Kiểm tra số tiền
             long vnpAmount = Long.parseLong(amountStr) / 100;
             if (transaction.getAmount().longValue() != vnpAmount) {
                 response.put("RspCode", "04");
@@ -144,65 +138,30 @@ public class PaymentServiceImpl implements PaymentService {
                 return response;
             }
 
-            // 4. Kiểm tra trạng thái giao dịch (Idempotency)
-            // Nếu đã khác PENDING nghĩa là đã được xử lý bởi lần gọi IPN trước hoặc Return URL
+            // 4. Kiểm tra trạng thái giao dịch
             if (!PaymentTransactionStatus.PENDING.getDbValue().equalsIgnoreCase(transaction.getStatus())) {
                 response.put("RspCode", "02");
                 response.put("Message", "Order already confirmed");
                 return response;
             }
 
-            // 5. Xử lý logic nghiệp vụ khi thanh toán thành công
+            // 5. Xử lý logic nghiệp vụ
             if ("00".equals(vnpResponseCode)) {
-                transaction.setStatus(PaymentTransactionStatus.SUCCESS.getDbValue());
-
-                FolioEntity folio = transaction.getFolioEntity();
-                if (folio != null) {
-                    // Cập nhật số tiền đã trả và số dư
-                    BigDecimal paidAmount = BigDecimal.valueOf(vnpAmount);
-                    BigDecimal currentTotalPaid = folio.getTotalPaid() != null ? folio.getTotalPaid() : BigDecimal.ZERO;
-
-                    folio.setTotalPaid(currentTotalPaid.add(paidAmount));
-
-                    BigDecimal totalCharges = folio.getTotalCharges() != null ? folio.getTotalCharges() : BigDecimal.ZERO;
-                    folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
-
-                    folioRepository.save(folio);
-
-                    if (folio.getReservationRoomEntity() != null
-                            && folio.getReservationRoomEntity().getReservationEntity() != null) {
-                        var res = folio.getReservationRoomEntity().getReservationEntity();
-                        if (ReservationStatus.PENDING_DEPOSIT.equals(res.getStatus())) {
-                           res.setStatus(ReservationStatus.CONFIRMED);
-                           // NOTE: Do ReservationEntity dc quản lý bằng Hibernate session nếu Transaction,
-                           // thay đổi này sẽ dc flush tự động. Nếu không chắc, nên autowired reservationRepo vào lưu lại
-                        }
-                    }
-                }
+                handleSuccessfulPayment(transaction, vnpAmount);
             } else {
-                transaction.setStatus(PaymentTransactionStatus.FAILED.getDbValue());
-                
-                // Hủy reservation và các phòng liên quan nếu thanh toán thất bại
-                FolioEntity folio = transaction.getFolioEntity();
-                if (folio != null && folio.getReservationRoomEntity() != null) {
-                    ReservationEntity reservation = folio.getReservationRoomEntity().getReservationEntity();
-                    if (reservation != null) {
-                        reservation.setStatus(ReservationStatus.CANCELLED);
-                        // Cập nhật trạng thái cho tất cả các phòng trong reservation này
-                        List<ReservationRoomEntity> rooms = reservationRoomRepository.findByReservationEntity(reservation);
-                        for (ReservationRoomEntity room : rooms) {
-                            room.setStatus(ReservationRoomStatus.CANCELLED);
-                        }
-                        reservationRoomRepository.saveAll(rooms);
-                    }
-                }
+                handleFailedPayment(transaction);
             }
 
+            // Lưu transaction chính
             paymentTransactionRepository.save(transaction);
+
+            // Lưu chi tiết VNPAY
+            saveVnPayDetail(transaction, params);
+
             // 6. Phản hồi thành công cho VNPAY
             response.put("RspCode", "00");
             response.put("Message", "Confirm Success");
-            response.put("vnp_ResponseCode", vnpResponseCode); // Trả về để frontend biết kết quả thanh toán thực tế
+            response.put("vnp_ResponseCode", vnpResponseCode);
 
         } catch (Exception e) {
             response.put("RspCode", "99");
@@ -214,22 +173,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse markAsPaid(Long paymentTransactionId) {
-        // STEP 1: Kiểm tra payment transaction
         PaymentTransactionEntity paymentTransactionEntity = PaymentValidationSupport.validatePaymentTransactionExistence(paymentTransactionId, paymentTransactionRepository);
         PaymentValidationSupport.validatePaymentTransactionNotCompleted(paymentTransactionEntity);
         PaymentValidationSupport.validatePaymentTransactionMethod(paymentTransactionEntity, PaymentMethod.CASH);
 
-        // STEP 2: Cập nhật trạng thái của payment transaction thành SUCCESS
         paymentTransactionEntity.setStatus(PaymentTransactionStatus.SUCCESS.getDbValue());
         paymentTransactionRepository.save(paymentTransactionEntity);
 
-        // STEP 3: Đánh dấu các folio item liên quan đến payment allocation là PAID
         List<FolioItemEntity> items = paymentTransactionEntity.getPaymentAllocationEntities().stream()
                 .map(PaymentAllocationEntity::getFolioItemEntity)
                 .toList();
         folioItemService.markItemsAsPaid(items);
 
-        // STEP 4: Cập nhật tổng đã trả và số dư của folio qua service
         FolioEntity folio = paymentTransactionEntity.getFolioEntity();
         if (folio != null) {
             BigDecimal paidAmount = paymentTransactionEntity.getAmount() != null ? paymentTransactionEntity.getAmount() : BigDecimal.ZERO;
@@ -241,10 +196,10 @@ public class PaymentServiceImpl implements PaymentService {
                 paymentTransactionEntity.getCode(),
                 paymentTransactionEntity.getPaymentMethod(),
                 paymentTransactionEntity.getAmount(),
-                BigDecimal.ZERO, // depositAmount
-                paymentTransactionEntity.getAmount(), // cashCollected
+                BigDecimal.ZERO,
+                paymentTransactionEntity.getAmount(),
                 paymentTransactionEntity.getStatus(),
-                null, // paymentUrl
+                null,
                 paymentTransactionEntity.getCreatedAt()
         );
     }
@@ -252,7 +207,6 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse processPaymentForFolio(FolioEntity folioEntity, PaymentRequest paymentRequest) {
-        // STEP 1: Kiểm tra tính hợp lệ của request
         BigDecimal depositAmount = PaymentValidationSupport.validateDepositAmountNegative(paymentRequest.depositAmount());
         PaymentValidationSupport.validateFolioItemIdsNullOrEmpty(paymentRequest.folioItemIds());
 
@@ -266,13 +220,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         PaymentMethod paymentMethod = PaymentValidationSupport.validatePaymentMethodExistence(paymentRequest.paymentMethod());
 
-        // STEP 2: Tạo payment transaction
         PaymentTransactionEntity paymentTransactionEntity = cretePaymentTransaction(folioEntity, paymentMethod, cashCollected);
 
-        // STEP 3: Tạo payment allocation cho từng folio item đã chọn
         paymentAllocationService.createPaymentAllocation(paymentTransactionEntity, selectedFolioItemEntities);
 
-        // STEP 4: Nếu là VNPAY thì tạo URL thanh toán
         String paymentUrl = null;
         if (paymentMethod == PaymentMethod.VNPAY) {
             paymentUrl = createVnPaymentUrlByPaymentTransactionId(
@@ -308,12 +259,6 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentTransactionEntity;
     }
 
-    /**
-     * Đảm bảo client IP không null hoặc blank để tránh lỗi khi gọi VNPAY API. Nếu client IP không hợp lệ, mặc định trả về "".
-     *
-     * @param clientIp địa chỉ IP của client, có thể null hoặc blank
-     * @return client IP hợp lệ, nếu input không hợp lệ sẽ trả về ""
-     */
     private String safeClientIp(String clientIp) {
         return (clientIp == null || clientIp.isBlank()) ? "127.0.0.1" : clientIp;
     }
@@ -325,5 +270,217 @@ public class PaymentServiceImpl implements PaymentService {
     private String generateTxnRef() {
         return String.valueOf(System.currentTimeMillis());
     }
-}
 
+    private void handleSuccessfulPayment(PaymentTransactionEntity transaction, long vnpAmount) {
+        transaction.setStatus(PaymentTransactionStatus.SUCCESS.getDbValue());
+
+        FolioEntity folio = transaction.getFolioEntity();
+        if (folio != null) {
+            BigDecimal paidAmount = BigDecimal.valueOf(vnpAmount);
+            BigDecimal currentTotalPaid = folio.getTotalPaid() != null ? folio.getTotalPaid() : BigDecimal.ZERO;
+            folio.setTotalPaid(currentTotalPaid.add(paidAmount));
+
+            BigDecimal totalCharges = folio.getTotalCharges() != null ? folio.getTotalCharges() : BigDecimal.ZERO;
+            folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
+
+            folioRepository.save(folio);
+
+            if (folio.getReservationRoomEntity() != null
+                    && folio.getReservationRoomEntity().getReservationEntity() != null) {
+
+                ReservationRoomEntity room = folio.getReservationRoomEntity();
+                ReservationEntity res = room.getReservationEntity();
+
+                if (ReservationStatus.PENDING_DEPOSIT.equals(res.getStatus())) {
+                    res.setStatus(ReservationStatus.CONFIRMED);
+                    reservationRoomRepository.save(room);
+                }
+            }
+        }
+    }
+
+    private void handleFailedPayment(PaymentTransactionEntity transaction) {
+        transaction.setStatus(PaymentTransactionStatus.FAILED.getDbValue());
+
+        FolioEntity folio = transaction.getFolioEntity();
+        if (folio != null && folio.getReservationRoomEntity() != null) {
+            ReservationEntity reservation = folio.getReservationRoomEntity().getReservationEntity();
+            if (reservation != null) {
+                reservation.setStatus(ReservationStatus.CANCELLED);
+                List<ReservationRoomEntity> rooms = reservationRoomRepository.findByReservationEntity(reservation);
+                for (ReservationRoomEntity room : rooms) {
+                    room.setStatus(ReservationRoomStatus.CANCELLED);
+                }
+                reservationRoomRepository.saveAll(rooms);
+                reservationRepository.save(reservation);
+            }
+        }
+    }
+
+    private void saveVnPayDetail(PaymentTransactionEntity transaction, Map<String, String> params) {
+        try {
+            VnPayTransactionDetailEntity vnpayDetail = new VnPayTransactionDetailEntity();
+            vnpayDetail.setPaymentTransactionEntity(transaction);
+            vnpayDetail.setVnpTxnRef(params.get("vnp_TxnRef"));
+            vnpayDetail.setVnpTransactionNo(params.get("vnp_TransactionNo"));
+            vnpayDetail.setVnpBankCode(params.get("vnp_BankCode"));
+            vnpayDetail.setVnpPayDate(params.get("vnp_PayDate"));
+            vnpayDetail.setRawResponse(objectMapper.writeValueAsString(params));
+            vnpayDetail.setIsActive(true);
+
+            vnPayTransactionDetailRepository.save(vnpayDetail);
+        } catch (Exception ex) {
+            System.err.println("Lỗi khi lưu VnPayTransactionDetail: " + ex.getMessage());
+        }
+    }
+
+    // ==========================================
+    // VNPAY REFUND PROCESS (REFACTORED)
+    // ==========================================
+
+    @Override
+    @Transactional
+    public boolean processVnPayRefund(PaymentTransactionEntity originalTransaction, BigDecimal refundAmount, String createdBy, String clientIp) {
+        VnPayTransactionDetailEntity vnpayDetail = vnPayTransactionDetailRepository
+                .findByPaymentTransactionEntityId(originalTransaction.getId())
+                .orElseThrow(() -> new IllegalStateException("VnPay transaction detail not found for transaction id: " + originalTransaction.getId()));
+
+        try {
+            // 1. Build Payload
+            Map<String, String> payload = buildVnPayRefundPayload(originalTransaction, vnpayDetail, refundAmount, createdBy, clientIp);
+
+            // 2. Send Request (Lấy về toàn bộ respMap)
+            Map<String, Object> respMap = sendVnPayRefundRequest(payload);
+
+            // Bóc tách respCode ra để kiểm tra
+            Object respCodeObj = respMap.get("vnp_ResponseCode");
+            String respCode = respCodeObj != null ? String.valueOf(respCodeObj) : null;
+
+            // 3. Handle Response
+            if ("00".equals(respCode)) {
+                // Bây giờ bạn đã có respMap để truyền vào đây một cách hợp lệ
+                handleSuccessfulRefund(originalTransaction, refundAmount, respMap);
+                return true;
+            } else {
+                throw new IllegalStateException("VNPAY refund failed, response code: " + respCode);
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Error processing VNPAY refund: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Sub-method: Chuẩn bị payload và tạo chữ ký gửi lên VNPAY
+     */
+    private Map<String, String> buildVnPayRefundPayload(PaymentTransactionEntity originalTransaction,
+                                                        VnPayTransactionDetailEntity vnpayDetail,
+                                                        BigDecimal refundAmount, String createdBy, String clientIp) {
+        String requestId = UUID.randomUUID().toString();
+        String version = "2.1.0";
+        String command = "refund";
+        String tmnCode = vnPayUtil.getTmnCode();
+        String txnType = refundAmount.compareTo(originalTransaction.getAmount() != null ? originalTransaction.getAmount() : BigDecimal.ZERO) == 0 ? "02" : "03";
+        String txnRef = vnpayDetail.getVnpTxnRef();
+        long amountVnd = refundAmount.multiply(new BigDecimal(100)).longValue();
+        String amountStr = String.valueOf(amountVnd);
+        String txnNo = vnpayDetail.getVnpTransactionNo();
+        String txnDate = vnpayDetail.getVnpPayDate();
+        String createByStr = createdBy == null ? "system" : createdBy;
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String createDate = java.time.LocalDateTime.now().format(formatter);
+        String ipAddr = safeClientIp(clientIp);
+        String orderInfo = "Hoan tien giao dich " + txnRef;
+
+        Map<String, String> payload = new LinkedHashMap<>();
+        payload.put("vnp_RequestId", requestId);
+        payload.put("vnp_Version", version);
+        payload.put("vnp_Command", command);
+        payload.put("vnp_TmnCode", tmnCode);
+        payload.put("vnp_TransactionType", txnType);
+        payload.put("vnp_TxnRef", txnRef);
+        payload.put("vnp_Amount", amountStr);
+        payload.put("vnp_TransactionNo", txnNo);
+        payload.put("vnp_TransactionDate", txnDate);
+        payload.put("vnp_CreateBy", createByStr);
+        payload.put("vnp_CreateDate", createDate);
+        payload.put("vnp_IpAddr", ipAddr);
+        payload.put("vnp_OrderInfo", orderInfo);
+
+        // Băm chữ ký theo chuẩn của Refund
+        String secureHash = vnPayUtil.generateRefundHash(
+                requestId, version, command, tmnCode, txnType, txnRef,
+                amountStr, txnNo, txnDate, createByStr, createDate, ipAddr, orderInfo
+        );
+        payload.put("vnp_SecureHash", secureHash);
+
+        return payload;
+    }
+
+    /**
+     * Sub-method: Gọi API của VNPAY và bóc tách mã lỗi
+     */
+    private Map<String, Object> sendVnPayRefundRequest(Map<String, String> payload) throws Exception {
+        String url = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.set(org.springframework.http.HttpHeaders.CONTENT_TYPE, org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+        String jsonBody = objectMapper.writeValueAsString(payload);
+        org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(jsonBody, headers);
+
+        org.springframework.http.ResponseEntity<String> resp = restTemplate.postForEntity(url, entity, String.class);
+        if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+            throw new IllegalStateException("VNPAY refund request failed with status: " + resp.getStatusCode());
+        }
+
+        // Trả về toàn bộ Map để bên ngoài có data lưu log
+        return objectMapper.readValue(resp.getBody(), Map.class);
+    }
+
+    /**
+     * Sub-method: Cập nhật lại số dư hóa đơn (Folio) và lưu log PaymentTransaction(Refund)
+     */
+    private void handleSuccessfulRefund(PaymentTransactionEntity originalTransaction, BigDecimal refundAmount, Map<String, Object> respMap) {
+        FolioEntity folio = originalTransaction.getFolioEntity();
+        if (folio != null) {
+            BigDecimal currentTotalPaid = folio.getTotalPaid() != null ? folio.getTotalPaid() : BigDecimal.ZERO;
+            folio.setTotalPaid(currentTotalPaid.subtract(refundAmount));
+
+            BigDecimal totalCharges = folio.getTotalCharges() != null ? folio.getTotalCharges() : BigDecimal.ZERO;
+            folio.setBalance(totalCharges.subtract(folio.getTotalPaid()));
+            folioRepository.save(folio);
+        }
+
+        // 1. Tạo giao dịch chính (type = REFUND)
+        PaymentTransactionEntity refundTransaction = new PaymentTransactionEntity();
+        refundTransaction.setFolioEntity(folio);
+        refundTransaction.setCode("REF-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        refundTransaction.setPaymentMethod(originalTransaction.getPaymentMethod());
+        refundTransaction.setAmount(refundAmount);
+        refundTransaction.setType(PaymentTransactionType.REFUND.getDbValue()); // Dùng Enum nếu có, hoặc "REFUND"
+        refundTransaction.setStatus(PaymentTransactionStatus.SUCCESS.getDbValue());
+        refundTransaction.setTransactionReference(generateTxnRef());
+        refundTransaction.setCreatedAt(Timestamp.from(Instant.now()));
+        refundTransaction.setIsActive(true);
+
+        PaymentTransactionEntity savedRefundTransaction = paymentTransactionRepository.save(refundTransaction);
+
+        // 2. Tạo giao dịch Detail chứa log VNPAY trả về
+        try {
+            VnPayTransactionDetailEntity vnpayDetail = new VnPayTransactionDetailEntity();
+            vnpayDetail.setPaymentTransactionEntity(savedRefundTransaction); // Nối 1-1 với giao dịch Refund vừa tạo
+
+            // Bóc tách dữ liệu từ API Refund trả về
+            vnpayDetail.setVnpTxnRef(respMap.get("vnp_TxnRef") != null ? String.valueOf(respMap.get("vnp_TxnRef")) : originalTransaction.getTransactionReference());
+            vnpayDetail.setVnpTransactionNo(respMap.get("vnp_TransactionNo") != null ? String.valueOf(respMap.get("vnp_TransactionNo")) : "");
+            vnpayDetail.setVnpBankCode(respMap.get("vnp_BankCode") != null ? String.valueOf(respMap.get("vnp_BankCode")) : "");
+            vnpayDetail.setVnpPayDate(respMap.get("vnp_PayDate") != null ? String.valueOf(respMap.get("vnp_PayDate")) : "");
+            vnpayDetail.setRawResponse(objectMapper.writeValueAsString(respMap)); // Cục log siêu quan trọng để đối soát
+            vnpayDetail.setIsActive(true);
+
+            vnPayTransactionDetailRepository.save(vnpayDetail);
+        } catch (Exception ex) {
+            // Chỉ log lỗi chứ không ném Exception để không làm hỏng tiến trình hoàn tiền chính
+            System.err.println("Lỗi khi lưu VnPayTransactionDetail cho REFUND: " + ex.getMessage());
+        }
+    }
+}
