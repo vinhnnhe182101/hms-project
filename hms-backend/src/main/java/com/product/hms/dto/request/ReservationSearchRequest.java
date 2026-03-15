@@ -1,6 +1,7 @@
 package com.product.hms.dto.request;
 
 import com.product.hms.enums.ReservationStatus;
+
 import java.time.LocalDate;
 
 /**
@@ -11,9 +12,11 @@ import java.time.LocalDate;
  *   <li>checkInDateFrom, checkInDateTo: Lọc theo khoảng ngày check-in.</li>
  * </ul>
  */
-public record ReservationSearchFilter(
-    String guestName,
-    ReservationStatus status,
-    LocalDate checkInDateFrom,
-    LocalDate checkInDateTo
-) {}
+public record ReservationSearchRequest(
+        String guestName,
+        String identityCard,
+        ReservationStatus status,
+        LocalDate checkInDateFrom,
+        LocalDate checkInDateTo
+) {
+}

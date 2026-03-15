@@ -1,9 +1,9 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.request.BookingRequestDTO;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
-import com.product.hms.dto.request.ReservationSearchFilter;
-import com.product.hms.dto.request.BookingRequestDTO; // Added this
+import com.product.hms.dto.request.ReservationSearchRequest;
 import com.product.hms.dto.response.BookingResponseDTO;
 import com.product.hms.dto.response.ReservationResponse;
 import org.springframework.data.domain.Page;
@@ -53,9 +53,9 @@ public interface ReservationService {
     /**
      * Search reservations with filter and pagination.
      *
-     * @param filter  filter DTO (guestName, status, checkInDateFrom, checkInDateTo)
+     * @param filter   filter DTO (guestName, status, checkInDateFrom, checkInDateTo)
      * @param pageable Spring Data pageable
      * @return paged result
      */
-    Page<ReservationResponse> search(ReservationSearchFilter filter, Pageable pageable);
+    Page<ReservationResponse> search(ReservationSearchRequest filter, Pageable pageable);
 }

@@ -2,7 +2,7 @@ package com.product.hms.api;
 
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
-import com.product.hms.dto.request.ReservationSearchFilter;
+import com.product.hms.dto.request.ReservationSearchRequest;
 import com.product.hms.dto.response.ReservationResponse;
 import com.product.hms.service.ReservationService;
 import lombok.RequiredArgsConstructor;
@@ -80,7 +80,7 @@ public class ReservationApi {
      */
     @GetMapping
     public ResponseEntity<Page<ReservationResponse>> searchReservations(
-            ReservationSearchFilter filter,
+            ReservationSearchRequest filter,
             Pageable pageable
     ) {
         Page<ReservationResponse> result = reservationService.search(filter, pageable);
