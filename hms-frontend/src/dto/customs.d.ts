@@ -50,12 +50,15 @@ declare global {
         hasRole: (roles: string | string[]) => boolean;
     };
 
-    type NavItemType = {
-        to: string;
-        label: string;
-        icon: LucideIcon;
+    type RouteItemType = {
+        path: string;
+        label?: string;
+        icon?: LucideIcon;
         element: React.JSX.Element;
+        inNavbar?: boolean;
     };
+
+    type RouteMapType = Object.<string, RouteItemType>;
 
     type ListContextType<PageType, SearchParamsType> = {
         page: PageType;
@@ -112,5 +115,5 @@ declare global {
         empty: boolean;
     };
 
-    type ReservationSearchParams = ReservationSearchFilter & PageableRequest;
+    type ReservationSearchParams = ReservationSearchRequest & PageableRequest;
 }
