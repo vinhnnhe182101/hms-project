@@ -5,7 +5,7 @@ import {
     IconToolsKitchen2, IconSwimming, IconSparkles, IconArrowRight,
     IconStar, IconChevronRight, IconQuote
 } from '@tabler/icons-react';
-import { useNavigate, useLocation } from 'react-router-dom'; // THÊM useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import '@mantine/carousel/styles.css';
 import { getHomeData } from '../../apis/customer/homeApi';
 
@@ -36,10 +36,13 @@ export default function HomePage() {
     const [testimonials, setTestimonials] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // ✅ Các path được phép hiển thị HomePage
+    const allowedPaths = ['/', '/user', '/user/'];
+
     useEffect(() => {
-        // ✅ CHỈ gọi API khi đang ở route '/'
-        if (location.pathname !== '/user') {
-            console.log('HomePage: Not at root path, skipping API call');
+        // ✅ Kiểm tra path có được phép không
+        if (!allowedPaths.includes(location.pathname)) {
+            console.log('HomePage: Not at allowed path, skipping API call');
             return;
         }
 
@@ -60,11 +63,15 @@ export default function HomePage() {
 
         fetchAllHomeData();
 
-        // Cleanup function
         return () => {
             console.log('HomePage: Unmounting or path changed');
         };
-    }, [location.pathname]); // ✅ Chạy lại khi path thay đổi
+    }, [location.pathname]);
+
+    // ✅ Kiểm tra trước khi render
+    if (!allowedPaths.includes(location.pathname)) {
+        return null;
+    }
 
     const formatPrice = (price) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(price || 0);
@@ -75,10 +82,6 @@ export default function HomePage() {
         return <IconSwimming size={32} />;
     };
 
-    // Nếu không phải route '/', không render gì cả
-    if (location.pathname !== '/user') {
-        return null;
-    }
 
     return (
         <Box>
@@ -94,7 +97,11 @@ export default function HomePage() {
                             width: '12px',
                             height: '12px',
                             transition: 'width 250ms ease',
-                            '&[data-active]': { width: '40px' },
+                        },
+                        indicators: {
+                            '& [data-active]': {
+                                width: '40px',
+                            },
                         },
                     }}
                 >
@@ -151,7 +158,7 @@ export default function HomePage() {
                                                 size="xl"
                                                 color="blue"
                                                 radius="md"
-                                                onClick={() => navigate('/user/booking')}
+                                                onClick={() => navigate('/booking')}
                                                 rightSection={<IconArrowRight size={20} />}
                                                 style={{ height: '56px', padding: '0 40px', boxShadow: '0 8px 24px rgba(34, 139, 230, 0.4)' }}
                                             >
@@ -162,7 +169,7 @@ export default function HomePage() {
                                                 variant="white"
                                                 color="dark"
                                                 radius="md"
-                                                onClick={() => navigate('/user/rooms')}
+                                                onClick={() => navigate('/rooms')}
                                                 style={{ height: '56px', padding: '0 40px' }}
                                             >
                                                 Explore Rooms
@@ -194,7 +201,7 @@ export default function HomePage() {
                             color="blue"
                             size="lg"
                             rightSection={<IconChevronRight size={18} />}
-                            onClick={() => navigate('/user/rooms')}
+                            onClick={() => navigate('/rooms')}
                         >
                             View All Rooms
                         </Button>
@@ -221,7 +228,7 @@ export default function HomePage() {
                                         e.currentTarget.style.transform = 'translateY(0)';
                                         e.currentTarget.style.boxShadow = 'none';
                                     }}
-                                    onClick={() => navigate(`/user/rooms/${room.id}`)}
+                                    onClick={() => navigate(`/rooms/${room.id}`)}
                                 >
                                     <Card.Section style={{ position: 'relative' }}>
                                         <Image
@@ -314,7 +321,7 @@ export default function HomePage() {
                                         e.currentTarget.querySelector('.service-icon').style.backgroundColor = 'var(--mantine-color-blue-0)';
                                         e.currentTarget.querySelector('.service-icon svg').style.color = 'var(--mantine-color-blue-6)';
                                     }}
-                                    onClick={() => navigate('/user/services')}
+                                    onClick={() => navigate('/services')}
                                 >
                                     <Box
                                         className="service-icon"
@@ -443,7 +450,7 @@ export default function HomePage() {
                                 color="blue"
                                 mt="xl"
                                 radius="md"
-                                onClick={() => navigate('/user/booking')}
+                                onClick={() => navigate('/booking')}
                                 style={{ height: '60px', padding: '0 50px', fontWeight: 700 }}
                             >
                                 Reserve Your Room Now

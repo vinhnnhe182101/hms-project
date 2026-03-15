@@ -48,11 +48,11 @@ export function MinibarModal({ opened, onClose, roomId, reservationId, onSuccess
                 consumed: 0
             })));
         } catch (error) {
-            notifications.show({
-                title: 'Error',
-                message: 'Failed to load minibar items',
-                color: 'red'
-            });
+            // notifications.show({
+            //     title: 'Error',
+            //     message: 'Failed to load minibar items',
+            //     color: 'red'
+            // });
         } finally {
             setLoading(false);
         }
