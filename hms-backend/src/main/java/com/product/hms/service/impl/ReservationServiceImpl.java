@@ -27,9 +27,11 @@ import com.product.hms.service.impl.reservation.ReservationResponseSupport;
 import com.product.hms.service.impl.reservation.ReservationValidationSupport;
 import com.product.hms.utils.FieldNameUtils;
 import com.product.hms.utils.RandomUtils;
+import com.product.hms.utils.specification.PageSpecificationUtils;
 import com.product.hms.utils.specification.SpecificationUtils;
 import com.product.hms.utils.specification.search.SearchCriteria;
 import com.product.hms.utils.specification.sort.SortCriteria;
+import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +65,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final PaymentService paymentService;
     private final CustomerMapper customerMapper;
     private final SpecificationUtils<ReservationEntity> specificationUtils;
+    private final PageSpecificationUtils<ReservationEntity> pageSpecificationUtils;
 
     @Override
     @Transactional
@@ -179,22 +182,25 @@ public class ReservationServiceImpl implements ReservationService {
                         ReservationEntity.Fields.customerEntity,
                         CustomerEntity.Fields.fullName
                 )
-                , LIKE, filter.guestName()));
+                , CONTAINS, filter.guestName()));
         searchCriteria.add(new SearchCriteria(
                 FieldNameUtils.joinFields(
                         ReservationEntity.Fields.customerEntity,
                         CustomerEntity.Fields.identityCard
                 )
-                , LIKE, filter.guestName()));
+                , CONTAINS, filter.identityCard()));
         searchCriteria.add(new SearchCriteria("status", EQUALS, filter.status()));
-        searchCriteria.add(new SearchCriteria("checkInDate", GREATER_THAN_OR_EQUAL_TO, filter.checkInDateFrom()));
-        searchCriteria.add(new SearchCriteria("checkInDate", LESS_THAN_OR_EQUAL_TO, filter.checkInDateTo()));
+        searchCriteria.add(new SearchCriteria(ReservationEntity.Fields.expectedCheckIn, GREATER_THAN_OR_EQUAL_TO, filter.checkInDateFrom()));
+        searchCriteria.add(new SearchCriteria(ReservationEntity.Fields.expectedCheckOut, LESS_THAN_OR_EQUAL_TO, filter.checkInDateTo()));
         List<SortCriteria> sortCriteria = new ArrayList<>();
         if (pageable.getSort().isEmpty()) {
-            sortCriteria.add(new SortCriteria("checkInDate", null, DESC, null));
+            sortCriteria.add(new SortCriteria(ReservationEntity.Fields.expectedCheckIn, SortCriteria.AggregationFunction.NONE, DESC, JoinType.LEFT));
         }
-        var spec = specificationUtils.getSpecifications(searchCriteria, sortCriteria);
-        return reservationRepository.findAll(spec, pageable).map(this::toResponse);
+        var spec = specificationUtils
+                .reset()
+                .getSpecifications(searchCriteria, sortCriteria);
+        return pageSpecificationUtils.getPage(spec, pageable, ReservationEntity.class)
+                .map(this::toResponse);
     }
 
     private ReservationResponse toResponse(ReservationEntity entity) {
