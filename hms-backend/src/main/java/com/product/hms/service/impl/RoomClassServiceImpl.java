@@ -1,8 +1,13 @@
 package com.product.hms.service.impl;
 
+import com.product.hms.dto.request.UpsertRoomClassRequest;
 import com.product.hms.dto.response.*;
 import com.product.hms.entity.RoomAssetEntity;
+import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomImgEntity;
+import com.product.hms.exception.BadRequestException;
+import com.product.hms.exception.ErrorCode;
+import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.RoomClassRepository;
 import com.product.hms.repository.RoomImgRepository;
 import com.product.hms.repository.RatingRepository;
@@ -100,6 +105,68 @@ public class RoomClassServiceImpl implements RoomClassService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RoomClassResponse> getRoomClassesForAdmin(Pageable pageable) {
+        return roomClassRepository.findAllByIsActiveTrue(pageable)
+                .map(this::mapEntityToResponse);
+    }
+
+    @Override
+    @Transactional
+    public RoomClassResponse createRoomClass(UpsertRoomClassRequest request) {
+        String name = request.name() == null ? null : request.name().trim();
+        validateUpsertRequest(name, request.standardCapacity(), request.maxCapacity());
+
+        if (roomClassRepository.existsByNameIgnoreCaseAndIsActiveTrue(name)) {
+            throw new BadRequestException(ErrorCode.INVALID_DATA, "Room type name already exists: " + name);
+        }
+
+        RoomClassEntity entity = new RoomClassEntity();
+        entity.setName(name);
+        entity.setStandardCapacity(request.standardCapacity());
+        entity.setMaxCapacity(request.maxCapacity());
+        entity.setBasePrice(request.basePrice());
+        entity.setExtraPersonFee(request.extraPersonFee());
+        entity.setIsActive(true);
+
+        RoomClassEntity saved = roomClassRepository.save(entity);
+        return mapEntityToResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public RoomClassResponse updateRoomClass(Long id, UpsertRoomClassRequest request) {
+        RoomClassEntity entity = roomClassRepository.findByIdAndIsActiveTrue(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_CLASS_NOT_FOUND, "Room type not found with id: " + id));
+
+        String name = request.name() == null ? null : request.name().trim();
+        validateUpsertRequest(name, request.standardCapacity(), request.maxCapacity());
+
+        if (roomClassRepository.existsByNameIgnoreCaseAndIsActiveTrueAndIdNot(name, id)) {
+            throw new BadRequestException(ErrorCode.INVALID_DATA, "Room type name already exists: " + name);
+        }
+
+        entity.setName(name);
+        entity.setStandardCapacity(request.standardCapacity());
+        entity.setMaxCapacity(request.maxCapacity());
+        entity.setBasePrice(request.basePrice());
+        entity.setExtraPersonFee(request.extraPersonFee());
+
+        RoomClassEntity saved = roomClassRepository.save(entity);
+        return mapEntityToResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public void deleteRoomClass(Long id) {
+        RoomClassEntity entity = roomClassRepository.findByIdAndIsActiveTrue(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_CLASS_NOT_FOUND, "Room type not found with id: " + id));
+
+        entity.setIsActive(false);
+        roomClassRepository.save(entity);
+    }
+
 
     private RoomClassResponse mapSummaryToResponse(Object[] row) {
         Long roomClassId = ((Number) row[0]).longValue();
@@ -154,5 +221,36 @@ public class RoomClassServiceImpl implements RoomClassService {
                     .isPrimary(img.getIsPrimary())
                     .build();
         }).orElse(null);
+    }
+
+    private void validateUpsertRequest(String name, Integer standardCapacity, Integer maxCapacity) {
+        if (name == null || name.isBlank()) {
+            throw new BadRequestException(ErrorCode.INVALID_DATA, "Room type name is required");
+        }
+
+        if (standardCapacity == null || standardCapacity < 1) {
+            throw new BadRequestException(ErrorCode.INVALID_DATA, "Standard occupancy must be at least 1");
+        }
+
+        if (maxCapacity == null || maxCapacity < standardCapacity) {
+            throw new BadRequestException(
+                    ErrorCode.INVALID_DATA,
+                    "Max occupancy must be greater than or equal to standard occupancy"
+            );
+        }
+    }
+
+    private RoomClassResponse mapEntityToResponse(RoomClassEntity entity) {
+        return RoomClassResponse.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .standardCapacity(entity.getStandardCapacity())
+                .maxCapacity(entity.getMaxCapacity())
+                .basePrice(entity.getBasePrice())
+                .extraPersonFee(entity.getExtraPersonFee())
+                .primaryImage(null)
+                .totalRooms(0L)
+                .averageRating(0.0)
+                .build();
     }
 }

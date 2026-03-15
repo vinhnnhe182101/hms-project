@@ -15,7 +15,7 @@ export default function NotFoundPage() {
         if (user) {
             navigate(getDashboardPath());
         } else {
-            navigate('/');
+            navigate('/user');
         }
     };
 
@@ -52,7 +52,7 @@ export default function NotFoundPage() {
                             🔍 You might want to check:
                         </Text>
                         <Group justify="center" mt="xs" gap="xs">
-                            <Button variant="subtle" size="xs" onClick={() => navigate('/rooms')}>
+                            <Button variant="subtle" size="xs" onClick={() => navigate('/user/rooms')}>
                                 Our Rooms
                             </Button>
                             <Button variant="subtle" size="xs" onClick={() => navigate('/about')}>

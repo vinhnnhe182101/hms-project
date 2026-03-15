@@ -32,7 +32,7 @@ public class AdminScheduleController {
 
     @GetMapping
     public ResponseEntity<List<WorkScheduleResponse>> getSchedules(
-            @RequestParam(value = "staffId", required = true) Long staffId,
+            @RequestParam(value = "staffId", required = false) Long staffId,
             @RequestParam(value = "startDate", required = true)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = true)

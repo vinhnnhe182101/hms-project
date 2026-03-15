@@ -119,8 +119,14 @@ public class WorkScheduleServiceImpl implements WorkScheduleService {
     @Override
     @Transactional(readOnly = true)
     public List<WorkScheduleResponse> getSchedulesByStaffAndDateRange(Long staffId, LocalDate startDate, LocalDate endDate) {
-        // Validate staff exists
-        List<WorkScheduleEntity> entities = workScheduleRepository.findSchedulesByStaffAndDateRange(staffId, startDate, endDate);
+        List<WorkScheduleEntity> entities;
+
+        // Xử lý nhánh nếu staffId bị rỗng (frontend không truyền lên)
+        if (staffId != null) {
+            entities = workScheduleRepository.findSchedulesByStaffAndDateRange(staffId, startDate, endDate);
+        } else {
+            entities = workScheduleRepository.findSchedulesByDateRange(startDate, endDate);
+        }
 
         return entities.stream()
                 .map(this::mapToResponse)

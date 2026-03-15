@@ -18,6 +18,12 @@ import java.util.Optional;
 @Repository
 public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRepositoryCustom, JpaSpecificationExecutor<RoomEntity> {
 
+        boolean existsByRoomNumberIgnoreCase(String roomNumber);
+
+        Optional<RoomEntity> findByRoomNumberIgnoreCase(String roomNumber);
+
+        boolean existsByRoomNumberIgnoreCaseAndIdNot(String roomNumber, Long id);
+
     @Query("""
             SELECT r FROM RoomEntity r
             WHERE r.roomClassEntity.id = :roomClassId

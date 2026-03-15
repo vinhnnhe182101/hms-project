@@ -1,5 +1,6 @@
 package com.product.hms.service;
 
+import com.product.hms.dto.request.UpsertRoomClassRequest;
 import com.product.hms.dto.response.RoomClassDetailResponse;
 import com.product.hms.dto.response.RoomClassResponse;
 import org.springframework.data.domain.Page;
@@ -17,4 +18,12 @@ public interface RoomClassService {
     RoomClassDetailResponse getRoomClassDetail(Long id);
 
     List<RoomClassResponse> getOtherRoomClasses(Long excludeId);
+
+    Page<RoomClassResponse> getRoomClassesForAdmin(Pageable pageable);
+
+    RoomClassResponse createRoomClass(UpsertRoomClassRequest request);
+
+    RoomClassResponse updateRoomClass(Long id, UpsertRoomClassRequest request);
+
+    void deleteRoomClass(Long id);
 }

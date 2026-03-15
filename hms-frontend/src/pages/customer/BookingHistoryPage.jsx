@@ -210,7 +210,7 @@ export default function BookingHistoryPage() {
                                 {!searchQuery && activeTab === 'all' && (
                                     <Button
                                         variant="light"
-                                        onClick={() => window.location.href = '/rooms'}
+                                        onClick={() => window.location.href = '/user/rooms'}
                                     >
                                         Browse Rooms
                                     </Button>

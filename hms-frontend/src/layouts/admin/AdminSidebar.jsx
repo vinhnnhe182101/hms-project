@@ -10,17 +10,22 @@ import {
     IconCoin,
     IconBed,
     IconCategory,
-    IconTool
+    IconTool,
+    IconCalendarEvent, // Import icon cho phần Lịch làm việc
+    IconListCheck      // Import thêm icon cho phần Quản lý Task
 } from '@tabler/icons-react';
 
 export function AdminSidebar() {
     const location = useLocation();
     const isRoomsRoute = location.pathname.startsWith('/admin/rooms');
     const dashboardItem = { label: 'Dashboard', icon: IconDashboard, to: '/admin' };
+
     const secondaryItems = [
         { label: 'Reservations', icon: IconCalendarStats, to: '/admin/reservations' },
         { label: 'Customers', icon: IconUsers, to: '/admin/customers' },
         { label: 'Staff', icon: IconUsers, to: '/admin/staff' },
+        { label: 'Schedules', icon: IconCalendarEvent, to: '/admin/schedules' },
+        { label: 'Tasks', icon: IconListCheck, to: '/admin/housekeeping-tasks' },
         { label: 'Payments', icon: IconCoin, to: '/admin/payments' },
         { label: 'Reports', icon: IconReport, to: '/admin/reports' },
     ];

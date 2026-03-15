@@ -1,6 +1,5 @@
 import axiosInstance from '../axiosConfig';
 
-// Vì axiosInstance đã có baseURL là '.../api', nên ta chỉ cần phần còn lại
 const API_URL = '/v1/admin/staff';
 
 export const staffApi = {
@@ -24,5 +23,10 @@ export const staffApi = {
     deleteStaff: async (id) => {
         const response = await axiosInstance.delete(`${API_URL}/${id}`);
         return response.data;
-    }
+    },
+
+    getAllStaff: async () => {
+        const response = await axiosInstance.get(API_URL);
+        return response.data;
+    },
 };

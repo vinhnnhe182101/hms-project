@@ -27,16 +27,40 @@ export function LoginForm() {
     const [error, setError] = useState(null);
     const hasNavigated = useRef(false);
 
+    const resolveRedirectPath = (fromPath, fallbackPath) => {
+        // Only allow app-internal, non-auth paths from router state.
+        if (typeof fromPath !== 'string' || !fromPath.startsWith('/')) {
+            return fallbackPath;
+        }
+
+        const blockedPaths = new Set([
+            '/login',
+            '/register',
+            '/forgot-password',
+            '/forgot-pasword',
+            '/oauth2/redirect',
+            '/404',
+            '/unauthorized',
+        ]);
+
+        if (blockedPaths.has(fromPath)) {
+            return fallbackPath;
+        }
+
+        return fromPath;
+    };
+
     // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated && !hasNavigated.current) {
             hasNavigated.current = true;
-            const from = location.state?.from || getDashboardPath(user) || '/';
+            const dashboardPath = getDashboardPath(user) || '/';
+            const from = resolveRedirectPath(location.state?.from, dashboardPath);
 
             // Dùng navigate để chuyển trang (KHÔNG reload)
             navigate(from, { replace: true });
         }
-    }, [isAuthenticated, user, location.state, navigate]);
+    }, [isAuthenticated, user, location.state, navigate, getDashboardPath]);
 
     const form = useForm({
         initialValues: {
@@ -111,7 +135,12 @@ export function LoginForm() {
                             {...form.getInputProps('password')}
                         />
 
-                        <Anchor component="button" size="sm" onClick={() => navigate('/forgot-password')}>
+                        <Anchor
+                            component="button"
+                            type="button"
+                            size="sm"
+                            onClick={() => navigate('/forgot-password')}
+                        >
                             Forgot password?
                         </Anchor>
 

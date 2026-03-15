@@ -18,11 +18,12 @@ const api = axios.create({
  *   currentPage, totalItems, totalPages, pageSize, isLast
  * }
  */
-export const getRoomClassList = async (page = 0, size = 9, checkIn = null, checkOut = null) => {
+export const getRoomClassList = async (page = 0, size = 9, checkIn = null, checkOut = null, sortBy = null) => {
     try {
         const params = { page, size };
         if (checkIn) params.checkIn = checkIn;
         if (checkOut) params.checkOut = checkOut;
+        if (sortBy) params.sortBy = sortBy;
         const response = await api.get('/home/room-classes', { params });
         return response.data;
     } catch (error) {

@@ -1,20 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     ActionIcon,
     Badge,
     Button,
-    Card,
     Divider,
     Group,
     Modal,
-    NumberInput,
     Paper,
     ScrollArea,
     Select,
-    SimpleGrid,
     Stack,
     Table,
     Text,
+    Textarea,
     TextInput,
     Title,
 } from '@mantine/core';
@@ -22,52 +20,47 @@ import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import {
-    getRoomsFromStorage,
-    saveRoomsToStorage,
-    subscribeRooms,
-} from '../../utils/roomInventory';
-import {
-    IconBath,
-    IconBed,
-    IconEye,
-    IconFilter,
     IconEdit,
+    IconEye,
     IconPlus,
     IconSearch,
     IconTrash,
 } from '@tabler/icons-react';
+import { roomApi } from '../../apis/admin/roomApi';
 
-const roomTypeOptions = ['Deluxe', 'Suite', 'Standard', 'Family'];
-const roomStatusOptions = ['Available', 'Occupied', 'Cleaning', 'Maintenance'];
+const roomStatusOptions = ['Available', 'Reserved', 'Clean', 'Dirty', 'Occupied', 'Maintenance'];
 
 const statusColorMap = {
     Available: 'green',
+    Reserved: 'blue',
+    Clean: 'teal',
+    Dirty: 'yellow',
     Occupied: 'red',
-    Cleaning: 'yellow',
     Maintenance: 'orange',
 };
 
 const emptyRoomForm = {
     roomNumber: '',
-    roomType: 'Deluxe',
-    floor: 1,
+    roomClassId: '',
     status: 'Available',
-    rate: 0,
-    beds: 1,
-    bathrooms: 1,
+    description: '',
 };
 
-function RoomFormModal({ opened, mode, onClose, onSubmit, initialValues }) {
+function getApiErrorMessage(error, fallbackMessage) {
+    return error?.response?.data?.message
+        || error?.response?.data?.error
+        || error?.message
+        || fallbackMessage;
+}
+
+function RoomFormModal({ opened, mode, onClose, onSubmit, initialValues, roomClassOptions }) {
     const form = useForm({
+        mode: 'controlled',
         initialValues,
         validate: {
-            roomNumber: (value) => (value.trim().length < 3 ? 'Room number is required' : null),
-            roomType: (value) => (!value ? 'Room type is required' : null),
-            floor: (value) => (value < 1 ? 'Floor must be at least 1' : null),
+            roomNumber: (value) => (value.trim().length < 1 ? 'Room number is required' : null),
+            roomClassId: (value) => (!value ? 'Room class is required' : null),
             status: (value) => (!value ? 'Status is required' : null),
-            rate: (value) => (value <= 0 ? 'Rate must be greater than 0' : null),
-            beds: (value) => (value < 1 ? 'Beds must be at least 1' : null),
-            bathrooms: (value) => (value < 1 ? 'Bathrooms must be at least 1' : null),
         },
     });
 
@@ -79,52 +72,35 @@ function RoomFormModal({ opened, mode, onClose, onSubmit, initialValues }) {
             centered
             size="lg"
         >
-            <form onSubmit={form.onSubmit((values) => onSubmit(values, form))}>
+            <form onSubmit={form.onSubmit(onSubmit)}>
                 <Stack>
-                    <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                        <TextInput
-                            label="Room Number"
-                            placeholder="Room #101"
-                            {...form.getInputProps('roomNumber')}
-                        />
-                        <Select
-                            label="Room Type"
-                            data={roomTypeOptions}
-                            {...form.getInputProps('roomType')}
-                        />
-                    </SimpleGrid>
+                    <TextInput
+                        label="Room Number"
+                        placeholder="e.g. 101"
+                        {...form.getInputProps('roomNumber')}
+                    />
 
-                    <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
-                        <NumberInput
-                            label="Floor"
-                            min={1}
-                            allowDecimal={false}
-                            {...form.getInputProps('floor')}
-                        />
-                        <Select
-                            label="Status"
-                            data={roomStatusOptions}
-                            {...form.getInputProps('status')}
-                        />
-                        <NumberInput
-                            label="Rate ($)"
-                            min={1}
-                            allowDecimal={false}
-                            {...form.getInputProps('rate')}
-                        />
-                        <NumberInput
-                            label="Beds"
-                            min={1}
-                            allowDecimal={false}
-                            {...form.getInputProps('beds')}
-                        />
-                    </SimpleGrid>
+                    <Select
+                        searchable
+                        label="Room Class"
+                        placeholder="Select room class"
+                        data={roomClassOptions}
+                        {...form.getInputProps('roomClassId')}
+                    />
 
-                    <NumberInput
-                        label="Bathrooms"
-                        min={1}
-                        allowDecimal={false}
-                        {...form.getInputProps('bathrooms')}
+                    <Select
+                        label="Status"
+                        data={roomStatusOptions}
+                        {...form.getInputProps('status')}
+                    />
+
+                    <Textarea
+                        label="Description"
+                        placeholder="Optional room note"
+                        autosize
+                        minRows={2}
+                        maxRows={4}
+                        {...form.getInputProps('description')}
                     />
 
                     <Group justify="flex-end">
@@ -146,65 +122,86 @@ function RoomDetailsModal({ opened, room, onClose }) {
         <Modal opened={opened} onClose={onClose} title={room.roomNumber} centered size="md">
             <Stack gap="md">
                 <Group justify="space-between">
-                    <Text fw={600}>Room Type</Text>
-                    <Text>{room.roomType}</Text>
-                </Group>
-                <Group justify="space-between">
-                    <Text fw={600}>Floor</Text>
-                    <Text>{room.floor}</Text>
-                </Group>
-                <Group justify="space-between">
-                    <Text fw={600}>Rate per night</Text>
-                    <Text>${room.rate}</Text>
-                </Group>
-                <Group justify="space-between">
-                    <Text fw={600}>Facilities</Text>
-                    <Group gap="xs">
-                        <Badge variant="light" leftSection={<IconBed size={12} />}>{room.beds} beds</Badge>
-                        <Badge variant="light" leftSection={<IconBath size={12} />}>{room.bathrooms} baths</Badge>
-                    </Group>
+                    <Text fw={600}>Room Class</Text>
+                    <Text>{room.roomClassName || '-'}</Text>
                 </Group>
                 <Group justify="space-between">
                     <Text fw={600}>Status</Text>
                     <Badge color={statusColorMap[room.status]} variant="light">{room.status}</Badge>
                 </Group>
+                <div>
+                    <Text fw={600} mb={4}>Description</Text>
+                    <Text c="dimmed" size="sm">{room.description || '-'}</Text>
+                </div>
             </Stack>
         </Modal>
     );
 }
 
 export default function RoomManagementPage() {
-    const [rooms, setRooms] = useState(() => getRoomsFromStorage());
+    const [rooms, setRooms] = useState([]);
+    const [roomClassOptions, setRoomClassOptions] = useState([]);
     const [searchValue, setSearchValue] = useState('');
     const [statusFilter, setStatusFilter] = useState(null);
-    const [typeFilter, setTypeFilter] = useState(null);
+    const [classFilter, setClassFilter] = useState(null);
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [modalMode, setModalMode] = useState('create');
     const [formOpened, setFormOpened] = useState(false);
     const [detailsOpened, setDetailsOpened] = useState(false);
 
     useEffect(() => {
-        return subscribeRooms(setRooms);
+        let ignore = false;
+
+        roomApi.getRooms()
+            .then((roomData) => {
+                if (!ignore) {
+                    setRooms(roomData);
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading rooms:', error);
+                notifications.show({
+                    color: 'red',
+                    message: getApiErrorMessage(error, 'Failed to load rooms from database.'),
+                });
+            });
+
+        roomApi.getRoomClasses()
+            .then((classData) => {
+                if (!ignore) {
+                    setRoomClassOptions(classData);
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading room classes:', error);
+                notifications.show({
+                    color: 'yellow',
+                    message: 'Room classes are temporarily unavailable. You can still view room list.',
+                });
+            });
+
+        return () => {
+            ignore = true;
+        };
     }, []);
 
-    const updateRooms = (updater) => {
-        setRooms((currentRooms) => {
-            const nextRooms = typeof updater === 'function' ? updater(currentRooms) : updater;
-            saveRoomsToStorage(nextRooms);
-            return nextRooms;
-        });
-    };
+    const roomClassNameById = useMemo(() => {
+        const map = new Map();
+        roomClassOptions.forEach((opt) => map.set(String(opt.value), opt.label));
+        return map;
+    }, [roomClassOptions]);
 
     const filteredRooms = rooms.filter((room) => {
         const query = searchValue.trim().toLowerCase();
         const matchesQuery = !query
             || room.roomNumber.toLowerCase().includes(query)
-            || room.roomType.toLowerCase().includes(query)
-            || String(room.floor).includes(query);
-        const matchesStatus = !statusFilter || room.status === statusFilter;
-        const matchesType = !typeFilter || room.roomType === typeFilter;
+            || (room.roomClassName || '').toLowerCase().includes(query)
+            || (room.description || '').toLowerCase().includes(query);
 
-        return matchesQuery && matchesStatus && matchesType;
+        const matchesStatus = !statusFilter || room.status === statusFilter;
+        const matchesClass = !classFilter || String(room.roomClassId) === classFilter;
+
+        return matchesQuery && matchesStatus && matchesClass;
     });
 
     const roomStats = {
@@ -216,13 +213,16 @@ export default function RoomManagementPage() {
 
     const openCreateModal = () => {
         setModalMode('create');
-        setSelectedRoom(emptyRoomForm);
+        setSelectedRoom({ ...emptyRoomForm });
         setFormOpened(true);
     };
 
     const openEditModal = (room) => {
         setModalMode('edit');
-        setSelectedRoom(room);
+        setSelectedRoom({
+            ...room,
+            roomClassId: String(room.roomClassId),
+        });
         setFormOpened(true);
     };
 
@@ -231,37 +231,49 @@ export default function RoomManagementPage() {
         setDetailsOpened(true);
     };
 
-    const handleSubmit = (values, form) => {
+    const handleSubmit = (values) => {
         if (modalMode === 'create') {
-            const newRoom = {
-                ...values,
-                id: Date.now(),
-                floor: Number(values.floor),
-                rate: Number(values.rate),
-                beds: Number(values.beds),
-                bathrooms: Number(values.bathrooms),
-            };
-
-            updateRooms((currentRooms) => [newRoom, ...currentRooms]);
-            notifications.show({ color: 'green', message: 'Room created successfully.' });
-        } else {
-            updateRooms((currentRooms) => currentRooms.map((room) => (
-                room.id === selectedRoom.id
-                    ? {
-                        ...room,
-                        ...values,
-                        floor: Number(values.floor),
-                        rate: Number(values.rate),
-                        beds: Number(values.beds),
-                        bathrooms: Number(values.bathrooms),
-                    }
-                    : room
-            )));
-            notifications.show({ color: 'blue', message: 'Room updated successfully.' });
+            roomApi.createRoom(values)
+                .then((created) => {
+                    setRooms((prev) => [created, ...prev]);
+                    notifications.show({ color: 'green', message: 'Room created and saved to database.' });
+                    setFormOpened(false);
+                })
+                .catch((error) => {
+                    console.error('Error creating room:', error);
+                    notifications.show({
+                        color: 'red',
+                        message: getApiErrorMessage(error, 'Create room failed.'),
+                    });
+                });
+            return;
         }
 
-        form.reset();
-        setFormOpened(false);
+        roomApi.updateRoom(selectedRoom.id, values)
+            .then((updated) => {
+                setRooms((prev) => prev.map((room) => (
+                    room.id === selectedRoom.id
+                        ? {
+                            ...room,
+                            ...updated,
+                            roomClassName: updated.roomClassName || roomClassNameById.get(String(values.roomClassId)) || room.roomClassName,
+                            description: values.description,
+                        }
+                        : room
+                )));
+                notifications.show({
+                    color: 'green',
+                    message: 'Room updated in database.',
+                });
+                setFormOpened(false);
+            })
+            .catch((error) => {
+                console.error('Error updating room:', error);
+                notifications.show({
+                    color: 'red',
+                    message: getApiErrorMessage(error, 'Update room failed.'),
+                });
+            });
     };
 
     const handleDelete = (room) => {
@@ -270,24 +282,37 @@ export default function RoomManagementPage() {
             centered: true,
             children: (
                 <Text size="sm">
-                    Delete {room.roomNumber}? This action only updates mock data on the current screen.
+                    Delete {room.roomNumber}? This action will also delete it from database.
                 </Text>
             ),
             labels: { confirm: 'Delete', cancel: 'Cancel' },
             confirmProps: { color: 'red' },
             onConfirm: () => {
-                updateRooms((currentRooms) => currentRooms.filter((item) => item.id !== room.id));
-                notifications.show({ color: 'red', message: `${room.roomNumber} deleted.` });
+                roomApi.deleteRoom(room.id)
+                    .then(() => {
+                        setRooms((prev) => prev.filter((item) => item.id !== room.id));
+                        notifications.show({
+                            color: 'green',
+                            message: 'Room deleted from database.',
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting room:', error);
+                        notifications.show({
+                            color: 'red',
+                            message: getApiErrorMessage(error, 'Delete room failed.'),
+                        });
+                    });
             },
         });
     };
 
     return (
         <Stack gap="lg">
-            <Group justify="space-between" align="flex-start">
+            <Group justify="space-between" align="center">
                 <div>
                     <Title order={1}>Manage Rooms</Title>
-                    <Text c="dimmed" mt={4}>Room list management with search, filters and quick actions.</Text>
+                    <Text c="dimmed" mt={4}>Room management synced with database schema.</Text>
                 </div>
 
                 <Button leftSection={<IconPlus size={16} />} onClick={openCreateModal}>
@@ -295,36 +320,24 @@ export default function RoomManagementPage() {
                 </Button>
             </Group>
 
-            <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="md">
-                <Card withBorder radius="md" padding="lg">
-                    <Text c="dimmed" size="sm">Total rooms</Text>
-                    <Title order={2} mt="xs">{roomStats.total}</Title>
-                </Card>
-                <Card withBorder radius="md" padding="lg">
-                    <Text c="dimmed" size="sm">Available</Text>
-                    <Title order={2} mt="xs">{roomStats.available}</Title>
-                </Card>
-                <Card withBorder radius="md" padding="lg">
-                    <Text c="dimmed" size="sm">Occupied</Text>
-                    <Title order={2} mt="xs">{roomStats.occupied}</Title>
-                </Card>
-                <Card withBorder radius="md" padding="lg">
-                    <Text c="dimmed" size="sm">Maintenance</Text>
-                    <Title order={2} mt="xs">{roomStats.maintenance}</Title>
-                </Card>
-            </SimpleGrid>
+            <Group>
+                <Badge size="lg" variant="light" color="blue">Total: {roomStats.total}</Badge>
+                <Badge size="lg" variant="light" color="green">Available: {roomStats.available}</Badge>
+                <Badge size="lg" variant="light" color="red">Occupied: {roomStats.occupied}</Badge>
+                <Badge size="lg" variant="light" color="orange">Maintenance: {roomStats.maintenance}</Badge>
+            </Group>
 
             <Paper withBorder radius="lg" p="lg">
                 <Stack gap="lg">
                     <div>
-                        <Title order={2}>Room List Management</Title>
-                        <Text c="dimmed" mt={4}>Filter rooms by keyword, status and type.</Text>
+                        <Title order={2}>Room List</Title>
+                        <Text c="dimmed" mt={4}>Search and filter by room number, class, status.</Text>
                     </div>
 
                     <Group align="end" grow>
                         <TextInput
                             label="Search"
-                            placeholder="Search room number, type or floor"
+                            placeholder="Search room number, class or description"
                             leftSection={<IconSearch size={16} />}
                             value={searchValue}
                             onChange={(event) => setSearchValue(event.currentTarget.value)}
@@ -333,18 +346,17 @@ export default function RoomManagementPage() {
                             clearable
                             label="Filter by Status"
                             placeholder="All statuses"
-                            leftSection={<IconFilter size={16} />}
                             data={roomStatusOptions}
                             value={statusFilter}
                             onChange={setStatusFilter}
                         />
                         <Select
                             clearable
-                            label="Filter by Type"
-                            placeholder="All room types"
-                            data={roomTypeOptions}
-                            value={typeFilter}
-                            onChange={setTypeFilter}
+                            label="Filter by Room Class"
+                            placeholder="All room classes"
+                            data={roomClassOptions}
+                            value={classFilter}
+                            onChange={setClassFilter}
                         />
                     </Group>
 
@@ -354,12 +366,10 @@ export default function RoomManagementPage() {
                         <Table highlightOnHover verticalSpacing="md" miw={900}>
                             <Table.Thead>
                                 <Table.Tr>
-                                    <Table.Th>Room #</Table.Th>
-                                    <Table.Th>Room Type</Table.Th>
-                                    <Table.Th>Floor</Table.Th>
+                                    <Table.Th>Room</Table.Th>
+                                    <Table.Th>Room Class</Table.Th>
                                     <Table.Th>Status</Table.Th>
-                                    <Table.Th>Rate per Night ($)</Table.Th>
-                                    <Table.Th>Facilities</Table.Th>
+                                    <Table.Th>Description</Table.Th>
                                     <Table.Th>Action</Table.Th>
                                 </Table.Tr>
                             </Table.Thead>
@@ -367,24 +377,14 @@ export default function RoomManagementPage() {
                                 {filteredRooms.length > 0 ? filteredRooms.map((room) => (
                                     <Table.Tr key={room.id}>
                                         <Table.Td fw={600}>{room.roomNumber}</Table.Td>
-                                        <Table.Td>
-                                            <Group gap="xs">
-                                                <IconBed size={16} />
-                                                <Text>{room.roomType}</Text>
-                                            </Group>
-                                        </Table.Td>
-                                        <Table.Td>{room.floor}</Table.Td>
+                                        <Table.Td>{room.roomClassName || '-'}</Table.Td>
                                         <Table.Td>
                                             <Badge color={statusColorMap[room.status]} variant="light">
                                                 {room.status}
                                             </Badge>
                                         </Table.Td>
-                                        <Table.Td>${room.rate}</Table.Td>
-                                        <Table.Td>
-                                            <Group gap="xs">
-                                                <Badge variant="light">{room.beds} beds</Badge>
-                                                <Badge variant="light">{room.bathrooms} baths</Badge>
-                                            </Group>
+                                        <Table.Td maw={320}>
+                                            <Text size="sm" lineClamp={2}>{room.description || '-'}</Text>
                                         </Table.Td>
                                         <Table.Td>
                                             <Group gap="xs" wrap="nowrap">
@@ -417,7 +417,7 @@ export default function RoomManagementPage() {
                                     </Table.Tr>
                                 )) : (
                                     <Table.Tr>
-                                        <Table.Td colSpan={7}>
+                                        <Table.Td colSpan={5}>
                                             <Text ta="center" py="lg" c="dimmed">
                                                 No rooms matched the current filters.
                                             </Text>
@@ -431,11 +431,13 @@ export default function RoomManagementPage() {
             </Paper>
 
             <RoomFormModal
+                key={selectedRoom?.id ?? 'new'}
                 opened={formOpened}
                 mode={modalMode}
                 initialValues={selectedRoom || emptyRoomForm}
                 onClose={() => setFormOpened(false)}
                 onSubmit={handleSubmit}
+                roomClassOptions={roomClassOptions}
             />
 
             <RoomDetailsModal

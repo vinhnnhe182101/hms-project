@@ -126,7 +126,7 @@ export default function RoomDetailPage() {
                     <Stack align="center" gap="md">
                         <Text size="xl" c="dimmed">Room type not found.</Text>
                         <Button
-                            onClick={() => navigate('/rooms')}
+                            onClick={() => navigate('/user/rooms')}
                             color="blue"
                         >
                             Back to rooms list
@@ -583,7 +583,7 @@ export default function RoomDetailPage() {
                                 fullWidth
                                 size="lg"
                                 color="blue"
-                                onClick={() => navigate('/booking')}
+                                onClick={() => navigate('/user/booking')}
                                 style={{
                                     fontSize: '16px',
                                     fontWeight: 600,
@@ -622,7 +622,7 @@ export default function RoomDetailPage() {
                                         }}
                                         onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-6px)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-                                        onClick={() => navigate(`/rooms/${other.id}`)}
+                                        onClick={() => navigate(`/user/rooms/${other.id}`)}
                                     >
                                         <Card.Section>
                                             <Image

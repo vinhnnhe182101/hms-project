@@ -1,5 +1,5 @@
 // src/routes/index.jsx
-import {createBrowserRouter} from 'react-router-dom';
+import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {CustomerLayout} from '../layouts/customer/CustomerLayout.jsx';
 import {AdminLayout} from '../layouts/admin/AdminLayout.jsx';
 import {HousekeepingLayout} from '../layouts/housekeeping/HousekeepingLayout.jsx';
@@ -36,7 +36,8 @@ import ReportsPage from '../pages/housekeeping/ReportsPage.jsx';
 import {NAV_ITEMS} from "../constants/staff.jsx";
 import StaffManagementPage from '../pages/admin/StaffManagementPage.jsx';
 import UserManagementPage from "../pages/admin/UserManagementPage.jsx"
-
+import ScheduleManagementPage from "../pages/admin/ScheduleManagementPage.jsx";
+import TaskManagementPage from "../pages/admin/TaskManagementPage.jsx";
 export const router = createBrowserRouter([
     // ===== ROLE-SPECIFIC ROUTES (Ưu tiên cao nhất) =====
     {
@@ -53,7 +54,8 @@ export const router = createBrowserRouter([
             {path: 'rooms/service', element: <ServiceManagementPage/>},
             {path: 'staff', element: <StaffManagementPage />},
             {path: 'customers', element: <UserManagementPage />},
-            {path: 'reservations', element: <div>Reservations Management</div>},
+            {path: 'schedules', element: <ScheduleManagementPage />},
+            {path: 'housekeeping-tasks', element: <TaskManagementPage />},
             {path: 'payments', element: <div>Payments Management</div>},
             {path: 'reports', element: <div>Reports Management</div>},
             {path: 'settings', element: <div>Settings</div>},
@@ -111,29 +113,9 @@ export const router = createBrowserRouter([
         ],
     },
 
-    // ===== CUSTOMER PROTECTED ROUTES =====
+    // ===== CUSTOMER ROUTES (Public & Protected) =====
     {
         path: '/user',
-        element: (
-            <ProtectedRoute>
-                <CustomerLayout/>
-            </ProtectedRoute>
-        ),
-        children: [
-            {index: true, element: <HomePage/>},
-            {path: 'rooms', element: <RoomsPage/>},
-            {path: 'rooms/:id', element: <RoomDetailPage/>},
-            {path: 'services', element: <ServicesPage/>},
-            {path: 'services/checkout', element: <ServiceCheckoutPage/>},
-            {path: 'booking', element: <BookingPage/>},
-            {path: 'booking/checkout', element: <CheckoutPage/>},
-            {path: 'history', element: <BookingHistoryPage/>},
-        ],
-    },
-
-    // ===== PUBLIC ROUTES (Dùng CustomerLayout) =====
-    {
-        path: '/',
         element: <CustomerLayout/>,
         children: [
             {index: true, element: <HomePage/>},
@@ -147,7 +129,10 @@ export const router = createBrowserRouter([
             {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
         ],
     },
-
+    {
+        path: '/',
+        element: <Navigate to="/user" replace />,
+    },
     // ===== AUTH LAYOUT RIÊNG (nếu muốn layout khác cho auth) =====
     {
         path: '/',
