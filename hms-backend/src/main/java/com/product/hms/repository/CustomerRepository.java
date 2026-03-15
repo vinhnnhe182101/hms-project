@@ -24,4 +24,11 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long>,
     Optional<CustomerEntity> findByUserEntity(UserEntity userEntity);
 
     Optional<CustomerEntity> findByEmail(String email);
+
+    /**
+     * Đếm số lượng khách hàng đang hoạt động (active) để hiển thị thống kê trên bảng điều khiển (dashboard).
+     *
+     * @return số lượng khách hàng đang hoạt động
+     */
+    long countByIsActiveTrue();
 }
