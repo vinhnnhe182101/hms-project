@@ -11,13 +11,13 @@ import {
     ThemeIcon,
     Badge,
     Button,
-    Select,
     SimpleGrid,
     Timeline,
     Divider,
     Loader,
     Center,
-    Alert
+    Alert,
+    Skeleton
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -27,18 +27,28 @@ import {
     IconCalendarStats,
     IconCheck,
     IconX,
-    IconUser,
     IconChevronLeft,
     IconChevronRight
 } from '@tabler/icons-react';
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, isValid } from 'date-fns';
+import { useHousekeepingTasks } from '../../hooks/useHousekeepingTasks';
 
 export default function SchedulePage() {
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
+    const {
+        schedule,
+        todaySchedule,
+        scheduleSummary,
+        loading,
+        fetchMySchedule,
+        fetchTodaySchedule,
+        fetchScheduleSummary,
+        refreshAll
+    } = useHousekeepingTasks();
+
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [weekDays, setWeekDays] = useState([]);
-    const [schedule, setSchedule] = useState(null);
+    const [loadingWeek, setLoadingWeek] = useState(false);
 
     // Safe date formatting function
     const safeFormat = (date, formatStr) => {
@@ -61,77 +71,39 @@ export default function SchedulePage() {
         setWeekDays(days);
 
         // Load schedule for the week
-        loadSchedule();
+        loadWeekSchedule(start, end);
     }, [selectedDate]);
 
-    const loadSchedule = async () => {
-        setLoading(true);
-        try {
-            // Mock data - replace with actual API call
-            // const response = await housekeepingApi.getMySchedule(selectedDate);
+    // Initial load
+    useEffect(() => {
+        loadInitialData();
+    }, []);
 
-            // Mock schedule data
-            setTimeout(() => {
-                setSchedule({
-                    shifts: [
-                        {
-                            date: new Date().toISOString(),
-                            shiftName: 'Morning Shift',
-                            startTime: '08:00',
-                            endTime: '16:00',
-                            status: 'COMPLETED',
-                            tasks: 4,
-                            completedTasks: 4
-                        },
-                        {
-                            date: addDays(new Date(), 1).toISOString(),
-                            shiftName: 'Morning Shift',
-                            startTime: '08:00',
-                            endTime: '16:00',
-                            status: 'SCHEDULED',
-                            tasks: 5,
-                            completedTasks: 0
-                        },
-                        {
-                            date: addDays(new Date(), 2).toISOString(),
-                            shiftName: 'Afternoon Shift',
-                            startTime: '14:00',
-                            endTime: '22:00',
-                            status: 'SCHEDULED',
-                            tasks: 3,
-                            completedTasks: 0
-                        },
-                        {
-                            date: addDays(new Date(), 3).toISOString(),
-                            shiftName: 'Day Off',
-                            startTime: null,
-                            endTime: null,
-                            status: 'OFF',
-                            tasks: 0,
-                            completedTasks: 0
-                        },
-                        {
-                            date: addDays(new Date(), 4).toISOString(),
-                            shiftName: 'Morning Shift',
-                            startTime: '08:00',
-                            endTime: '16:00',
-                            status: 'SCHEDULED',
-                            tasks: 4,
-                            completedTasks: 0
-                        }
-                    ],
-                    summary: {
-                        totalShifts: 5,
-                        totalHours: 40,
-                        completedShifts: 1,
-                        upcomingShifts: 4
-                    }
-                });
-                setLoading(false);
-            }, 500);
+    const loadInitialData = async () => {
+        setLoadingWeek(true);
+        try {
+            await Promise.all([
+                fetchTodaySchedule(),
+                fetchScheduleSummary()
+            ]);
         } catch (error) {
-            console.error('Error loading schedule:', error);
-            setLoading(false);
+            console.error('Error loading initial schedule data:', error);
+        } finally {
+            setLoadingWeek(false);
+        }
+    };
+
+    const loadWeekSchedule = async (startDate, endDate) => {
+        setLoadingWeek(true);
+        try {
+            await fetchMySchedule(
+                format(startDate, 'yyyy-MM-dd'),
+                format(endDate, 'yyyy-MM-dd')
+            );
+        } catch (error) {
+            console.error('Error loading week schedule:', error);
+        } finally {
+            setLoadingWeek(false);
         }
     };
 
@@ -145,14 +117,16 @@ export default function SchedulePage() {
 
     const goToToday = () => {
         setSelectedDate(new Date());
+        loadInitialData();
     };
 
     const getShiftForDate = (date) => {
-        if (!schedule || !schedule.shifts) return null;
-        return schedule.shifts.find(shift => {
+        if (!schedule || !Array.isArray(schedule)) return null;
+        return schedule.find(shift => {
             try {
-                const shiftDate = typeof shift.date === 'string' ? parseISO(shift.date) : shift.date;
-                return shiftDate && isValid(shiftDate) && isSameDay(shiftDate, date);
+                if (!shift.date) return false;
+                const shiftDate = typeof shift.date === 'string' ? parseISO(shift.date) : new Date(shift.date);
+                return isValid(shiftDate) && isSameDay(shiftDate, date);
             } catch (error) {
                 return false;
             }
@@ -179,11 +153,15 @@ export default function SchedulePage() {
         }
     };
 
-    if (loading) {
+    if (loading && loadingWeek) {
         return (
-            <Center style={{ height: '60vh' }}>
-                <Loader size="xl" />
-            </Center>
+            <Container size="lg" px={0}>
+                <Stack gap="md">
+                    <Skeleton height={50} radius="md" />
+                    <Skeleton height={200} radius="md" />
+                    <Skeleton height={150} radius="md" />
+                </Stack>
+            </Container>
         );
     }
 
@@ -237,28 +215,77 @@ export default function SchedulePage() {
                                     style={{
                                         textAlign: 'center',
                                         backgroundColor: isSameDay(day, new Date()) ? 'var(--mantine-color-blue-0)' : 'white',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        border: isSameDay(day, selectedDate) ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)'
                                     }}
                                     onClick={() => setSelectedDate(day)}
                                 >
                                     <Text size="xs" c="dimmed">{safeFormat(day, 'EEE')}</Text>
                                     <Text fw={700} size="lg">{safeFormat(day, 'd')}</Text>
-                                    <Badge
-                                        size="sm"
-                                        color={getStatusColor(shift?.status)}
-                                        variant="dot"
-                                        mt={4}
-                                    >
-                                        {shift?.shiftName || 'No shift'}
-                                    </Badge>
+                                    {loadingWeek ? (
+                                        <Skeleton height={20} width={60} mt={4} />
+                                    ) : (
+                                        <Badge
+                                            size="sm"
+                                            color={getStatusColor(shift?.status)}
+                                            variant="dot"
+                                            mt={4}
+                                        >
+                                            {shift?.shiftName || 'No shift'}
+                                        </Badge>
+                                    )}
                                 </Paper>
                             );
                         })}
                     </SimpleGrid>
                 )}
 
+                {/* Today's Schedule Summary */}
+                {todaySchedule && (
+                    <Paper withBorder radius="lg" p="lg" bg="blue.0">
+                        <Group mb="md">
+                            <ThemeIcon size="lg" color="blue" variant="light">
+                                <IconCalendarStats size={20} />
+                            </ThemeIcon>
+                            <Title order={4}>Today's Schedule</Title>
+                        </Group>
+
+                        <SimpleGrid cols={2} spacing="md">
+                            <Card withBorder>
+                                <Text size="sm" c="dimmed">Shift</Text>
+                                <Text fw={600} size="lg">{todaySchedule.shiftName || 'Day Off'}</Text>
+                            </Card>
+                            <Card withBorder>
+                                <Text size="sm" c="dimmed">Status</Text>
+                                <Badge size="lg" color={getStatusColor(todaySchedule.status)}>
+                                    {todaySchedule.status || 'OFF'}
+                                </Badge>
+                            </Card>
+                            {todaySchedule.startTime && (
+                                <>
+                                    <Card withBorder>
+                                        <Text size="sm" c="dimmed">Start Time</Text>
+                                        <Group>
+                                            <IconClock size={18} />
+                                            <Text fw={600}>{todaySchedule.startTime}</Text>
+                                        </Group>
+                                    </Card>
+                                    <Card withBorder>
+                                        <Text size="sm" c="dimmed">End Time</Text>
+                                        <Group>
+                                            <IconClock size={18} />
+                                            <Text fw={600}>{todaySchedule.endTime}</Text>
+                                        </Group>
+                                    </Card>
+                                </>
+                            )}
+                        </SimpleGrid>
+                    </Paper>
+                )}
+
                 {/* Selected Day Details */}
-                {schedule && (
+                {schedule && Array.isArray(schedule) && (
                     <Paper withBorder radius="lg" p="lg">
                         <Group justify="space-between" mb="md">
                             <Group>
@@ -312,22 +339,24 @@ export default function SchedulePage() {
                                         </SimpleGrid>
                                     )}
 
-                                    <Card withBorder>
-                                        <Group justify="space-between">
-                                            <div>
-                                                <Text size="sm" c="dimmed">Tasks Completed</Text>
-                                                <Text fw={600} size="xl">
-                                                    {shift.completedTasks}/{shift.tasks}
-                                                </Text>
-                                            </div>
-                                            <Button
-                                                variant="light"
-                                                onClick={() => navigate('/housekeeping/tasks')}
-                                            >
-                                                View Tasks
-                                            </Button>
-                                        </Group>
-                                    </Card>
+                                    {shift.totalTasks !== undefined && (
+                                        <Card withBorder>
+                                            <Group justify="space-between">
+                                                <div>
+                                                    <Text size="sm" c="dimmed">Tasks Completed</Text>
+                                                    <Text fw={600} size="xl">
+                                                        {shift.completedTasks || 0}/{shift.totalTasks}
+                                                    </Text>
+                                                </div>
+                                                <Button
+                                                    variant="light"
+                                                    onClick={() => navigate('/housekeeping/tasks')}
+                                                >
+                                                    View Tasks
+                                                </Button>
+                                            </Group>
+                                        </Card>
+                                    )}
                                 </Stack>
                             ) : (
                                 <Alert color="gray" title="No Shift">
@@ -339,36 +368,36 @@ export default function SchedulePage() {
                 )}
 
                 {/* Weekly Summary */}
-                {schedule && (
+                {scheduleSummary && (
                     <Paper withBorder radius="lg" p="lg">
                         <Title order={4} mb="md">Week Summary</Title>
                         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
                             <Card withBorder>
                                 <Text size="xs" c="dimmed">Total Shifts</Text>
-                                <Text fw={700} size="xl">{schedule.summary.totalShifts}</Text>
+                                <Text fw={700} size="xl">{scheduleSummary.totalShifts || 0}</Text>
                             </Card>
                             <Card withBorder>
                                 <Text size="xs" c="dimmed">Total Hours</Text>
-                                <Text fw={700} size="xl">{schedule.summary.totalHours}h</Text>
+                                <Text fw={700} size="xl">{scheduleSummary.totalHours || 0}h</Text>
                             </Card>
                             <Card withBorder>
                                 <Text size="xs" c="dimmed">Completed</Text>
-                                <Text fw={700} size="xl">{schedule.summary.completedShifts}</Text>
+                                <Text fw={700} size="xl">{scheduleSummary.completedShifts || 0}</Text>
                             </Card>
                             <Card withBorder>
                                 <Text size="xs" c="dimmed">Upcoming</Text>
-                                <Text fw={700} size="xl">{schedule.summary.upcomingShifts}</Text>
+                                <Text fw={700} size="xl">{scheduleSummary.upcomingShifts || 0}</Text>
                             </Card>
                         </SimpleGrid>
                     </Paper>
                 )}
 
                 {/* Upcoming Shifts Timeline */}
-                {schedule && schedule.shifts && (
+                {schedule && Array.isArray(schedule) && schedule.length > 0 && (
                     <Paper withBorder radius="lg" p="lg">
                         <Title order={4} mb="md">Upcoming Shifts</Title>
-                        <Timeline active={schedule.summary.completedShifts}>
-                            {schedule.shifts
+                        <Timeline active={scheduleSummary?.completedShifts || 0}>
+                            {schedule
                                 .filter(shift => shift.status !== 'OFF')
                                 .map((shift, index) => (
                                     <Timeline.Item
@@ -379,9 +408,11 @@ export default function SchedulePage() {
                                         <Text size="sm">
                                             {safeFormat(shift.date, 'EEEE, MMMM d')} • {shift.startTime || '--:--'} - {shift.endTime || '--:--'}
                                         </Text>
-                                        <Text size="xs" c="dimmed" mt={4}>
-                                            {shift.tasks} tasks scheduled
-                                        </Text>
+                                        {shift.totalTasks !== undefined && (
+                                            <Text size="xs" c="dimmed" mt={4}>
+                                                {shift.totalTasks} tasks scheduled
+                                            </Text>
+                                        )}
                                     </Timeline.Item>
                                 ))}
                         </Timeline>

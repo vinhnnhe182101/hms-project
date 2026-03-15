@@ -96,11 +96,23 @@ public class ScheduleServiceImpl implements ScheduleService {
                     return java.time.Duration.between(shift.getStartTime(), shift.getEndTime()).toHours();
                 }).sum();
 
+        // Đếm tổng số tasks trong tuần
+        long totalTasks = 0;
+        long completedTasks = 0;
+
+        for (WorkScheduleEntity schedule : weekSchedules) {
+            totalTasks += countTasksForShift(schedule);
+            completedTasks += countCompletedTasksForShift(schedule);
+        }
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalShifts", totalShifts);
         summary.put("completedShifts", completedShifts);
         summary.put("upcomingShifts", totalShifts - completedShifts);
         summary.put("totalHours", totalHours);
+        summary.put("totalTasks", totalTasks);
+        summary.put("completedTasks", completedTasks);
+        summary.put("completionRate", totalTasks > 0 ? (completedTasks * 100.0 / totalTasks) : 0);
 
         return summary;
     }
@@ -119,7 +131,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         ShiftEntity shift = schedule.getShiftEntity();
 
-        // Count tasks for this shift (you can implement this logic)
+        // Đếm số task thực tế cho ngày này
         int totalTasks = countTasksForShift(schedule);
         int completedTasks = countCompletedTasksForShift(schedule);
 
@@ -135,15 +147,41 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .build();
     }
 
+    /**
+     * Đếm tổng số tasks được giao cho nhân viên trong ngày này
+     */
     private int countTasksForShift(WorkScheduleEntity schedule) {
-        // Implement logic to count tasks assigned during this shift
-        // For now, return a default value
-        return 5;
+        if (schedule == null || schedule.getStaffEntity() == null) return 0;
+
+        LocalDate workDate = schedule.getWorkDate();
+        Long staffId = schedule.getStaffEntity().getId();
+
+        // Chuyển đổi LocalDate sang LocalDateTime để query
+        LocalDateTime startOfDay = workDate.atStartOfDay();
+        LocalDateTime endOfDay = workDate.atTime(LocalTime.MAX);
+
+        // Đếm tasks được giao trong ngày này
+        return taskRepository.countByAssigneeEntityIdAndAssignedAtBetween(
+                staffId, startOfDay, endOfDay
+        );
     }
 
+    /**
+     * Đếm số tasks đã hoàn thành trong ngày này
+     */
     private int countCompletedTasksForShift(WorkScheduleEntity schedule) {
-        // Implement logic to count completed tasks during this shift
-        // For now, return a default value
-        return 0;
+        if (schedule == null || schedule.getStaffEntity() == null) return 0;
+
+        LocalDate workDate = schedule.getWorkDate();
+        Long staffId = schedule.getStaffEntity().getId();
+
+        // Chuyển đổi LocalDate sang LocalDateTime để query
+        LocalDateTime startOfDay = workDate.atStartOfDay();
+        LocalDateTime endOfDay = workDate.atTime(LocalTime.MAX);
+
+        // Đếm tasks đã hoàn thành (status = 'COMPLETED') trong ngày này
+        return taskRepository.countByAssigneeEntityIdAndStatusAndAssignedAtBetween(
+                staffId, "COMPLETED", startOfDay, endOfDay
+        );
     }
 }

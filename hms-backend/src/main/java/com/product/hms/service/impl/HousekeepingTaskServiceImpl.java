@@ -88,7 +88,7 @@ public class HousekeepingTaskServiceImpl implements HousekeepingTaskService {
         task.setRoomEntity(room);
         task.setAssigneeEntity(staff);
         task.setTaskType(request.getTaskType().name());
-        task.setStatus(HousekeepingTaskStatus.ASSIGNED.name());
+        task.setStatus(HousekeepingTaskStatus.SCHEDULED.name());
         task.setAssignedAt(new Timestamp(System.currentTimeMillis()));
         task.setIsActive(true);
 
