@@ -64,6 +64,9 @@ function RoomFormModal({ opened, mode, onClose, onSubmit, initialValues, roomCla
         },
     });
 
+    const roomClassField = form.getInputProps('roomClassId');
+    const statusField = form.getInputProps('status');
+
     return (
         <Modal
             opened={opened}
@@ -85,13 +88,19 @@ function RoomFormModal({ opened, mode, onClose, onSubmit, initialValues, roomCla
                         label="Room Class"
                         placeholder="Select room class"
                         data={roomClassOptions}
-                        {...form.getInputProps('roomClassId')}
+                        value={roomClassField.value || null}
+                        onChange={(value) => form.setFieldValue('roomClassId', value || '')}
+                        onBlur={roomClassField.onBlur}
+                        error={roomClassField.error}
                     />
 
                     <Select
                         label="Status"
                         data={roomStatusOptions}
-                        {...form.getInputProps('status')}
+                        value={statusField.value || null}
+                        onChange={(value) => form.setFieldValue('status', value || '')}
+                        onBlur={statusField.onBlur}
+                        error={statusField.error}
                     />
 
                     <Textarea
@@ -169,14 +178,14 @@ export default function RoomManagementPage() {
         roomApi.getRoomClasses()
             .then((classData) => {
                 if (!ignore) {
-                    setRoomClassOptions(classData);
+                    setRoomClassOptions(Array.isArray(classData) ? classData : []);
                 }
             })
             .catch((error) => {
                 console.error('Error loading room classes:', error);
                 notifications.show({
                     color: 'yellow',
-                    message: 'Room classes are temporarily unavailable. You can still view room list.',
+                    message: getApiErrorMessage(error, 'Room classes are temporarily unavailable. Please check Room Types setup.'),
                 });
             });
 
@@ -187,7 +196,9 @@ export default function RoomManagementPage() {
 
     const roomClassNameById = useMemo(() => {
         const map = new Map();
-        roomClassOptions.forEach((opt) => map.set(String(opt.value), opt.label));
+        (Array.isArray(roomClassOptions) ? roomClassOptions : []).forEach((opt) => {
+            map.set(String(opt.value), opt.label);
+        });
         return map;
     }, [roomClassOptions]);
 

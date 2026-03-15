@@ -19,6 +19,8 @@ public interface RoomClassRepository extends JpaRepository<RoomClassEntity, Long
 
         Optional<RoomClassEntity> findByIdAndIsActiveTrue(Long id);
 
+        Optional<RoomClassEntity> findByNameIgnoreCaseAndIsActiveTrue(String name);
+
         Page<RoomClassEntity> findAllByIsActiveTrue(Pageable pageable);
 
         boolean existsByNameIgnoreCaseAndIsActiveTrue(String name);

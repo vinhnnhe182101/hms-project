@@ -10,6 +10,7 @@ import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.RoomClassRepository;
 import com.product.hms.repository.RoomImgRepository;
+import com.product.hms.repository.RoomTypeRepository;
 import com.product.hms.repository.RatingRepository;
 import com.product.hms.service.RoomClassService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class RoomClassServiceImpl implements RoomClassService {
     private final RoomImgRepository roomImgRepository;
     private final RatingRepository ratingRepository;
     private final RoomRepository roomRepository;
+    private final RoomTypeRepository roomTypeRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -106,10 +108,32 @@ public class RoomClassServiceImpl implements RoomClassService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<RoomClassResponse> getRoomClassesForAdmin(Pageable pageable) {
+        syncLegacyRoomTypesToRoomClasses();
         return roomClassRepository.findAllByIsActiveTrue(pageable)
                 .map(this::mapEntityToResponse);
+    }
+
+    private void syncLegacyRoomTypesToRoomClasses() {
+        roomTypeRepository.findAll().forEach(roomType -> {
+            String typeName = roomType.getTypeName() == null ? null : roomType.getTypeName().trim();
+            if (typeName == null || typeName.isBlank()) {
+                return;
+            }
+
+            roomClassRepository.findByNameIgnoreCaseAndIsActiveTrue(typeName)
+                    .orElseGet(() -> {
+                        RoomClassEntity entity = new RoomClassEntity();
+                        entity.setName(typeName);
+                        entity.setStandardCapacity(roomType.getStandardOccupancy());
+                        entity.setMaxCapacity(roomType.getMaxOccupancy());
+                        entity.setBasePrice(roomType.getBaseRatePerNight());
+                        entity.setExtraPersonFee(BigDecimal.ZERO);
+                        entity.setIsActive(true);
+                        return roomClassRepository.save(entity);
+                    });
+        });
     }
 
     @Override
