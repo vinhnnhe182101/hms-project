@@ -1,9 +1,9 @@
 import {ReservationProvider} from "../../hooks/common/list/reservation-list-provider.jsx";
 import {Box, Button, Group, Title} from "@mantine/core";
 import {IconPlus} from "@tabler/icons-react";
-import {ReservationSearch} from "../../components/staff/reservation/ReservationSearch.jsx";
-import {ReservationTable} from "../../components/staff/reservation/ReservationTable.jsx";
-import {ReservationPagination} from "../../components/staff/reservation/ReservationPagination.jsx";
+import {ReservationSearch} from "../../components/staff/reservation-list/ReservationSearch.jsx";
+import {ReservationTable} from "../../components/staff/reservation-list/ReservationTable.jsx";
+import {ReservationPagination} from "../../components/staff/reservation-list/ReservationPagination.jsx";
 import {useNavigate} from "react-router-dom";
 import {STAFF_MAP_ROUTES} from "../../constants/staff.jsx";
 
