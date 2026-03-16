@@ -38,6 +38,8 @@ import StaffManagementPage from '../pages/admin/StaffManagementPage.jsx';
 import UserManagementPage from "../pages/admin/UserManagementPage.jsx"
 import ScheduleManagementPage from "../pages/admin/ScheduleManagementPage.jsx";
 import TaskManagementPage from "../pages/admin/TaskManagementPage.jsx";
+import BookingDetailPage from "../pages/customer/BookingDetailPage.jsx";
+import MyReviewsPage from "../pages/customer/MyReviewsPage.jsx";
 export const router = createBrowserRouter([
     // ===== ROLE-SPECIFIC ROUTES (Ưu tiên cao nhất) =====
     {
@@ -126,6 +128,8 @@ export const router = createBrowserRouter([
             {path: 'booking', element: <ProtectedRoute><BookingPage/></ProtectedRoute>},
             {path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage/></ProtectedRoute>},
             {path: 'history', element: <ProtectedRoute><BookingHistoryPage/></ProtectedRoute>},
+            {path: 'bookings/:bookingId', element: <ProtectedRoute><BookingDetailPage/></ProtectedRoute>},
+            {path: 'reviews', element: <ProtectedRoute><MyReviewsPage /></ProtectedRoute>},
             {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
         ],
     },

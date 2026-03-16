@@ -7,6 +7,6 @@ import java.util.Map;
 
 public interface ScheduleService {
     List<ScheduleResponse> getMySchedule(LocalDate startDate, LocalDate endDate);
-    ScheduleResponse getTodaySchedule();
+    List<ScheduleResponse> getTodaySchedule();
     Map<String, Object> getScheduleSummary();
 }
