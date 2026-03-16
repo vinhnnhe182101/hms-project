@@ -35,7 +35,6 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     List<ReservationEntity> findByCustomerEntityIdAndStatusIn(
             @Param("customerId") Long customerId,
             @Param("statuses") List<ReservationStatus> statuses);
-}
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(r) FROM ReservationEntity r WHERE r.isActive = true AND r.expectedCheckOut >= :start AND r.expectedCheckOut <= :end")
     long countCheckOutsToday(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
