@@ -76,10 +76,4 @@ public class ReservationRoomEntity {
     @ColumnDefault("1")
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
-    /**
-     * Ghi chú chuyển phòng, upgrade, v.v.
-     */
-    @Column(name = "note")
-    private String note;
 }

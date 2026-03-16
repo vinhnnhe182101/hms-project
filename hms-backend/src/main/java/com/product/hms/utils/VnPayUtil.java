@@ -30,11 +30,27 @@ public class VnPayUtil {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
+    // THÊM HÀM NÀY: Dùng để lấy TmnCode trong các service khác (ví dụ: Refund)
+    public String getTmnCode() {
+        return vnpTmnCode;
+    }
+
+    // THÊM HÀM NÀY: Dùng để băm (hash) toàn bộ payload gửi đi
+    public String hashAllFields(Map<String, String> fields) {
+        // Loại bỏ các trường hash cũ (nếu có) trước khi tạo mã băm mới
+        Map<String, String> paramsToSign = new HashMap<>(fields);
+        paramsToSign.remove("vnp_SecureHash");
+        paramsToSign.remove("vnp_SecureHashType");
+
+        String data = buildDataToSign(paramsToSign);
+        return hmacSHA512(vnpHashSecret, data);
+    }
+
     public String generatePaymentUrl(String txnRef,
-            long amountVnd,
-            String ipAddress,
-            String orderInfo,
-            String returnUrl) {
+                                     long amountVnd,
+                                     String ipAddress,
+                                     String orderInfo,
+                                     String returnUrl) {
         Map<String, String> vnpParams = new HashMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
@@ -155,5 +171,16 @@ public class VnPayUtil {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    public String generateRefundHash(String requestId, String version, String command, String tmnCode,
+                                     String txnType, String txnRef, String amount, String txnNo,
+                                     String txnDate, String createBy, String createDate,
+                                     String ipAddr, String orderInfo) {
+        // Thứ tự bắt buộc theo chuẩn VNPAY
+        String data = requestId + "|" + version + "|" + command + "|" + tmnCode + "|" +
+                txnType + "|" + txnRef + "|" + amount + "|" + txnNo + "|" +
+                txnDate + "|" + createBy + "|" + createDate + "|" + ipAddr + "|" + orderInfo;
+        return hmacSHA512(vnpHashSecret, data);
     }
 }

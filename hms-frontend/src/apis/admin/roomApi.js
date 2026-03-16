@@ -1,6 +1,7 @@
 import axiosInstance from '../axiosConfig';
 
 const ROOMS_API_URL = '/v1/rooms';
+const ROOM_CLASSES_API_URL = '/v1/room-classes';
 
 const roomStatusLabelMap = {
     AVAILABLE: 'Available',
@@ -48,15 +49,19 @@ export const roomApi = {
     },
 
     getRoomClasses: async () => {
-        // Derive room classes from rooms data to avoid dependency on heavy room-class endpoint.
-        const rooms = await roomApi.getRooms();
-        const map = new Map();
-        rooms.forEach((room) => {
-            if (room.roomClassId != null && room.roomClassName) {
-                map.set(String(room.roomClassId), room.roomClassName);
-            }
+        const response = await axiosInstance.get(ROOM_CLASSES_API_URL, {
+            params: {
+                page: 0,
+                size: 200,
+                sort: 'id,desc',
+            },
         });
-        return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+
+        const content = Array.isArray(response.data?.content) ? response.data.content : [];
+        return content.map((item) => ({
+            value: String(item.id),
+            label: item.name,
+        }));
     },
 
     createRoom: async (data) => {

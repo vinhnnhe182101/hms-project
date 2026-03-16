@@ -4,7 +4,7 @@
 hms-frontend/*
 !hms-frontend/public/
 !hms-frontend/src/
-hms-frontend/src/dto/custom.d.ts
+hms-frontend/src/dto/models.d.ts
 !hms-frontend/index.html
 !hms-frontend/eslint.config.js
 !hms-frontend/package.json

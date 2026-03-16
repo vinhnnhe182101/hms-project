@@ -332,6 +332,28 @@ ON DELETE CASCADE CONSTRAINT `fk_payment_allocation_folio_item` FOREIGN KEY(`fol
 ON UPDATE CASCADE
 ON DELETE CASCADE
 )ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- =========================
+-- vnpay_transaction_detail
+-- =========================
+CREATE TABLE `vnpay_transaction_detail` (
+                                            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                            `payment_transaction_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK -> payment_transaction.id',
+                                            `vnp_txn_ref` VARCHAR(50) NOT NULL COMMENT 'Mã tham chiếu giao dịch trên hệ thống của bạn gửi sang VNPAY',
+                                            `vnp_transaction_no` VARCHAR(50) NULL COMMENT 'Mã giao dịch do hệ thống VNPAY trả về',
+                                            `vnp_bank_code` VARCHAR(50) NULL COMMENT 'Mã ngân hàng (NCB, VCB,...)',
+                                            `vnp_pay_date` VARCHAR(14) NULL COMMENT 'Thời gian thanh toán thực tế định dạng yyyyMMddHHmmss',
+                                            `raw_response` TEXT NULL COMMENT 'Lưu trữ toàn bộ cục JSON/Query String mà VNPAY trả về để đối soát',
+                                            `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Soft delete flag: 1=active, 0=inactive',
+                                            PRIMARY KEY (`id`),
+                                            UNIQUE KEY `uk_vnpay_detail_payment_transaction` (`payment_transaction_id`),
+                                            CONSTRAINT `fk_vnpay_detail_payment_transaction` FOREIGN KEY (`payment_transaction_id`)
+                                                REFERENCES `payment_transaction` (`id`)
+                                                ON UPDATE CASCADE
+                                                ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+
 -- =========================
 -- rating
 -- =========================

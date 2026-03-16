@@ -57,4 +57,9 @@ public interface PaymentService {
      * @return PaymentResponse với thông tin thanh toán và số dư còn lại
      */
     PaymentResponse processPaymentForFolio(FolioEntity folioEntity, PaymentRequest paymentRequest);
+
+    /**
+     * Initiate and process a refund via VNPAY for an original transaction. Returns true if refund was successful.
+     */
+    boolean processVnPayRefund(com.product.hms.entity.PaymentTransactionEntity originalTransaction, BigDecimal refundAmount, String createdBy, String clientIp);
 }

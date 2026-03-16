@@ -118,4 +118,7 @@ public interface RoomRepository extends JpaRepository<RoomEntity, Long>, RoomRep
      * Fetch all active rooms for floor matrix display
      */
     List<RoomEntity> findByIsActiveTrue();
+
+    long countByIsActiveTrue();
+    long countByStatusAndIsActiveTrue(RoomStatus status);
 }

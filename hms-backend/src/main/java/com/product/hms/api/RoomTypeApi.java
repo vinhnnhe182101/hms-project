@@ -2,10 +2,12 @@ package com.product.hms.api;
 
 import com.product.hms.dto.request.UpsertRoomTypeRequest;
 import com.product.hms.dto.response.AdminRoomTypeResponse;
+import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomTypeEntity;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
+import com.product.hms.repository.RoomClassRepository;
 import com.product.hms.repository.RoomTypeRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RoomTypeApi {
 
+    private final RoomClassRepository roomClassRepository;
     private final RoomTypeRepository roomTypeRepository;
 
     @GetMapping
@@ -52,7 +55,9 @@ public class RoomTypeApi {
         entity.setMaxOccupancy(request.maxOccupancy());
         entity.setBaseRatePerNight(request.baseRatePerNight());
 
-        return ResponseEntity.ok(toResponse(roomTypeRepository.save(entity)));
+        RoomTypeEntity saved = roomTypeRepository.save(entity);
+        syncRoomClass(null, saved);
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     @PutMapping("/{id}")
@@ -62,6 +67,8 @@ public class RoomTypeApi {
     ) {
         RoomTypeEntity entity = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.RESOURCE_NOT_FOUND, "Room type not found with id: " + id));
+
+        String previousTypeName = entity.getTypeName();
 
         String typeName = request.typeName().trim();
         validateOccupancy(request.standardOccupancy(), request.maxOccupancy());
@@ -75,17 +82,49 @@ public class RoomTypeApi {
         entity.setMaxOccupancy(request.maxOccupancy());
         entity.setBaseRatePerNight(request.baseRatePerNight());
 
-        return ResponseEntity.ok(toResponse(roomTypeRepository.save(entity)));
+        RoomTypeEntity saved = roomTypeRepository.save(entity);
+        syncRoomClass(previousTypeName, saved);
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoomType(@PathVariable Long id) {
-        if (!roomTypeRepository.existsById(id)) {
-            throw new NotFoundException(ErrorCode.RESOURCE_NOT_FOUND, "Room type not found with id: " + id);
+        RoomTypeEntity entity = roomTypeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.RESOURCE_NOT_FOUND, "Room type not found with id: " + id));
+
+        roomTypeRepository.delete(entity);
+        roomClassRepository.findByNameIgnoreCaseAndIsActiveTrue(entity.getTypeName())
+                .ifPresent(roomClass -> {
+                    roomClass.setIsActive(false);
+                    roomClassRepository.save(roomClass);
+                });
+        return ResponseEntity.noContent().build();
+    }
+
+    private void syncRoomClass(String previousTypeName, RoomTypeEntity roomType) {
+        String typeName = roomType.getTypeName().trim();
+
+        RoomClassEntity roomClass = roomClassRepository.findByNameIgnoreCaseAndIsActiveTrue(typeName)
+                .orElseGet(() -> previousTypeName == null
+                        ? null
+                        : roomClassRepository.findByNameIgnoreCaseAndIsActiveTrue(previousTypeName.trim()).orElse(null));
+
+        if (roomClass == null) {
+            roomClass = new RoomClassEntity();
+            roomClass.setIsActive(true);
+            roomClass.setExtraPersonFee(java.math.BigDecimal.ZERO);
         }
 
-        roomTypeRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        roomClass.setName(typeName);
+        roomClass.setStandardCapacity(roomType.getStandardOccupancy());
+        roomClass.setMaxCapacity(roomType.getMaxOccupancy());
+        roomClass.setBasePrice(roomType.getBaseRatePerNight());
+        if (roomClass.getExtraPersonFee() == null) {
+            roomClass.setExtraPersonFee(java.math.BigDecimal.ZERO);
+        }
+        roomClass.setIsActive(true);
+
+        roomClassRepository.save(roomClass);
     }
 
     private void validateOccupancy(Integer standardOccupancy, Integer maxOccupancy) {

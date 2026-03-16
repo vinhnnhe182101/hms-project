@@ -2,16 +2,16 @@ package com.product.hms.service.impl;
 
 import com.product.hms.constants.Reservation;
 import com.product.hms.converters.CustomerMapper;
+import com.product.hms.dto.request.BookingRequestDTO;
 import com.product.hms.dto.request.ReservationCheckInRequest;
 import com.product.hms.dto.request.ReservationRequest;
+import com.product.hms.dto.request.ReservationSearchRequest;
 import com.product.hms.dto.response.BookingResponseDTO;
-import com.product.hms.dto.request.ReservationSearchFilter;
+import com.product.hms.dto.response.CustomerResponse;
 import com.product.hms.dto.response.ReservationResponse;
-import com.product.hms.entity.CustomerEntity;
-import com.product.hms.entity.FolioEntity;
-import com.product.hms.entity.ReservationEntity;
-import com.product.hms.entity.ReservationRoomEntity;
-import com.product.hms.entity.RoomClassEntity;
+import com.product.hms.dto.response.RoomClassQuantityResponse;
+import com.product.hms.entity.*;
+import com.product.hms.enums.ReservationRoomStatus;
 import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
@@ -25,42 +25,28 @@ import com.product.hms.service.impl.reservation.ReservationCheckInSupport;
 import com.product.hms.service.impl.reservation.ReservationPricingSupport;
 import com.product.hms.service.impl.reservation.ReservationResponseSupport;
 import com.product.hms.service.impl.reservation.ReservationValidationSupport;
+import com.product.hms.utils.FieldNameUtils;
 import com.product.hms.utils.RandomUtils;
+import com.product.hms.utils.specification.PageSpecificationUtils;
+import com.product.hms.utils.specification.SpecificationUtils;
+import com.product.hms.utils.specification.search.SearchCriteria;
+import com.product.hms.utils.specification.sort.SortCriteria;
+import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.product.hms.dto.response.CustomerResponse;
-import com.product.hms.dto.response.RoomClassQuantityResponse;
-import com.product.hms.repository.ReservationRepository;
-import com.product.hms.repository.ReservationRoomRepository;
-import com.product.hms.utils.specification.SpecificationUtils;
-import com.product.hms.utils.specification.search.SearchCriteria;
-import com.product.hms.utils.specification.sort.SortCriteria;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.*;
-import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.DESC;
-
-import com.product.hms.enums.ReservationRoomStatus;
-import com.product.hms.entity.RoomEntity;
-import com.product.hms.dto.request.BookingRequestDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.UUID;
-import java.util.Map;
+
+import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.*;
+import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.DESC;
 
 /**
  * Implementation of ReservationService
@@ -79,6 +65,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final PaymentService paymentService;
     private final CustomerMapper customerMapper;
     private final SpecificationUtils<ReservationEntity> specificationUtils;
+    private final PageSpecificationUtils<ReservationEntity> pageSpecificationUtils;
 
     @Override
     @Transactional
@@ -188,18 +175,32 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public Page<ReservationResponse> search(ReservationSearchFilter filter, Pageable pageable) {
+    public Page<ReservationResponse> search(ReservationSearchRequest filter, Pageable pageable) {
         List<SearchCriteria> searchCriteria = new ArrayList<>();
-        searchCriteria.add(new SearchCriteria("guestName", LIKE, filter.guestName()));
+        searchCriteria.add(new SearchCriteria(
+                FieldNameUtils.joinFields(
+                        ReservationEntity.Fields.customerEntity,
+                        CustomerEntity.Fields.fullName
+                )
+                , CONTAINS, filter.guestName()));
+        searchCriteria.add(new SearchCriteria(
+                FieldNameUtils.joinFields(
+                        ReservationEntity.Fields.customerEntity,
+                        CustomerEntity.Fields.identityCard
+                )
+                , CONTAINS, filter.identityCard()));
         searchCriteria.add(new SearchCriteria("status", EQUALS, filter.status()));
-        searchCriteria.add(new SearchCriteria("checkInDate", GREATER_THAN_OR_EQUAL_TO, filter.checkInDateFrom()));
-        searchCriteria.add(new SearchCriteria("checkInDate", LESS_THAN_OR_EQUAL_TO, filter.checkInDateTo()));
+        searchCriteria.add(new SearchCriteria(ReservationEntity.Fields.expectedCheckIn, GREATER_THAN_OR_EQUAL_TO, filter.checkInDateFrom()));
+        searchCriteria.add(new SearchCriteria(ReservationEntity.Fields.expectedCheckOut, LESS_THAN_OR_EQUAL_TO, filter.checkInDateTo()));
         List<SortCriteria> sortCriteria = new ArrayList<>();
         if (pageable.getSort().isEmpty()) {
-            sortCriteria.add(new SortCriteria("checkInDate", null, DESC, null));
+            sortCriteria.add(new SortCriteria(ReservationEntity.Fields.expectedCheckIn, SortCriteria.AggregationFunction.NONE, DESC, JoinType.LEFT));
         }
-        var spec = specificationUtils.getSpecifications(searchCriteria, sortCriteria);
-        return reservationRepository.findAll(spec, pageable).map(this::toResponse);
+        var spec = specificationUtils
+                .reset()
+                .getSpecifications(searchCriteria, sortCriteria);
+        return pageSpecificationUtils.getPage(spec, pageable, ReservationEntity.class)
+                .map(this::toResponse);
     }
 
     private ReservationResponse toResponse(ReservationEntity entity) {
@@ -287,7 +288,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Chỉ cho phép đặt phòng trong vòng 2 tháng tới.");
         }
         if (checkOutZoned.isAfter(maxLimit.plusDays(1))) {
-             throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian trả phòng không được vượt quá 2 tháng kể từ hiện tại.");
+            throw new BadRequestException(ErrorCode.INVALID_DATE_RANGE, "Thời gian trả phòng không được vượt quá 2 tháng kể từ hiện tại.");
         }
 
         // 3. Guest count validation against max room capacity
@@ -406,7 +407,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private BigDecimal calculateEarlyCheckInFee(ReservationRoomEntity reservationRoomEntity,
-            Timestamp expectedCheckIn) {
+                                                Timestamp expectedCheckIn) {
         if (reservationRoomEntity.getActualCheckIn() == null || expectedCheckIn == null) {
             return BigDecimal.ZERO;
         }
@@ -459,7 +460,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private ReservationEntity saveReservation(ReservationRequest request, CustomerEntity customer,
-            BigDecimal depositAmount) {
+                                              BigDecimal depositAmount) {
         ReservationEntity reservation = new ReservationEntity();
         reservation.setCode(RandomUtils.generateReservationCode("RS"));
         reservation.setStatus(ReservationStatus.CONFIRMED);

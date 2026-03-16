@@ -2,13 +2,14 @@ package com.product.hms.repository;
 
 import com.product.hms.entity.PaymentTransactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentTransactionRepository extends JpaRepository<PaymentTransactionEntity, Long> {
+public interface PaymentTransactionRepository extends JpaRepository<PaymentTransactionEntity, Long>, JpaSpecificationExecutor<PaymentTransactionEntity> {
     /**
      * Tìm kiếm PaymentTransactionEntity theo transactionReference.
      *
@@ -25,4 +26,7 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
      * @return Danh sách giao dịch phù hợp
      */
     List<PaymentTransactionEntity> findByStatusAndCreatedAtBefore(String status, java.sql.Timestamp before);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(p.amount), 0) FROM PaymentTransactionEntity p WHERE p.status = 'SUCCESS' AND p.createdAt >= :start AND p.createdAt <= :end")
+    java.math.BigDecimal sumRevenueToday(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 }

@@ -29,6 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<ts.model.path>../hms-frontend/src/dto/models.d.ts</ts.model.path>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -141,7 +142,9 @@
 							<version>1.5.5.Final</version>
 						</path>
 					</annotationProcessorPaths>
-				</configuration>
+                    <source>16</source>
+                    <target>16</target>
+                </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -202,7 +205,7 @@
 
 					<!-- Đường dẫn xuất file sang dự án React (chỉnh lại cho đúng cấu trúc thư mục
                     của phen) -->
-					<outputFile>../hms-frontend/src/dto/models.d.ts</outputFile>
+					<outputFile>${ts.model.path}</outputFile>
 
 					<!-- Định dạng kiểu dữ liệu chuẩn JS -->
 					<mapDate>asString</mapDate>
@@ -226,7 +229,7 @@
 								<argument>-NoProfile</argument>
 								<argument>-Command</argument>
 								<argument>
-									$path = '../hms-frontend/src/dto/models.d.ts';
+									$path = '${ts.model.path}';
 									$content = Get-Content $path;
 									$content = $content -replace 'interface (\w+) \{', 'type $1 = {'
 									-replace 'interface (\w+) extends (\w+) \{', 'type $1 = $2 &amp;

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Center, Stack, Loader, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import axios from 'axios';
+import axiosInstance from '../../apis/axiosConfig';
 
 export default function PaymentCallbackPage() {
     const [searchParams] = useSearchParams();
@@ -18,11 +18,11 @@ export default function PaymentCallbackPage() {
         const verifyPayment = async () => {
             try {
                 const params = Object.fromEntries(searchParams.entries());
-                const response = await axios.get('http://localhost:8080/api/v1/payment/vnpay-ipn', { params });
+                // Sử dụng axiosInstance để tận dụng cấu hình baseURL và xử lý IPv4
+                const response = await axiosInstance.get('/v1/payment/vnpay-ipn', { params });
                 
                 const data = response.data;
-                // Kiểm tra cả mã RspCode của IPN và mã phản hồi thanh toán thực tế
-                if ((data.RspCode === '00' || data.RspCode === '02') && data.vnp_ResponseCode === '00') {
+                if ((data.RspCode === '00' || data.RspCode === '02') && (data.vnp_ResponseCode === '00' || params.vnp_ResponseCode === '00')) {
                     // Thanh toán thực sự thành công
                     notifications.show({
                         title: 'Thanh toán thành công',
