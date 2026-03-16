@@ -1,4 +1,4 @@
-import {LucideIcon} from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import React from "react";
 
 declare global {
@@ -58,7 +58,7 @@ declare global {
         inNavbar?: boolean;
     };
 
-    type RouteMapType = Object.<string, RouteItemType>;
+    type RouteMapType = Object<string, RouteItemType>;
 
     type ListContextType<PageType, SearchParamsType> = {
         page: PageType;
@@ -71,6 +71,11 @@ declare global {
         Provider: React.FC<{ children: React.ReactNode }>;
         useList: () => ListContextType<PageType, SearchParamsType>;
     };
+
+    function createListContext<SearchParamsType, PageType>(
+        initialSearchParams: SearchParamsType,
+        initialPage: PageType,
+    ): ListFactoryType<SearchParamsType, PageType>;
 
     /**
      * PageableRequest: Định nghĩa kiểu dữ liệu cho yêu cầu phân trang khi gọi API.
@@ -116,4 +121,6 @@ declare global {
     };
 
     type ReservationSearchParams = ReservationSearchRequest & PageableRequest;
+
+    type MakeReservationContextType = {};
 }
