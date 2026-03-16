@@ -65,7 +65,7 @@ export default function RoomsPage() {
 
     useEffect(() => {
         fetchRooms(page, pageSize, checkIn, checkOut, sortBy);
-    }, [page, pageSize, sortBy]);
+    }, [page, pageSize, sortBy, checkIn, checkOut]);
 
     // Reset to first page when pageSize changes
     const handlePageSizeChange = (value) => {

@@ -96,7 +96,8 @@ export function LoginForm() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${import.meta.env.VITE_BE_URL}/oauth2/authorize/google`;
+        const beUrl = import.meta.env.VITE_BE_URL || 'http://localhost:8080';
+        window.location.href = `${beUrl}/oauth2/authorize/google`;
     };
 
     return (

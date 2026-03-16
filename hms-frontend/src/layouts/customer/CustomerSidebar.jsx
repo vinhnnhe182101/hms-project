@@ -12,13 +12,10 @@ import {
 
 export function CustomerSidebar() {
     const navItems = [
-        { label: 'Dashboard', icon: IconDashboard, to: '/customer' },
-        { label: 'Book a Room', icon: IconCalendarPlus, to: '/customer/book' },
-        { label: 'My Reservations', icon: IconHistory, to: '/customer/reservations' },
-        { label: 'Favorites', icon: IconHeart, to: '/customer/favorites' },
-        { label: 'Reviews', icon: IconStar, to: '/customer/reviews' },
-        { label: 'Messages', icon: IconMessage, to: '/customer/messages' },
-        { label: 'Profile', icon: IconUser, to: '/customer/profile' },
+        { label: 'Dashboard', icon: IconDashboard, to: '/user' },
+        { label: 'Book a Room', icon: IconCalendarPlus, to: '/user/booking' },
+        { label: 'My Reservations', icon: IconHistory, to: '/user/history' },
+        { label: 'Profile', icon: IconUser, to: '/user/profile' },
     ];
 
     return (

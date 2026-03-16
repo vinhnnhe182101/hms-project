@@ -36,7 +36,7 @@ public class VnPayTransactionDetailEntity {
     private String vnpPayDate;
 
     @Lob
-    @Column(name = "raw_response")
+    @Column(name = "raw_response", columnDefinition = "LONGTEXT")
     private String rawResponse;
 
     @ColumnDefault("1")
