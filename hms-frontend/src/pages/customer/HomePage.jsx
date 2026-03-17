@@ -232,10 +232,11 @@ export default function HomePage() {
                                 >
                                     <Card.Section style={{ position: 'relative' }}>
                                         <Image
-                                            src={room.primaryImage?.dataUrl || 'https://placehold.co/600x400?text=Premium+Room'}
+                                            src={room.primaryImage?.dataUrl || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=500'}
                                             height={280}
                                             alt={room.name}
-                                            style={{ transition: 'transform 0.6s ease' }}
+                                            style={{ transition: 'transform 0.6s ease', objectFit: 'cover' }}
+                                            fallbackSrc="https://placehold.co/300x220?text=No+Image"
                                         />
                                         <Badge
                                             pos="absolute"

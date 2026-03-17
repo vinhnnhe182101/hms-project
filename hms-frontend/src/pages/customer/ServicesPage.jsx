@@ -141,7 +141,7 @@ export default function ServicesPage() {
             >
                 <Card.Section>
                     <Image
-                        src="https://images.unsplash.com/photo-1582719478250-c89afe4dc84b?w=400&h=250&fit=crop"
+                        src="https://images.unsplash.com/photo-1522336572468-97b06e8ef143?w=800&q=80"
                         height={160}
                         alt={service.name}
                         fallbackSrc="https://placehold.co/400x250?text=Service"
@@ -166,7 +166,7 @@ export default function ServicesPage() {
 
                     <Group justify="space-between" mt="auto" align="center">
                         <Text fw={700} color="blue.6" style={{ fontSize: '16px' }}>
-                            {formatPrice(service.price)}
+                            {service.price}đ
                         </Text>
                         <Button
                             leftSection={<IconPlus size={16} />}
