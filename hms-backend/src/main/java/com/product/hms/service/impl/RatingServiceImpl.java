@@ -23,7 +23,8 @@ public class RatingServiceImpl implements RatingService {
     private final RatingRepository ratingRepository;
 
     @Override
-    public Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, Pageable pageable) {
+    public Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<RatingEntity> pageData;
         
         if (ratingFilter != null) {

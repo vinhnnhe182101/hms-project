@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container, Grid, Box, Text, Title, Image, Group, Stack, Button,
-    Card, Badge, Tabs, Loader, Center, Pagination, Textarea, Rating, Avatar, TextInput, Select
+    Card, Badge, Tabs, Loader, Center, Pagination, Textarea, Rating, Avatar, TextInput, Select,
+    Breadcrumbs, Anchor
 } from '@mantine/core';
-import { IconUsers, IconCoin, IconChevronRight, IconBed } from '@tabler/icons-react';
+import { IconUsers, IconCoin, IconChevronRight, IconBed, IconChevronLeft } from '@tabler/icons-react';
 import { getRoomClassDetail, getOtherRoomClasses } from '../../apis/customer/roomClassApi';
 import { getRoomClassRatings } from '../../apis/customer/ratingApi';
 
@@ -154,6 +155,14 @@ export default function RoomDetailPage() {
     return (
         <Box>
             <Container size="xl" py={40}>
+                {/* ── Breadcrumbs ── */}
+                <Breadcrumbs mb="xl" separator={<IconChevronRight size={14} />} style={{ fontSize: '14px' }}>
+                    <Anchor onClick={() => navigate('/user/rooms')} style={{ cursor: 'pointer', fontWeight: 500 }}>
+                        Room
+                    </Anchor>
+                    <Text fw={500} color="dimmed">Room Detail</Text>
+                </Breadcrumbs>
+
                 {/* ── Image Gallery ── */}
                 <Grid gutter="md" mb={40}>
                     {/* Main image */}

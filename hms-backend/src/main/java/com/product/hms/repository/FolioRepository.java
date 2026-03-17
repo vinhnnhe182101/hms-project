@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,15 +20,18 @@ public interface FolioRepository extends JpaRepository<FolioEntity, Long> {
      * @return Optional chứa FolioEntity nếu tìm thấy, hoặc Optional.empty() nếu không tìm thấy
      */
     Optional<FolioEntity> findByReservationRoomEntity(ReservationRoomEntity reservationRoomEntity);
-    // Find folio by reservation room
-    Optional<FolioEntity> findByReservationRoomEntityId(Long reservationRoomId);
-
-    // Find folio by reservation
-    @Query("SELECT f FROM FolioEntity f WHERE f.reservationRoomEntity.reservationEntity.id = :reservationId")
-    Optional<FolioEntity> findByReservationEntityId(@Param("reservationId") Long reservationId);
 
     // Find folio by room and status
     @Query("SELECT f FROM FolioEntity f WHERE f.reservationRoomEntity.roomEntity.id = :roomId " +
             "AND f.status != 'SETTLED'")
     Optional<FolioEntity> findActiveFolioByRoomId(@Param("roomId") Long roomId);
+
+
+    @Query("SELECT f FROM FolioEntity f WHERE f.reservationRoomEntity.reservationEntity.id = :reservationId")
+    List<FolioEntity> findByReservationId(@Param("  reservationId") Long reservationId);
+
+    Optional<FolioEntity> findByReservationRoomEntityId(Long reservationRoomId);
+
+    @Query("SELECT f FROM FolioEntity f WHERE f.reservationRoomEntity.reservationEntity.id = :reservationId")
+    List<FolioEntity> findByReservationEntityId(@Param("reservationId") Long reservationId);
 }

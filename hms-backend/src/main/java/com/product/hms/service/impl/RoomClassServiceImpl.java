@@ -16,12 +16,14 @@ import com.product.hms.service.RoomClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.product.hms.enums.ReservationStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.product.hms.repository.RoomRepository;
@@ -38,22 +40,36 @@ public class RoomClassServiceImpl implements RoomClassService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable) {
+    public Page<RoomClassResponse> getRoomClassList(LocalDateTime checkIn, LocalDateTime checkOut, int page, int size, String sortBy) {
+        if (checkIn == null) {
+            checkIn = LocalDateTime.now();
+        }
+        if (checkOut == null) {
+            checkOut = checkIn.plusDays(1);
+        }
+
+        if (checkOut.isBefore(checkIn) || checkOut.isEqual(checkIn)) {
+            checkOut = checkIn.plusDays(1);
+        }
+
+        Sort sort = Sort.by("id").ascending();
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("basePrice").ascending();
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("basePrice").descending();
+        }
+
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+
         List<ReservationStatus> statuses = List.of(
                 ReservationStatus.PENDING_DEPOSIT,
                 ReservationStatus.CONFIRMED,
                 ReservationStatus.IN_HOUSE
         );
-        return roomClassRepository.findRoomClassSummary(checkIn, checkOut, statuses, pageable)
+        return roomClassRepository.findRoomClassSummary(Timestamp.valueOf(checkIn), Timestamp.valueOf(checkOut), statuses, pageable)
                 .map(this::mapSummaryToResponse);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<RoomClassResponse> getAllRoomClasses(Pageable pageable) {
-        return roomClassRepository.findRoomClassSummaryWithoutDate(pageable)
-                .map(this::mapSummaryToResponse);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -107,6 +123,13 @@ public class RoomClassServiceImpl implements RoomClassService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RoomClassResponse> getAllRoomClasses(Pageable pageable) {
+        return roomClassRepository.findRoomClassSummaryWithoutDate(pageable)
+                .map(this::mapSummaryToResponse);
+    }
+    
     @Override
     @Transactional
     public Page<RoomClassResponse> getRoomClassesForAdmin(Pageable pageable) {

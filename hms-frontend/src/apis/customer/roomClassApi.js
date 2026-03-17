@@ -9,15 +9,7 @@ const api = axios.create({
     },
 });
 
-/**
- * GET /api/v1/room-classes?page=0&size=10
- * Lấy danh sách loại phòng có phân trang.
- *
- * Response: {
- *   data: RoomClassResponse[],  // id, name, standardCapacity, basePrice, primaryImage, totalRooms
- *   currentPage, totalItems, totalPages, pageSize, isLast
- * }
- */
+
 export const getRoomClassList = async (page = 0, size = 9, checkIn = null, checkOut = null, sortBy = null) => {
     try {
         const params = { page, size };
@@ -32,15 +24,6 @@ export const getRoomClassList = async (page = 0, size = 9, checkIn = null, check
     }
 };
 
-/**
- * GET /api/v1/room-classes/{id}
- * Lấy chi tiết một loại phòng.
- *
- * Response: RoomClassDetailResponse {
- *   id, name, standardCapacity, maxCapacity, basePrice, extraPersonFee,
- *   totalRooms, images: RoomImgResponse[], assets: AssetResponse[]
- * }
- */
 export const getRoomClassDetail = async (id) => {
     try {
         const response = await api.get(`/home/room-classes/${id}`);
@@ -51,13 +34,7 @@ export const getRoomClassDetail = async (id) => {
     }
 };
 
-/**
- * GET /api/v1/room-classes/{id}/others
- * Lấy danh sách các loại phòng khác (trừ id hiện tại).
- * Dùng cho phần gợi ý "Loại phòng khác" trên trang detail.
- *
- * Response: RoomClassResponse[]
- */
+
 export const getOtherRoomClasses = async (id) => {
     try {
         const response = await api.get(`/home/room-classes/${id}/others`);

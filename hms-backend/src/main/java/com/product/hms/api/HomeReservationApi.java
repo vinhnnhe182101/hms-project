@@ -17,13 +17,7 @@ public class HomeReservationApi {
     private final ReservationService reservationService;
 
     @PostMapping("/booking")
-    public ResponseEntity<?> createBooking(@RequestBody BookingRequestDTO request) {
-        try {
-            BookingResponseDTO response = reservationService.createBooking(request);
-            return ResponseEntity.ok().body(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown Error"));
-        }
+    public ResponseEntity<BookingResponseDTO> createBooking(@RequestBody BookingRequestDTO request) {
+        return ResponseEntity.ok(reservationService.createBooking(request));
     }
 }
