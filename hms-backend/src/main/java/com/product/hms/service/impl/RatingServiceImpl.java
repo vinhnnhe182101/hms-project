@@ -7,6 +7,7 @@ import com.product.hms.repository.RatingRepository;
 import com.product.hms.service.RatingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,8 @@ public class RatingServiceImpl implements RatingService {
     private final RatingRepository ratingRepository;
 
     @Override
-    public Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, Pageable pageable) {
+    public Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<RatingEntity> pageData;
         
         if (ratingFilter != null) {

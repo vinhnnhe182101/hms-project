@@ -19,11 +19,6 @@ const HERO_IMAGES = [
         url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1600&q=80',
         title: 'Modern Suites & Elegant Design',
         desc: 'Escape to a haven of tranquility with our meticulously crafted suites.'
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1566073771259-bc3b17799c7a?w=1600&q=80',
-        title: 'Rooftop Serenity & Stunning Views',
-        desc: 'Enjoy breathtaking panoramas while relaxing by our world-class pool.'
     }
 ];
 

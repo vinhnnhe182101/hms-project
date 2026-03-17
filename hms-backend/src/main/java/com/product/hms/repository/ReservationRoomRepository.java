@@ -51,7 +51,6 @@ public interface ReservationRoomRepository extends JpaRepository<ReservationRoom
      */
     boolean existsByRoomEntityAndReservationEntityAndIsActiveTrue(com.product.hms.entity.RoomEntity room, com.product.hms.entity.ReservationEntity reservation);
     // Find by reservation
-    List<ReservationRoomEntity> findByReservationEntityId(Long reservationId);
 
     // Find by room
     List<ReservationRoomEntity> findByRoomEntityId(Long roomId);
@@ -68,4 +67,10 @@ public interface ReservationRoomRepository extends JpaRepository<ReservationRoom
     }
     // Find by status
     List<ReservationRoomEntity> findByStatus(ReservationRoomStatus status);
+
+
+    List<ReservationRoomEntity> findByReservationEntityId(Long reservationId);
+
+    @Query("SELECT rr FROM ReservationRoomEntity rr WHERE rr.reservationEntity.id = :reservationId")
+    List<ReservationRoomEntity> findByReservationId(@Param("reservationId") Long reservationId);
 }

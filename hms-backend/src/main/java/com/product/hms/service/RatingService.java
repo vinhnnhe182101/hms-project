@@ -5,6 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface RatingService {
-    Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, Pageable pageable);
+    Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, int page, int size);
     Page<RatingSummaryResponse> getLatestRatings(Pageable pageable);
 }

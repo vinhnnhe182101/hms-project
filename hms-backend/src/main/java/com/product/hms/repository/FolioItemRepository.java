@@ -39,11 +39,6 @@ public interface FolioItemRepository extends JpaRepository<FolioItemEntity, Long
      * @return Danh sách FolioItemEntity thỏa mãn điều kiện
      */
     List<FolioItemEntity> findByFolioEntity_IdAndIsActiveTrue(Long folioId);
-    // Find items by folio
-    List<FolioItemEntity> findByFolioEntityId(Long folioId);
-
-    // Find items by folio and type
-    List<FolioItemEntity> findByFolioEntityIdAndType(Long folioId, FolioItemType type);
 
     // Get total by staff and type in period
     @Query("SELECT COALESCE(SUM(fi.totalPrice), 0) FROM FolioItemEntity fi " +
@@ -62,4 +57,12 @@ public interface FolioItemRepository extends JpaRepository<FolioItemEntity, Long
 
     // Find unpaid items by folio
     List<FolioItemEntity> findByFolioEntityIdAndStatus(Long folioId, String status);
+
+
+    List<FolioItemEntity> findByFolioEntityId(Long folioId);
+
+    @Query("SELECT fi FROM FolioItemEntity fi WHERE fi.folioEntity.id IN :folioIds")
+    List<FolioItemEntity> findByFolioIds(@Param("folioIds") List<Long> folioIds);
+
+    List<FolioItemEntity> findByFolioEntityIdAndType(Long folioId, FolioItemType type);
 }

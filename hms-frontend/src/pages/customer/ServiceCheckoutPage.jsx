@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Container, Title, Card, Text, Button, Group, Stack, Table,
-    Select, Box, NumberInput, ActionIcon, Anchor, Loader, Center, Alert
+    Select, Box, NumberInput, ActionIcon, Anchor, Loader, Center, Alert,
+    Breadcrumbs
 } from '@mantine/core';
-import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconTrash, IconPlus, IconInfoCircle, IconX, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { getActiveAllocations, createServiceBookings } from '../../apis/customer/serviceBookingApi';
@@ -206,6 +207,14 @@ export default function ServiceCheckoutPage() {
     return (
         <Box style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', padding: '40px 0' }}>
             <Container size="md">
+                {/* ── Breadcrumbs ── */}
+                <Breadcrumbs mb="md" separator={<IconChevronRight size={14} />} style={{ fontSize: '14px' }}>
+                    <Anchor onClick={() => navigate('/user/services')} style={{ cursor: 'pointer', fontWeight: 500 }}>
+                        Service
+                    </Anchor>
+                    <Text fw={500} color="dimmed">Service Checkout</Text>
+                </Breadcrumbs>
+
                 <Anchor
                     onClick={() => navigate('/user/services')}
                     c="dimmed"

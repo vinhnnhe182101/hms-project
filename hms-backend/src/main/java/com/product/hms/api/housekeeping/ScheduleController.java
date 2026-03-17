@@ -33,8 +33,8 @@ public class ScheduleController {
     }
 
     @GetMapping("/today")
-    public ResponseEntity<ApiResponse<ScheduleResponse>> getTodaySchedule() {
-        ScheduleResponse today = scheduleService.getTodaySchedule();
+    public ResponseEntity<ApiResponse<List<ScheduleResponse>>> getTodaySchedule() {
+        List<ScheduleResponse> today = scheduleService.getTodaySchedule();
         return ResponseEntity.ok(
                 ApiResponse.success("Today's schedule retrieved successfully", today)
         );

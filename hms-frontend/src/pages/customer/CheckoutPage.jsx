@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box, Container, Grid, Card, Title, Text, TextInput, Button,
-    Stack, Group, Divider, Textarea, Badge, Alert
+    Stack, Group, Divider, Textarea, Badge, Alert, Breadcrumbs, Anchor
 } from '@mantine/core';
-import { IconUser, IconPhone, IconIdBadge, IconCalendar, IconUsers, IconCoin, IconArrowLeft, IconInfoCircle, IconLogin, IconCheck, IconX } from '@tabler/icons-react';
+import { IconUser, IconPhone, IconIdBadge, IconCalendar, IconUsers, IconCoin, IconArrowLeft, IconInfoCircle, IconLogin, IconCheck, IconX, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import dayjs from 'dayjs';
 import { createBooking } from '../../apis/customer/reservationApi';
@@ -144,6 +144,14 @@ export default function CheckoutPage() {
             </Box>
 
             <Container size="xl" py={48}>
+                {/* ── Breadcrumbs ── */}
+                <Breadcrumbs mb="xl" separator={<IconChevronRight size={14} />} style={{ fontSize: '14px' }}>
+                    <Anchor onClick={() => navigate('/user/booking')} style={{ cursor: 'pointer', fontWeight: 500 }}>
+                        Checkout
+                    </Anchor>
+                    <Text fw={500} color="dimmed">Checkout Page</Text>
+                </Breadcrumbs>
+
                 <Grid gutter={32}>
                     {/* Left: Customer info form */}
                     <Grid.Col span={{ base: 12, md: 7 }}>

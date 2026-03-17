@@ -7,11 +7,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomClassService {
 
-    Page<RoomClassResponse> getRoomClassList(Timestamp checkIn, Timestamp checkOut, Pageable pageable);
+    Page<RoomClassResponse> getRoomClassList(LocalDateTime checkIn, LocalDateTime checkOut, int page, int size, String sortBy);
 
     Page<RoomClassResponse> getAllRoomClasses(Pageable pageable);
 

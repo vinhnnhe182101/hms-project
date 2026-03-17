@@ -25,11 +25,7 @@ public class HomeServiceBookingApi {
 
     @PostMapping
     public ResponseEntity<String> createServiceBookings(@RequestBody ServiceBookingRequestDTO request) {
-        try {
-            serviceBookingService.createServiceBookings(request);
-            return ResponseEntity.ok("Đặt dịch vụ thành công.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi đặt dịch vụ: " + e.getMessage());
-        }
+        serviceBookingService.createServiceBookings(request);
+        return ResponseEntity.ok("Đặt dịch vụ thành công.");
     }
 }
