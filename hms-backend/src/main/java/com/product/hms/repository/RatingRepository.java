@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
@@ -62,4 +63,16 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
 
     @Query("SELECT r FROM RatingEntity r WHERE r.isPublic = true AND r.isActive = true ORDER BY r.reviewDate DESC")
     Page<RatingEntity> findLatestPublicRatings(Pageable pageable);
+
+    Optional<RatingEntity> findByReservationEntityId(Long reservationId);
+
+    List<RatingEntity> findByCustomerEntityIdOrderByReviewDateDesc(Long customerId);
+
+    @Query("SELECT COUNT(r) > 0 FROM RatingEntity r WHERE r.reservationEntity.id = :reservationId")
+    boolean existsByReservationEntityId(@Param("reservationId") Long reservationId);
+
+    @Query("SELECT AVG(r.rating) FROM RatingEntity r " +
+            "JOIN r.reservationEntity.reservationRoomEntities rr " +
+            "WHERE rr.roomEntity.id = :roomId")
+    Double getAverageRatingByRoomId(@Param("roomId") Long roomId);
 }

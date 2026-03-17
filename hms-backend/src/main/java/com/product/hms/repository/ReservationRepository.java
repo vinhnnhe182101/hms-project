@@ -5,10 +5,13 @@ import com.product.hms.entity.ReservationEntity;
 import com.product.hms.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long>, JpaSpecificationExecutor<ReservationEntity> {
@@ -22,6 +25,16 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(r) FROM ReservationEntity r WHERE r.isActive = true AND r.expectedCheckIn >= :start AND r.expectedCheckIn <= :end")
     long countCheckInsToday(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+    List<ReservationEntity> findByCustomerEntityIdOrderByCreatedAtDesc(Long customerId);
+
+    Optional<ReservationEntity> findByIdAndCustomerEntityId(Long id, Long customerId);
+
+    @Query("SELECT r FROM ReservationEntity r WHERE r.customerEntity.id = :customerId " +
+            "AND r.status IN :statuses ORDER BY r.expectedCheckIn ASC")
+    List<ReservationEntity> findByCustomerEntityIdAndStatusIn(
+            @Param("customerId") Long customerId,
+            @Param("statuses") List<ReservationStatus> statuses);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(r) FROM ReservationEntity r WHERE r.isActive = true AND r.expectedCheckOut >= :start AND r.expectedCheckOut <= :end")
     long countCheckOutsToday(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);

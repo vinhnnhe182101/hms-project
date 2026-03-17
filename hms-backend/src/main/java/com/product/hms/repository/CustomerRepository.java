@@ -4,6 +4,8 @@ import com.product.hms.entity.CustomerEntity;
 import com.product.hms.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -31,4 +33,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long>,
      * @return số lượng khách hàng đang hoạt động
      */
     long countByIsActiveTrue();
+
+    @Query("SELECT c FROM CustomerEntity c WHERE c.userEntity.email = :email")
+    Optional<CustomerEntity> findByUserEntityEmail(@Param("email") String email);
 }

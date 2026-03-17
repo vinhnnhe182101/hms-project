@@ -53,26 +53,18 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public ScheduleResponse getTodaySchedule() {
+    public List<ScheduleResponse> getTodaySchedule() {
         StaffEntity currentStaff = securityUtil.getCurrentStaff();
         LocalDate today = LocalDate.now();
 
-        WorkScheduleEntity schedule = workScheduleRepository
-                .findByStaffEntityIdAndWorkDate(currentStaff.getId(), today)
-                .orElse(null);
+        List<WorkScheduleEntity> schedules = workScheduleRepository
+                .findByStaffEntityIdAndWorkDate(currentStaff.getId(), today);
 
-        if (schedule == null) {
-            return ScheduleResponse.builder()
-                    .date(today)
-                    .shiftName("Day Off")
-                    .status("OFF")
-                    .totalTasks(0)
-                    .completedTasks(0)
-                    .build();
-        }
-
-        return convertToResponse(schedule);
+        return schedules.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public Map<String, Object> getScheduleSummary() {

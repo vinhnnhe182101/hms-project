@@ -17,7 +17,9 @@ import {
     Loader,
     Center,
     Alert,
-    Skeleton
+    Skeleton,
+    ScrollArea,
+    Box
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -28,7 +30,10 @@ import {
     IconCheck,
     IconX,
     IconChevronLeft,
-    IconChevronRight
+    IconChevronRight,
+    IconSun,
+    IconSunset,
+    IconMoon
 } from '@tabler/icons-react';
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, isValid } from 'date-fns';
 import { useHousekeepingTasks } from '../../hooks/useHousekeepingTasks';
@@ -61,6 +66,71 @@ export default function SchedulePage() {
             console.error('Date formatting error:', error);
             return '';
         }
+    };
+
+    // Hàm lấy icon cho shift
+    const getShiftIcon = (shiftName) => {
+        const name = shiftName?.toLowerCase() || '';
+        if (name.includes('morning')) return <IconSun size={16} color="orange" />;
+        if (name.includes('afternoon')) return <IconSunset size={16} color="orange" />;
+        if (name.includes('night')) return <IconMoon size={16} color="indigo" />;
+        return <IconClock size={16} />;
+    };
+
+    // Hàm lấy màu cho shift
+    const getShiftColor = (shiftName) => {
+        const name = shiftName?.toLowerCase() || '';
+        if (name.includes('morning')) return 'yellow';
+        if (name.includes('afternoon')) return 'orange';
+        if (name.includes('night')) return 'indigo';
+        return 'blue';
+    };
+
+    // Hàm sắp xếp ca theo thứ tự: Morning → Afternoon → Night
+    const sortShiftsByTime = (shifts) => {
+        const shiftOrder = {
+            'Morning': 1,
+            'Afternoon': 2,
+            'Night': 3,
+            'Morning Shift': 1,
+            'Afternoon Shift': 2,
+            'Night Shift': 3
+        };
+
+        return [...shifts].sort((a, b) => {
+            const orderA = shiftOrder[a.shiftName] || 999;
+            const orderB = shiftOrder[b.shiftName] || 999;
+
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+
+            if (a.startTime && b.startTime) {
+                return a.startTime.localeCompare(b.startTime);
+            }
+            return 0;
+        });
+    };
+
+    // Lấy tất cả shifts cho một ngày
+    const getShiftsForDate = (date) => {
+        if (!schedule || !Array.isArray(schedule)) return [];
+        const shifts = schedule.filter(shift => {
+            try {
+                if (!shift.date) return false;
+                const shiftDate = typeof shift.date === 'string' ? parseISO(shift.date) : new Date(shift.date);
+                return isValid(shiftDate) && isSameDay(shiftDate, date);
+            } catch (error) {
+                return false;
+            }
+        });
+
+        return sortShiftsByTime(shifts);
+    };
+
+    // Lấy shift count cho badge
+    const getShiftCountForDate = (date) => {
+        return getShiftsForDate(date).length;
     };
 
     useEffect(() => {
@@ -118,19 +188,6 @@ export default function SchedulePage() {
     const goToToday = () => {
         setSelectedDate(new Date());
         loadInitialData();
-    };
-
-    const getShiftForDate = (date) => {
-        if (!schedule || !Array.isArray(schedule)) return null;
-        return schedule.find(shift => {
-            try {
-                if (!shift.date) return false;
-                const shiftDate = typeof shift.date === 'string' ? parseISO(shift.date) : new Date(shift.date);
-                return isValid(shiftDate) && isSameDay(shiftDate, date);
-            } catch (error) {
-                return false;
-            }
-        });
     };
 
     const getStatusColor = (status) => {
@@ -206,7 +263,10 @@ export default function SchedulePage() {
                 {weekDays.length > 0 && (
                     <SimpleGrid cols={7} spacing="xs">
                         {weekDays.map((day, index) => {
-                            const shift = getShiftForDate(day);
+                            const shiftCount = getShiftCountForDate(day);
+                            const shifts = getShiftsForDate(day);
+                            const firstShift = shifts[0];
+
                             return (
                                 <Paper
                                     key={index}
@@ -217,7 +277,8 @@ export default function SchedulePage() {
                                         backgroundColor: isSameDay(day, new Date()) ? 'var(--mantine-color-blue-0)' : 'white',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s',
-                                        border: isSameDay(day, selectedDate) ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)'
+                                        border: isSameDay(day, selectedDate) ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)',
+                                        position: 'relative'
                                     }}
                                     onClick={() => setSelectedDate(day)}
                                 >
@@ -226,14 +287,37 @@ export default function SchedulePage() {
                                     {loadingWeek ? (
                                         <Skeleton height={20} width={60} mt={4} />
                                     ) : (
-                                        <Badge
-                                            size="sm"
-                                            color={getStatusColor(shift?.status)}
-                                            variant="dot"
-                                            mt={4}
-                                        >
-                                            {shift?.shiftName || 'No shift'}
-                                        </Badge>
+                                        <>
+                                            {shiftCount > 0 ? (
+                                                <>
+                                                    <Badge
+                                                        size="sm"
+                                                        color="blue"
+                                                        variant="filled"
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: 2,
+                                                            right: 2,
+                                                            minWidth: 20,
+                                                            height: 20,
+                                                            padding: 0
+                                                        }}
+                                                    >
+                                                        {shiftCount}
+                                                    </Badge>
+                                                    <Badge
+                                                        size="xs"
+                                                        color={getShiftColor(firstShift?.shiftName)}
+                                                        variant="light"
+                                                        mt={4}
+                                                    >
+                                                        {firstShift?.shiftName?.split(' ')[0] || 'Shift'}
+                                                    </Badge>
+                                                </>
+                                            ) : (
+                                                <Text size="xs" c="dimmed" mt={4}>Off</Text>
+                                            )}
+                                        </>
                                     )}
                                 </Paper>
                             );
@@ -284,87 +368,117 @@ export default function SchedulePage() {
                     </Paper>
                 )}
 
-                {/* Selected Day Details */}
-                {schedule && Array.isArray(schedule) && (
-                    <Paper withBorder radius="lg" p="lg">
-                        <Group justify="space-between" mb="md">
-                            <Group>
-                                <ThemeIcon size="lg" color="blue" variant="light">
-                                    <IconCalendarStats size={20} />
-                                </ThemeIcon>
-                                <div>
-                                    <Title order={4}>{safeFormat(selectedDate, 'EEEE, MMMM d, yyyy')}</Title>
-                                    <Text size="sm" c="dimmed">Your shift details</Text>
-                                </div>
-                            </Group>
-                        </Group>
+                {/* Daily Schedule - Hiển thị tất cả các ngày trong tuần */}
+                {schedule && Array.isArray(schedule) && weekDays.length > 0 && (
+                    <Stack gap="md">
+                        <Title order={3}>Weekly Schedule</Title>
+                        <ScrollArea style={{ height: 400 }} offsetScrollbars>
+                            <Stack gap="md">
+                                {weekDays.map((day, index) => {
+                                    const shifts = getShiftsForDate(day);
+                                    const isToday = isSameDay(day, new Date());
 
-                        {(() => {
-                            const shift = getShiftForDate(selectedDate);
-                            return shift ? (
-                                <Stack>
-                                    <Card withBorder>
-                                        <Group justify="space-between">
-                                            <div>
-                                                <Text size="sm" c="dimmed">Shift</Text>
-                                                <Text fw={600} size="lg">
-                                                    {shift.shiftName}
-                                                </Text>
-                                            </div>
-                                            <Badge
-                                                size="lg"
-                                                color={getStatusColor(shift.status)}
-                                            >
-                                                {shift.status}
-                                            </Badge>
-                                        </Group>
-                                    </Card>
-
-                                    {shift.startTime && (
-                                        <SimpleGrid cols={2}>
-                                            <Card withBorder>
-                                                <Text size="sm" c="dimmed">Start Time</Text>
+                                    return (
+                                        <Paper
+                                            key={index}
+                                            withBorder
+                                            radius="lg"
+                                            p="lg"
+                                            bg={isToday ? 'blue.0' : 'white'}
+                                            style={{
+                                                border: isToday ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)'
+                                            }}
+                                        >
+                                            <Group justify="space-between" mb="md">
                                                 <Group>
-                                                    <IconClock size={18} />
-                                                    <Text fw={600}>{shift.startTime}</Text>
+                                                    <ThemeIcon size="lg" color="blue" variant="light">
+                                                        <IconCalendarStats size={20} />
+                                                    </ThemeIcon>
+                                                    <div>
+                                                        <Title order={4}>
+                                                            {safeFormat(day, 'EEEE, MMMM d, yyyy')}
+                                                            {isToday && <Badge color="blue" ml="sm">Today</Badge>}
+                                                        </Title>
+                                                        <Text size="sm" c="dimmed">
+                                                            {shifts.length > 0 ? `${shifts.length} shift(s)` : 'No shifts'}
+                                                        </Text>
+                                                    </div>
                                                 </Group>
-                                            </Card>
-                                            <Card withBorder>
-                                                <Text size="sm" c="dimmed">End Time</Text>
-                                                <Group>
-                                                    <IconClock size={18} />
-                                                    <Text fw={600}>{shift.endTime}</Text>
-                                                </Group>
-                                            </Card>
-                                        </SimpleGrid>
-                                    )}
-
-                                    {shift.totalTasks !== undefined && (
-                                        <Card withBorder>
-                                            <Group justify="space-between">
-                                                <div>
-                                                    <Text size="sm" c="dimmed">Tasks Completed</Text>
-                                                    <Text fw={600} size="xl">
-                                                        {shift.completedTasks || 0}/{shift.totalTasks}
-                                                    </Text>
-                                                </div>
-                                                <Button
-                                                    variant="light"
-                                                    onClick={() => navigate('/housekeeping/tasks')}
-                                                >
-                                                    View Tasks
-                                                </Button>
                                             </Group>
-                                        </Card>
-                                    )}
-                                </Stack>
-                            ) : (
-                                <Alert color="gray" title="No Shift">
-                                    You don't have a shift scheduled for this day.
-                                </Alert>
-                            );
-                        })()}
-                    </Paper>
+
+                                            {shifts.length === 0 ? (
+                                                <Alert color="gray" title="Day Off">
+                                                    You don't have any shifts scheduled for this day.
+                                                </Alert>
+                                            ) : (
+                                                <Stack>
+                                                    {shifts.map((shift, shiftIndex) => (
+                                                        <Card key={shiftIndex} withBorder>
+                                                            <Group justify="space-between" mb="xs">
+                                                                <Group>
+                                                                    <ThemeIcon
+                                                                        size="sm"
+                                                                        color={getShiftColor(shift.shiftName)}
+                                                                        variant="light"
+                                                                    >
+                                                                        {getShiftIcon(shift.shiftName)}
+                                                                    </ThemeIcon>
+                                                                    <Text fw={600}>{shift.shiftName}</Text>
+                                                                </Group>
+                                                                <Badge
+                                                                    size="lg"
+                                                                    color={getStatusColor(shift.status)}
+                                                                >
+                                                                    {shift.status}
+                                                                </Badge>
+                                                            </Group>
+
+                                                            <SimpleGrid cols={2} spacing="sm" mb="xs">
+                                                                <Card withBorder padding="xs">
+                                                                    <Text size="xs" c="dimmed">Start Time</Text>
+                                                                    <Group>
+                                                                        <IconClock size={14} />
+                                                                        <Text fw={500}>{shift.startTime || '--:--'}</Text>
+                                                                    </Group>
+                                                                </Card>
+                                                                <Card withBorder padding="xs">
+                                                                    <Text size="xs" c="dimmed">End Time</Text>
+                                                                    <Group>
+                                                                        <IconClock size={14} />
+                                                                        <Text fw={500}>{shift.endTime || '--:--'}</Text>
+                                                                    </Group>
+                                                                </Card>
+                                                            </SimpleGrid>
+
+                                                            {shift.totalTasks !== undefined && (
+                                                                <Card withBorder padding="xs">
+                                                                    <Group justify="space-between">
+                                                                        <div>
+                                                                            <Text size="xs" c="dimmed">Tasks Completed</Text>
+                                                                            <Text fw={600}>
+                                                                                {shift.completedTasks || 0}/{shift.totalTasks}
+                                                                            </Text>
+                                                                        </div>
+                                                                        <Button
+                                                                            size="xs"
+                                                                            variant="light"
+                                                                            onClick={() => navigate('/housekeeping/tasks')}
+                                                                        >
+                                                                            View Tasks
+                                                                        </Button>
+                                                                    </Group>
+                                                                </Card>
+                                                            )}
+                                                        </Card>
+                                                    ))}
+                                                </Stack>
+                                            )}
+                                        </Paper>
+                                    );
+                                })}
+                            </Stack>
+                        </ScrollArea>
+                    </Stack>
                 )}
 
                 {/* Weekly Summary */}
@@ -399,10 +513,11 @@ export default function SchedulePage() {
                         <Timeline active={scheduleSummary?.completedShifts || 0}>
                             {schedule
                                 .filter(shift => shift.status !== 'OFF')
+                                .slice(0, 5)
                                 .map((shift, index) => (
                                     <Timeline.Item
                                         key={index}
-                                        bullet={getStatusIcon(shift.status)}
+                                        bullet={getShiftIcon(shift.shiftName)}
                                         title={shift.shiftName}
                                     >
                                         <Text size="sm">

@@ -41,8 +41,8 @@ public interface WorkScheduleRepository extends JpaRepository<WorkScheduleEntity
     List<WorkScheduleEntity> findByStaffEntityIdAndWorkDateBetween(
             Long staffId, LocalDate startDate, LocalDate endDate);
 
-    // Find schedule by staff and specific date
-    Optional<WorkScheduleEntity> findByStaffEntityIdAndWorkDate(Long staffId, LocalDate workDate);
+    // Trả về List - nhân viên có thể có nhiều ca trong ngày
+    List<WorkScheduleEntity> findByStaffEntityIdAndWorkDate(Long staffId, LocalDate workDate);
 
     // Find all schedules in date range
     List<WorkScheduleEntity> findByWorkDateBetween(LocalDate startDate, LocalDate endDate);

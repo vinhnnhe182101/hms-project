@@ -5,7 +5,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
     IconUser, IconLogout, IconDashboard, IconCalendarPlus,
-    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory, IconBell
+    IconHotelService, IconHome, IconPhone, IconInfoCircle, IconHistory, IconBell, IconStar
 } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -88,10 +88,10 @@ export function CustomerHeader() {
                                     <Menu.Label>Navigation</Menu.Label>
 
                                     <Menu.Item
-                                        leftSection={<IconCalendarPlus size={14} />}
-                                        onClick={() => navigate(`${customerBasePath}/booking`)}
+                                        leftSection={<IconStar size={14} />}
+                                        onClick={() => navigate('/user/reviews')}
                                     >
-                                        Book a Room
+                                        My Reviews
                                     </Menu.Item>
 
                                     <Divider />
