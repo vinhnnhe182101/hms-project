@@ -28,8 +28,10 @@ public final class ReservationResponseSupport {
         for (ReservationRoomEntity allocation : allocations) {
             allocationResponses.add(new RoomClassQuantityResponse(
                     allocation.getId(),
-                    allocation.getRoomClassEntity().getId(),
-                    allocation.getNumberOfPeople()
+                    allocation.getRoomClassEntity() != null ? allocation.getRoomClassEntity().getId() : null,
+                    allocation.getNumberOfPeople(),
+                    allocation.getRoomEntity() != null ? allocation.getRoomEntity().getId() : null,
+                    allocation.getRoomEntity() != null ? allocation.getRoomEntity().getRoomNumber() : null
             ));
         }
 
@@ -40,7 +42,7 @@ public final class ReservationResponseSupport {
                 allocationResponses,
                 reservation.getExpectedCheckIn(),
                 reservation.getExpectedCheckOut(),
-                reservation.getStatus().name(),
+                reservation.getStatus() != null ? reservation.getStatus().name() : null,
                 reservation.getNumberOfMembers(),
                 reservation.getNote(),
                 reservation.getCreatedAt()

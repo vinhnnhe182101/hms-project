@@ -58,4 +58,6 @@ public interface ReservationService {
      * @return paged result
      */
     Page<ReservationResponse> search(ReservationSearchRequest filter, Pageable pageable);
+
+    ReservationResponse getById(Long id);
 }

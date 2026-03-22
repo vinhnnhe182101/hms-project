@@ -1,17 +1,18 @@
 package com.product.hms.service.impl;
 
 import com.product.hms.dto.request.UpsertRoomClassRequest;
-import com.product.hms.dto.response.*;
+import com.product.hms.dto.response.AssetResponse;
+import com.product.hms.dto.response.RoomClassDetailResponse;
+import com.product.hms.dto.response.RoomClassResponse;
+import com.product.hms.dto.response.RoomImgResponse;
 import com.product.hms.entity.RoomAssetEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomImgEntity;
+import com.product.hms.enums.ReservationStatus;
 import com.product.hms.exception.BadRequestException;
 import com.product.hms.exception.ErrorCode;
 import com.product.hms.exception.NotFoundException;
-import com.product.hms.repository.RoomClassRepository;
-import com.product.hms.repository.RoomImgRepository;
-import com.product.hms.repository.RoomTypeRepository;
-import com.product.hms.repository.RatingRepository;
+import com.product.hms.repository.*;
 import com.product.hms.service.RoomClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,14 +20,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.product.hms.enums.ReservationStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import com.product.hms.repository.RoomRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -54,9 +56,9 @@ public class RoomClassServiceImpl implements RoomClassService {
 
         Sort sort = Sort.by("id").ascending();
         if ("price_asc".equalsIgnoreCase(sortBy)) {
-            sort = Sort.by("basePrice").ascending();
+            sort = Sort.by("basePrice").ascending().and(Sort.by("id").ascending());
         } else if ("price_desc".equalsIgnoreCase(sortBy)) {
-            sort = Sort.by("basePrice").descending();
+            sort = Sort.by("basePrice").descending().and(Sort.by("id").ascending());
         }
 
         Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
@@ -68,6 +70,15 @@ public class RoomClassServiceImpl implements RoomClassService {
         );
         return roomClassRepository.findRoomClassSummary(Timestamp.valueOf(checkIn), Timestamp.valueOf(checkOut), statuses, pageable)
                 .map(this::mapSummaryToResponse);
+    }
+
+    @Override
+    public List<RoomClassResponse> getAllRoomClasses() {
+        return roomClassRepository.findAll()
+                .stream()
+                .filter(RoomClassEntity::getIsActive)
+                .map(this::mapEntityToResponse)
+                .toList();
     }
 
 
@@ -113,6 +124,7 @@ public class RoomClassServiceImpl implements RoomClassService {
                 .averageRating(avgRating)
                 .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<RoomClassResponse> getOtherRoomClasses(Long excludeId) {
@@ -129,7 +141,7 @@ public class RoomClassServiceImpl implements RoomClassService {
         return roomClassRepository.findRoomClassSummaryWithoutDate(pageable)
                 .map(this::mapSummaryToResponse);
     }
-    
+
     @Override
     @Transactional
     public Page<RoomClassResponse> getRoomClassesForAdmin(Pageable pageable) {

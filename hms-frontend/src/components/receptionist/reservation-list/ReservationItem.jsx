@@ -1,10 +1,11 @@
 // components/ReservationItem.jsx
 
 import {ActionIcon, Badge, Group, Table, Text} from "@mantine/core";
-import {IconEye} from "@tabler/icons-react";
+import {IconEye, IconLogin} from "@tabler/icons-react";
 import {RESERVATION_STATUS_MAP} from "../../../constants/reservation.jsx";
 import {useNavigate} from "react-router-dom";
 import {formatUtils} from "../../../utils/formatUtils.js";
+import {RECEPTIONIST_MAP_ROUTES} from "../../../constants/receptionist.jsx";
 
 /**
  * Component để hiển thị một dòng thông tin đặt phòng trong bảng danh sách đặt phòng.
@@ -17,7 +18,11 @@ export const ReservationItem = ({reservation}) => {
     const statusCfg = RESERVATION_STATUS_MAP[reservation.status] ?? {color: "gray", label: reservation.status};
 
     const viewHandler = () => {
-        navigate(`/staff/reservations/${reservation.bookingId}`);
+        navigate(`/receptionist/reservations/${reservation.bookingId}`);
+    }
+
+    const checkInHandler = () => {
+        navigate(`/receptionist/reservations/${reservation.bookingId}/check-in`);
     }
 
     return (
@@ -61,6 +66,18 @@ export const ReservationItem = ({reservation}) => {
 
                 <Table.Td>
                     <Group justify="flex-end" gap={4} wrap="nowrap">
+                        {/* Nút Check-in chỉ hiện khi trạng thái là CONFIRMED hoặc PENDING_DEPOSIT? Thường là CONFIRMED */}
+                        {reservation.status === 'CONFIRMED' && (
+                            <ActionIcon
+                                variant="light"
+                                color="blue"
+                                size="sm"
+                                aria-label="Check-in"
+                                onClick={checkInHandler}
+                            >
+                                <IconLogin size={15}/>
+                            </ActionIcon>
+                        )}
                         <ActionIcon
                                 variant="subtle"
                                 color="gray"

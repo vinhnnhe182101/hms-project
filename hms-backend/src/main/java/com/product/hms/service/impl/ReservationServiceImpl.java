@@ -175,6 +175,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ReservationResponse> search(ReservationSearchRequest filter, Pageable pageable) {
         List<SearchCriteria> searchCriteria = new ArrayList<>();
         searchCriteria.add(new SearchCriteria(
@@ -203,27 +204,27 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(this::toResponse);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ReservationResponse getById(Long id) {
+        ReservationEntity reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        ErrorCode.RESERVATION_NOT_FOUND,
+                        "Reservation not found with ID: " + id));
+        
+        return ReservationResponseSupport.buildReservationResponse(
+                reservation,
+                reservation.getCustomerEntity(),
+                reservationRoomService,
+                customerMapper);
+    }
+
     private ReservationResponse toResponse(ReservationEntity entity) {
-        CustomerResponse customer = customerMapper.toResponse(entity.getCustomerEntity());
-        List<RoomClassQuantityResponse> allocations = reservationRoomRepository
-                .findByReservationEntity(entity)
-                .stream()
-                .map(allocation -> new RoomClassQuantityResponse(
-                        allocation.getId(),
-                        allocation.getRoomClassEntity() != null ? allocation.getRoomClassEntity().getId() : null,
-                        allocation.getNumberOfPeople()))
-                .toList();
-        return new ReservationResponse(
-                entity.getId(),
-                entity.getCode(),
-                customer,
-                allocations,
-                entity.getExpectedCheckIn(),
-                entity.getExpectedCheckOut(),
-                entity.getStatus() != null ? entity.getStatus().name() : null,
-                entity.getNumberOfMembers(),
-                entity.getNote(),
-                entity.getCreatedAt());
+        return ReservationResponseSupport.buildReservationResponse(
+                entity,
+                entity.getCustomerEntity(),
+                reservationRoomService,
+                customerMapper);
     }
 
     @Override

@@ -10,7 +10,7 @@ export const ActionButton = () => {
     const {state: reservationRequest} = useMakeReservationArea();
 
     const cancelHandler = () => {
-        navigate(RECEPTIONIST_MAP_ROUTES.RESERVATIONS);
+        navigate(RECEPTIONIST_MAP_ROUTES.RESERVATIONS.path);
     };
 
     const submitHandler = async () => {
@@ -18,6 +18,7 @@ export const ActionButton = () => {
         console.log("Reservation response:", reservationResponse);
         if (reservationResponse) {
             alert("Reservation created successfully!");
+            navigate(RECEPTIONIST_MAP_ROUTES.RESERVATIONS.path);
         }
     };
 

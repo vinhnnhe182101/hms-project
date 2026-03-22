@@ -10,7 +10,7 @@ import com.product.hms.enums.RoomStatus;
  *   <li>status: Lọc theo trạng thái phòng.</li>
  * </ul>
  */
-public record RoomSearchFilter(
+public record RoomSearchRequest(
     String roomNumber,
     Long roomClassId,
     RoomStatus status

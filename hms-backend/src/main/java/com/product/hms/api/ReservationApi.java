@@ -34,6 +34,12 @@ public class ReservationApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ReservationResponse> getReservation(@PathVariable Long reservationId) {
+        ReservationResponse response = reservationService.getById(reservationId);
+        return ResponseEntity.ok(response);
+    }
+
     /**
      * Update reservation core information.
      */

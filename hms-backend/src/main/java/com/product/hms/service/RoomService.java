@@ -1,7 +1,7 @@
 package com.product.hms.service;
 
 import com.product.hms.dto.request.CreateRoomRequest;
-import com.product.hms.dto.request.RoomSearchFilter;
+import com.product.hms.dto.request.RoomSearchRequest;
 import com.product.hms.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +20,7 @@ public interface RoomService {
      * @param pageable Thông tin phân trang
      * @return Trang kết quả tìm kiếm phòng
      */
-    Page<RoomResponse> search(RoomSearchFilter filter, Pageable pageable);
+    Page<RoomResponse> search(RoomSearchRequest filter, Pageable pageable);
 
     RoomResponse createRoom(CreateRoomRequest request);
 
@@ -35,7 +35,7 @@ public interface RoomService {
      * @param checkInDate  Ngày giờ check-in dự kiến
      * @param checkOutDate Ngày giờ check-out dự kiến
      * @return Danh sách RoomClassAvailabilityResponse, mỗi phần tử chứa thông tin
-     *         về một hạng phòng và số lượng phòng trống thuộc hạng đó.
+     * về một hạng phòng và số lượng phòng trống thuộc hạng đó.
      */
     List<RoomClassAvailabilityResponse> getAvailableRooms(Timestamp checkInDate, Timestamp checkOutDate);
 
@@ -46,7 +46,7 @@ public interface RoomService {
      * @param checkInDate  Ngày giờ check-in dự kiến
      * @param checkOutDate Ngày giờ check-out dự kiến
      * @return Danh sách RoomClassAvailableRoomsResponse, mỗi phần tử chứa thông tin
-     *         về một hạng phòng và danh sách các phòng trống thuộc hạng đó.
+     * về một hạng phòng và danh sách các phòng trống thuộc hạng đó.
      */
     List<RoomClassAvailableRoomsResponse> getAvailableRoomsForAssignment(Timestamp checkInDate, Timestamp checkOutDate);
 
@@ -76,7 +76,7 @@ public interface RoomService {
      *
      * @param floor là định danh tầng (ví dụ: "1", "12").
      * @return Danh sách RoomMatrixResponse chứa thông tin về các phòng trên tầng đã
-     *         chỉ định.
+     * chỉ định.
      */
     List<RoomMatrixResponse> getRoomStatusMatrixByFloor(String floor);
 }

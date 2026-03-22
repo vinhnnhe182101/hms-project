@@ -1,6 +1,10 @@
 import {BedDouble, CalendarDays, CreditCard, LogIn, LogOut, Users} from "lucide-react";
-import {ReservationListPage} from "../pages/receptionist/ReservationListPage.jsx";
-import {MakeReservationPage} from "../pages/receptionist/MakeReservationPage.jsx";
+import {ReservationListPage} from "../pages/receptionist/reservation/ReservationListPage.jsx";
+import {MakeReservationPage} from "../pages/receptionist/reservation/MakeReservationPage.jsx";
+import {CheckInPage} from "../pages/receptionist/reservation/CheckInPage.jsx";
+import {ListRoomPage} from "../pages/receptionist/room/ListRoomPage.jsx";
+import {ListRoomOccupantPage} from "../pages/receptionist/room/ListRoomOccupantPage.jsx";
+import {ComingSoonPage} from "../pages/common/ComingSoonPage.jsx";
 
 /** @type {Object.<string, RouteItemType>} */
 const RECEPTIONIST_MAP_ROUTES = {
@@ -11,6 +15,14 @@ const RECEPTIONIST_MAP_ROUTES = {
         element: <ReservationListPage/>,
         inNavbar: true,
     },
+    RESERVATION_DETAIL: {
+        path: "/receptionist/reservations/:id",
+        element: <ComingSoonPage/>
+    },
+    CHECK_IN_ID: {
+        path: "/receptionist/reservations/:id/check-in",
+        element: <CheckInPage/>
+    },
     MAKE_RESERVATION: {
         path: "/receptionist/reservations/make",
         element: <MakeReservationPage/>,
@@ -19,35 +31,35 @@ const RECEPTIONIST_MAP_ROUTES = {
         path: "/receptionist/rooms",
         label: "Room",
         icon: BedDouble,
-        element: <div>Danh sách phòng</div>,
+        element: <ListRoomPage/>,
         inNavbar: true,
     },
     OCCUPIED_ROOMS: {
         path: "/receptionist/occupied-rooms",
         label: "Occupied Room",
         icon: Users,
-        element: <div>Danh sách phòng ở</div>,
+        element: <ListRoomOccupantPage/>,
         inNavbar: true,
     },
     CHECK_IN: {
         path: "/receptionist/check-in",
         label: "Check-in",
         icon: LogIn,
-        element: <div>Danh sách check-in</div>,
+        element: <ComingSoonPage/>,
         inNavbar: true,
     },
     CHECK_OUT: {
         path: "/receptionist/check-out",
         label: "Check-out",
         icon: LogOut,
-        element: <div>Danh sách check-out</div>,
+        element: <ComingSoonPage/>,
         inNavbar: true,
     },
     PAYMENT: {
         path: "/receptionist/payment",
         label: "Payment",
         icon: CreditCard,
-        element: <div>Danh sách payment</div>,
+        element: <ComingSoonPage/>,
         inNavbar: true,
     },
 };

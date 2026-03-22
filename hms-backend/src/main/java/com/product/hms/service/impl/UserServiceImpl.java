@@ -293,7 +293,9 @@ public class UserServiceImpl implements UserService {
                 .map(allocation -> new RoomClassQuantityResponse(
                         allocation.getId(),
                         allocation.getRoomClassEntity() != null ? allocation.getRoomClassEntity().getId() : null,
-                        allocation.getNumberOfPeople()))
+                        allocation.getNumberOfPeople(),
+                        allocation.getRoomEntity() != null ? allocation.getRoomEntity().getId() : null,
+                        allocation.getRoomEntity() != null ? allocation.getRoomEntity().getRoomNumber() : null))
                 .toList();
 
         return new ReservationResponse(

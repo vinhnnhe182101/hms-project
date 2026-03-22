@@ -15,6 +15,8 @@ package com.product.hms.dto.response;
 public record RoomClassQuantityResponse(
         Long id,
         Long roomClassId,
-        Integer numberOfPeople
+        Integer numberOfPeople,
+        Long roomId,
+        String roomNumber
 ) {
 }
