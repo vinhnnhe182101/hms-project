@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import {createContext, useContext, useMemo, useState} from "react";
 
 /**
  * Hàm tạo context cho list, quản lý SearchParams và Page riêng biệt.
@@ -14,22 +14,26 @@ export const createListContext = (initialSearchParams, initialPage) => {
      */
     const Context = createContext(null);
 
-    const Provider = ({ children }) => {
+    const Provider = ({children}) => {
         /** @type {[SearchParamsType, React.Dispatch<React.SetStateAction<SearchParamsType>>]} */
         const [searchParams, setSearchParams] = useState(initialSearchParams);
 
         /** @type {[PageType, React.Dispatch<React.SetStateAction<PageType>>]} */
         const [page, setPage] = useState(initialPage);
 
+        const [isLoading, setIsLoading] = useState(false);
+
         /** @type {ListContextType<SearchParamsType, PageType>} */
         const value = useMemo(
-            () => ({
-                searchParams,
-                setSearchParams,
-                page,
-                setPage,
-            }),
-            [searchParams, page],
+                () => ({
+                    searchParams,
+                    setSearchParams,
+                    page,
+                    setPage,
+                    isLoading,
+                    setIsLoading
+                }),
+                [searchParams, page, isLoading],
         );
 
         return <Context.Provider value={value}>{children}</Context.Provider>;

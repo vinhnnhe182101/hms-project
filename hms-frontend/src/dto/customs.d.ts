@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import {LucideIcon} from "lucide-react";
 import React from "react";
 
 declare global {
@@ -65,6 +65,8 @@ declare global {
         setPage: React.Dispatch<React.SetStateAction<PageType>>;
         searchParams: SearchParamsType;
         setSearchParams: React.Dispatch<React.SetStateAction<SearchParamsType>>;
+        isLoading: boolean;
+        setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
     type ListFactoryType<PageType, SearchParamsType> = {
@@ -122,5 +124,7 @@ declare global {
 
     type ReservationSearchParams = ReservationSearchRequest & PageableRequest;
 
-    type MakeReservationContextType = {};
+    type RoomSearchParams = RoomSearchRequest & PageableRequest;
+
+    type PaymentSearchParams = PaymentTransactionResponse & PageableRequest;
 }

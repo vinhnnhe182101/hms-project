@@ -1,6 +1,4 @@
 // components/ReservationSearch.jsx
-// Filter bar: TextInput search + Select status + DateInput range + Search button
-
 import {Button, Group, Select, TextInput} from "@mantine/core";
 import {DateInput} from "@mantine/dates";
 import {IconCalendar, IconSearch} from "@tabler/icons-react";
@@ -9,7 +7,9 @@ import {useReservationList} from "../../../hooks/common/list/reservation-list-pr
 import {STATUS_OPTIONS} from "../../../constants/reservation.jsx";
 
 export const ReservationSearch = () => {
-    const {searchParams, setSearchParams} = useReservationList();
+    // Phen nhớ giải nén 'isLoading' từ hook ra nhé
+    const {searchParams, setSearchParams, isLoading} = useReservationList();
+
     const {updateField, data: localSearchParams} = useObjectState(
             /**
              * @type {ReservationSearchParams}
@@ -23,9 +23,9 @@ export const ReservationSearch = () => {
     };
 
     return (
-            <Group gap="sm" mb="md" wrap="wrap">
-                {/* Customer name */}
+            <Group gap="sm" mb="md" wrap="wrap" align="flex-end">
                 <TextInput
+                        label="Guest Name"
                         placeholder="Customer name..."
                         leftSection={<IconSearch size={15}/>}
                         value={localSearchParams.guestName || ""}
@@ -36,8 +36,8 @@ export const ReservationSearch = () => {
                         style={{flex: 1, minWidth: 200}}
                 />
 
-                {/* Customer Identity Card */}
                 <TextInput
+                        label="Identity Card"
                         placeholder="Identity Card..."
                         leftSection={<IconSearch size={15}/>}
                         value={localSearchParams.identityCard || ""}
@@ -45,11 +45,11 @@ export const ReservationSearch = () => {
                         onKeyDown={(e) => e.key === "Enter" && searchHandler()}
                         radius="md"
                         size="sm"
-                        style={{flex: 1, minWidth: 200}}
+                        style={{flex: 1, minWidth: 180}}
                 />
 
-                {/* Status */}
                 <Select
+                        label="Status"
                         placeholder="Status"
                         data={STATUS_OPTIONS}
                         value={localSearchParams.status || null}
@@ -57,11 +57,11 @@ export const ReservationSearch = () => {
                         clearable
                         radius="md"
                         size="sm"
-                        style={{width: 170}}
+                        style={{width: 150}}
                 />
 
-                {/* Check-in from */}
                 <DateInput
+                        label="From"
                         placeholder="Check-in from"
                         value={localSearchParams.checkInDateFrom ? new Date(localSearchParams.checkInDateFrom) : null}
                         onChange={(val) => updateField("checkInDateFrom", val?.toISOString())}
@@ -70,11 +70,11 @@ export const ReservationSearch = () => {
                         radius="md"
                         size="sm"
                         valueFormat="DD/MM/YYYY"
-                        style={{width: 150}}
+                        style={{width: 140}}
                 />
 
-                {/* To date */}
                 <DateInput
+                        label="To"
                         placeholder="To date"
                         value={localSearchParams.checkInDateTo ? new Date(localSearchParams.checkInDateTo) : null}
                         onChange={(val) => updateField("checkInDateTo", val?.toISOString())}
@@ -83,16 +83,17 @@ export const ReservationSearch = () => {
                         radius="md"
                         size="sm"
                         valueFormat="DD/MM/YYYY"
-                        style={{width: 150}}
+                        style={{width: 140}}
                 />
 
-                {/* Search button */}
                 <Button
                         leftSection={<IconSearch size={15}/>}
                         color="teal"
                         radius="md"
                         size="sm"
                         onClick={searchHandler}
+                        // Dùng isLoading từ hook, nó sẽ tự hiện loader mặc định của Mantine
+                        loading={isLoading}
                 >
                     Search
                 </Button>

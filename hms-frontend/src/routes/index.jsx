@@ -35,9 +35,9 @@ import ReportsPage from "../pages/housekeeping/ReportsPage.jsx";
 import SchedulePage from "../pages/housekeeping/SchedulePage.jsx";
 import TaskDetailPage from "../pages/housekeeping/TaskDetailPage.jsx";
 import TasksPage from "../pages/housekeeping/TasksPage.jsx";
-import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import {ReceptionistLayout} from "../layouts/receptionist/ReceptionistLayout.jsx";
 import {RECEPTIONIST_ROUTES} from "../constants/receptionist.jsx";
+import {DashboardPage} from "../pages/housekeeping/DashboardPage.jsx";
 
 // Import Housekeeping Pages (Nếu cần dùng thì uncomment children bên dưới)
 // import DashboardPage from '../pages/housekeeping/DashboardPage.jsx';
@@ -77,8 +77,8 @@ export const router = createBrowserRouter([
                 </ProtectedRoute>
         ),
         children: [
-            {index: true, element: <RecepDashboardPage/>},
-            {path: 'dashboard', element: <RecepDashboardPage/>},
+            {index: true, element: <DashboardPage/>},
+            {path: 'dashboard', element: <DashboardPage/>},
             {path: 'tasks', element: <TasksPage/>},
             {path: 'tasks/:taskId', element: <TaskDetailPage/>},
             {path: 'schedule', element: <SchedulePage/>},

@@ -8,15 +8,17 @@ import {reservationApi} from "../../../apis/receptionist/reservationApi.js";
 import {useReservationList} from "../../../hooks/common/list/reservation-list-provider.jsx";
 
 export const ReservationTable = () => {
-    const {page: reservationPageResponse, setPage, searchParams} = useReservationList();
+    const {page: reservationPageResponse, setPage, searchParams, setIsLoading} = useReservationList();
 
     useEffect(() => {
         (
                 async () => {
-                    setPage(await reservationApi.getReservations(searchParams))
+                    setIsLoading(true);
+                    setPage(await reservationApi.getReservations(searchParams));
+                    setIsLoading(false);
                 }
         )();
-    }, [searchParams, setPage]);
+    }, [searchParams, setPage, setIsLoading]);
 
     /**
      * @type {ReservationResponse[]}

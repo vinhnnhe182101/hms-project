@@ -1,6 +1,6 @@
 import {Divider, Stack} from "@mantine/core";
 import {useEffect, useMemo, useState} from "react";
-import {roomApi} from "../../../apis/receptionist/roomApi";
+import {roomClassApi} from "../../../apis/receptionist/roomClassApi.js";
 import {useMakeReservationArea} from "../../../hooks/common/area/make-reservation-area-provider";
 import {roomClassService} from "../../../services/roomClassService";
 import {dateUtils} from "../../../utils/dateUtils";
@@ -73,7 +73,7 @@ export const BookingSummary = () => {
                 return;
             }
 
-            const response = await roomApi.getAvailableRooms(
+            const response = await roomClassApi.getAvailableRooms(
                     reservationRequest.checkInDate,
                     reservationRequest.checkOutDate,
             );
