@@ -1,5 +1,6 @@
 import { BedDouble, CalendarDays, CreditCard, LogIn, LogOut, Users } from "lucide-react";
 import { ReservationListPage } from "../pages/staff/ReservationListPage.jsx";
+import { MakeReservationPage } from "../pages/staff/MakeReservationPage.jsx";
 
 /** @type {Object.<string, RouteItemType>} */
 const STAFF_MAP_ROUTES = {
@@ -12,7 +13,7 @@ const STAFF_MAP_ROUTES = {
     },
     MAKE_RESERVATION: {
         path: "/staff/reservations/make",
-        element: <div> Tạo đặt phòng</div>,
+        element: <MakeReservationPage />,
     },
     ROOMS: {
         path: "/staff/rooms",
