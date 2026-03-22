@@ -463,7 +463,7 @@ public class ReservationServiceImpl implements ReservationService {
                                               BigDecimal depositAmount) {
         ReservationEntity reservation = new ReservationEntity();
         reservation.setCode(RandomUtils.generateReservationCode("RS"));
-        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservation.setStatus(ReservationStatus.PENDING_DEPOSIT);
         reservation.setCreatedAt(Timestamp.from(Instant.now()));
         reservation.setIsActive(true);
         updateReservationFields(reservation, request, customer, depositAmount);
