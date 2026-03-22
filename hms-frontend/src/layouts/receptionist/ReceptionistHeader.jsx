@@ -1,11 +1,11 @@
-import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
+import {useReceptionistLayout} from "../../hooks/receptionist/layout/use-receptionist-layout.jsx";
 import {NavLink} from "react-router-dom";
 import {AppShell, Avatar, Burger, Group, Text} from "@mantine/core";
-import {STAFF_NAVBAR_ITEMS} from "../../constants/staff.jsx";
+import {RECEPTIONIST_NAVBAR_ITEMS} from "../../constants/receptionist.jsx";
 import {Hotel} from "lucide-react";
 
-export const StaffHeader = () => {
-    const {isMobileOpen, toggle} = useStaffLayout();
+export const ReceptionistHeader = () => {
+    const {isMobileOpen, toggle} = useReceptionistLayout();
 
     return (
             <AppShell.Header withBorder>
@@ -33,7 +33,7 @@ export const StaffHeader = () => {
 
                     {/* DESKTOP NAV */}
                     <Group visibleFrom="lg" gap={4}>
-                        {STAFF_NAVBAR_ITEMS.map((item) => {
+                        {RECEPTIONIST_NAVBAR_ITEMS.map((item) => {
                             const Icon = item.icon;
                             return (
                                     <NavLink

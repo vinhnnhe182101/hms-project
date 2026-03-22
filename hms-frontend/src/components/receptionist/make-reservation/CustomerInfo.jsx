@@ -1,5 +1,5 @@
 import {Button, Grid, Group, Stack, Textarea, TextInput} from "@mantine/core";
-import {customerApi} from "../../../apis/staff/customerApi";
+import {customerApi} from "../../../apis/receptionist/customerApi";
 import {useMakeReservationArea} from "../../../hooks/common/area/make-reservation-area-provider";
 import {useObjectState} from "../../../hooks/common/use-object-state";
 import {SectionCard} from "../../common/SectionCard";

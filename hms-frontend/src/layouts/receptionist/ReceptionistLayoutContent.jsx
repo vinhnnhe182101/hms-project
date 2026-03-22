@@ -1,11 +1,11 @@
-import {StaffHeader} from "./StaffHeader.jsx";
-import {StaffNavbar} from "./StaffNavbar.jsx";
+import {ReceptionistHeader} from "./ReceptionistHeader.jsx";
+import {ReceptionistNavbar} from "./ReceptionistNavbar.jsx";
 import {AppShell, Container, rem} from "@mantine/core";
 import {Outlet} from "react-router-dom";
-import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
+import {useReceptionistLayout} from "../../hooks/receptionist/layout/use-receptionist-layout.jsx";
 
-export const StaffLayoutContent = () => {
-    const {isMobileOpened} = useStaffLayout();
+export const ReceptionistLayoutContent = () => {
+    const {isMobileOpened} = useReceptionistLayout();
     return (
             <AppShell
                     padding="md"
@@ -17,10 +17,10 @@ export const StaffLayoutContent = () => {
                     }}
             >
                 {/* HEADER */}
-                <StaffHeader/>
+                <ReceptionistHeader/>
 
                 {/* MOBILE NAVBAR */}
-                <StaffNavbar/>
+                <ReceptionistNavbar/>
 
                 {/* CONTENT */}
                 <AppShell.Main pt={`calc(${rem(60)} + var(--mantine-spacing-md))`}>

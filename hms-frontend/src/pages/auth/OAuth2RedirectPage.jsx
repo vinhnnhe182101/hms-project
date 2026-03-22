@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Loader, Center, Stack, Text } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { jwtDecode } from 'jwt-decode';
+import {useEffect} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {Center, Loader, Stack, Text} from '@mantine/core';
+import {notifications} from '@mantine/notifications';
+import {jwtDecode} from 'jwt-decode';
 
 export default function OAuth2RedirectPage() {
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function OAuth2RedirectPage() {
                         message: decodeURIComponent(error),
                         color: 'red',
                     });
-                    navigate('/login', { replace: true });
+                    navigate('/login', {replace: true});
                     return;
                 }
 
@@ -33,7 +33,7 @@ export default function OAuth2RedirectPage() {
                         message: 'No token received',
                         color: 'red',
                     });
-                    navigate('/login', { replace: true });
+                    navigate('/login', {replace: true});
                     return;
                 }
 
@@ -46,11 +46,11 @@ export default function OAuth2RedirectPage() {
 
                 const normalizedRole = String(decoded.role || '').replace(/^ROLE_/, '').toUpperCase();
                 const redirectPath =
-                    normalizedRole === 'ADMIN' ? '/admin' :
-                        normalizedRole === 'HOUSEKEEPING' ? '/housekeeping' :
-                            normalizedRole === 'RECEPTIONIST' ? '/receptionist' :
-                                normalizedRole === 'STAFF' ? '/staff' :
-                                    '/user';
+                        normalizedRole === 'ADMIN' ? '/admin' :
+                                normalizedRole === 'HOUSEKEEPING' ? '/housekeeping' :
+                                        normalizedRole === 'RECEPTIONIST' ? '/receptionist' :
+                                                normalizedRole === 'STAFF' ? '/staff' :
+                                                        '/user';
 
                 window.location.href = redirectPath;
 
@@ -61,18 +61,18 @@ export default function OAuth2RedirectPage() {
                     message: 'Authentication failed',
                     color: 'red',
                 });
-                navigate('/login', { replace: true });
+                navigate('/login', {replace: true});
             }
         };
-    handleRedirect()
+        handleRedirect()
     }, [location.search, navigate]);
 
     return (
-        <Center style={{ height: '100vh' }}>
-            <Stack align="center">
-                <Loader size="xl" />
-                <Text size="lg">Completing Google login...</Text>
-            </Stack>
-        </Center>
+            <Center style={{height: '100vh'}}>
+                <Stack align="center">
+                    <Loader size="xl"/>
+                    <Text size="lg">Completing Google login...</Text>
+                </Stack>
+            </Center>
     );
 }

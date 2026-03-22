@@ -1,7 +1,7 @@
 import {ActionIcon, Badge, Button, Group, NumberInput, Select, Stack, Table, Text} from "@mantine/core";
 import {IconAlertCircle, IconPlus, IconTrash} from "@tabler/icons-react";
 import {useEffect, useMemo, useState} from "react";
-import {roomApi} from "../../../apis/staff/roomApi";
+import {roomApi} from "../../../apis/receptionist/roomApi";
 import {
     getDefaultRoomClassQuantity,
     useMakeReservationArea,

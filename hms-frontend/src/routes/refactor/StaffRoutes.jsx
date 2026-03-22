@@ -1,12 +1,12 @@
 import {Route} from "react-router-dom";
-import {StaffLayout} from "../../layouts/staff/StaffLayout.jsx";
-import {STAFF_ROUTES} from "../../constants/staff.jsx";
+import {ReceptionistLayout} from "../../layouts/receptionist/ReceptionistLayout.jsx";
+import {RECEPTIONIST_ROUTES} from "../../constants/receptionist.jsx";
 
 export const StaffRoutes = (
-        <Route path={"/staff"} element={<StaffLayout/>}>
+        <Route path={"/staff"} element={<ReceptionistLayout/>}>
             <Route index element={<div>Staff Dashboard</div>}/>
             {
-                STAFF_ROUTES.map(item => {
+                RECEPTIONIST_ROUTES.map(item => {
                     return (
                             /**
                              * @type {React.JSX.Element}

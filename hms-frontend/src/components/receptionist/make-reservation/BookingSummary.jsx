@@ -1,6 +1,6 @@
 import {Divider, Stack} from "@mantine/core";
 import {useEffect, useMemo, useState} from "react";
-import {roomApi} from "../../../apis/staff/roomApi";
+import {roomApi} from "../../../apis/receptionist/roomApi";
 import {useMakeReservationArea} from "../../../hooks/common/area/make-reservation-area-provider";
 import {roomClassService} from "../../../services/roomClassService";
 import {dateUtils} from "../../../utils/dateUtils";
@@ -16,7 +16,7 @@ import {SummaryRow} from "../../common/SummaryRow.jsx";
  * @param {number} nights - Số đêm lưu trú để tính tổng tiền
  */
 const calculateBookingSummary = (selectedRooms, roomClasses, nights) => {
-    if ((!selectedRooms || selectedRooms.length === 0, roomClasses.length === 0 || nights <= 0)) {
+    if ((!selectedRooms || selectedRooms.length === 0 || roomClasses.length === 0 || nights <= 0)) {
         return {roomCharge: 0, surcharge: 0, total: 0, deposit: 0};
     }
 

@@ -1,7 +1,7 @@
-import {StaffLayoutContext} from "./staff-layout-context.jsx";
+import {ReceptionistLayoutContext} from "./receptionist-layout-context.jsx";
 import {useDisclosure} from "@mantine/hooks";
 
-export const StaffLayoutProvider = ({children}) => {
+export const ReceptionistLayoutProvider = ({children}) => {
     const [isMobileOpen, {toggle, close, open}] = useDisclosure(false);
 
     /**
@@ -15,8 +15,8 @@ export const StaffLayoutProvider = ({children}) => {
     }
 
     return (
-            <StaffLayoutContext.Provider value={value}>
+            <ReceptionistLayoutContext.Provider value={value}>
                 {children}
-            </StaffLayoutContext.Provider>
+            </ReceptionistLayoutContext.Provider>
     )
 }

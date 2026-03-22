@@ -1,11 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import { CustomerLayout } from "../layouts/customer/CustomerLayout.jsx";
-import { AdminLayout } from "../layouts/admin/AdminLayout.jsx";
-import { HousekeepingLayout } from "../layouts/housekeeping/HousekeepingLayout.jsx";
-import { ProtectedRoute } from "./ProtectedRoute.jsx";
-import { AuthLayout } from "../layouts/AuthLayout.jsx";
-import { StaffLayout } from "../layouts/staff/StaffLayout.jsx";
-import { STAFF_ROUTES } from "../constants/staff.jsx";
+import {createBrowserRouter, Navigate} from "react-router-dom";
+import {CustomerLayout} from "../layouts/customer/CustomerLayout.jsx";
+import {AdminLayout} from "../layouts/admin/AdminLayout.jsx";
+import {HousekeepingLayout} from "../layouts/housekeeping/HousekeepingLayout.jsx";
+import {ProtectedRoute} from "./ProtectedRoute.jsx";
+import {AuthLayout} from "../layouts/AuthLayout.jsx";
 
 // Import Pages
 import HomePage from "../pages/customer/HomePage.jsx";
@@ -31,9 +29,15 @@ import TaskManagementPage from "../pages/admin/TaskManagementPage.jsx";
 import BookingDetailPage from "../pages/customer/BookingDetailPage.jsx";
 import MyReviewsPage from "../pages/customer/MyReviewsPage.jsx";
 import PaymentManagementPage from "../pages/admin/PaymentManagementPage.jsx";
-import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
 import UnauthorizedPage from "../pages/error/UnauthorizedPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
+import ReportsPage from "../pages/housekeeping/ReportsPage.jsx";
+import SchedulePage from "../pages/housekeeping/SchedulePage.jsx";
+import TaskDetailPage from "../pages/housekeeping/TaskDetailPage.jsx";
+import TasksPage from "../pages/housekeeping/TasksPage.jsx";
+import RecepDashboardPage from "../pages/receptionist/Dashboard.jsx";
+import {ReceptionistLayout} from "../layouts/receptionist/ReceptionistLayout.jsx";
+import {RECEPTIONIST_ROUTES} from "../constants/receptionist.jsx";
 
 // Import Housekeeping Pages (Nếu cần dùng thì uncomment children bên dưới)
 // import DashboardPage from '../pages/housekeeping/DashboardPage.jsx';
@@ -44,73 +48,59 @@ export const router = createBrowserRouter([
     {
         path: '/admin',
         element: (
-            <ProtectedRoute requiredRole="ADMIN">
-                <AdminLayout />
-            </ProtectedRoute>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <AdminLayout/>
+                </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <AdminDashboardPage /> },
-            { path: "rooms", element: <RoomManagementPage /> },
-            { path: "rooms/types", element: <RoomTypesPage /> },
-            { path: "rooms/service", element: <ServiceManagementPage /> },
-            { path: "staff", element: <StaffManagementPage /> },
-            { path: "reservations", element: <div>Reservations Management</div> },
-            { path: "customers", element: <UserManagementPage /> },
-            { path: "schedules", element: <ScheduleManagementPage /> },
-            { path: "housekeeping-tasks", element: <TaskManagementPage /> },
-            { path: "payments", element: <PaymentManagementPage /> },
-            { path: "reports", element: <div>Reports Management</div> },
-            { path: "settings", element: <div>Settings</div> },
+            {index: true, element: <AdminDashboardPage/>},
+            {path: "rooms", element: <RoomManagementPage/>},
+            {path: "rooms/types", element: <RoomTypesPage/>},
+            {path: "rooms/service", element: <ServiceManagementPage/>},
+            {path: "staff", element: <StaffManagementPage/>},
+            {path: "reservations", element: <div>Reservations Management</div>},
+            {path: "customers", element: <UserManagementPage/>},
+            {path: "schedules", element: <ScheduleManagementPage/>},
+            {path: "housekeeping-tasks", element: <TaskManagementPage/>},
+            {path: "payments", element: <PaymentManagementPage/>},
+            {path: "reports", element: <div>Reports Management</div>},
+            {path: "settings", element: <div>Settings</div>},
         ],
     },
 
     // 6. HOUSEKEEPING ROUTES
-    // {
-    //     path: '/housekeeping',
-    //     element: (
-    //         <ProtectedRoute requiredRole="HOUSEKEEPING">
-    //             <HousekeepingLayout/>
-    //         </ProtectedRoute>
-    //     ),
-    //     children: [
-    //         {index: true, element: <DashboardPage/>},
-    //         {path: 'dashboard', element: <DashboardPage/>},
-    //         {path: 'tasks', element: <TasksPage/>},
-    //         {path: 'tasks/:taskId', element: <TaskDetailPage/>},
-    //         {path: 'schedule', element: <SchedulePage/>},
-    //         {path: 'reports', element: <ReportsPage/>},
-    //     ],
-    // },
-
-    // 7. RECEPTIONIST ROUTES
     {
-        path: '/receptionist',
+        path: '/housekeeping',
         element: (
-            <ProtectedRoute requiredRole="RECEPTIONIST">
-                <RecepDashboardPage/>
-            </ProtectedRoute>
+                <ProtectedRoute requiredRole="HOUSEKEEPING">
+                    <HousekeepingLayout/>
+                </ProtectedRoute>
         ),
         children: [
             {index: true, element: <RecepDashboardPage/>},
-            {path: 'checkin', element: <div>Check-in</div>},
-            {path: 'checkout', element: <div>Check-out</div>},
-            {path: 'reservations', element: <div>Reservations</div>},
+            {path: 'dashboard', element: <RecepDashboardPage/>},
+            {path: 'tasks', element: <TasksPage/>},
+            {path: 'tasks/:taskId', element: <TaskDetailPage/>},
+            {path: 'schedule', element: <SchedulePage/>},
+            {path: 'reports', element: <ReportsPage/>},
         ],
     },
+
+    // RECEPTIONIST ROUTES
     {
-        path: '/staff',
+        path: '/receptionist',
         element: (
-            <ProtectedRoute requiredRole="STAFF">
-                <StaffLayout/>
-            </ProtectedRoute>
+                <ProtectedRoute requiredRole="RECEPTIONIST">
+                    <ReceptionistLayout/>
+                </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <div>Staff Dashboard</div> },
-            ...STAFF_ROUTES.map((item) => {
+            {index: true, element: <Navigate to="reservations" replace/>},
+            ...RECEPTIONIST_ROUTES.map((item) => {
                 const relativePath = item.path
-                    .replace(/^\//, "")
-                    .replace(/^staff\//, "")
-                    .replace(/^\//, "");
+                        .replace(/^\//, "")
+                        .replace(/^receptionist\//, "")
+                        .replace(/^\//, "");
                 return {
                     path: relativePath,
                     element: item.element,
@@ -133,13 +123,13 @@ export const router = createBrowserRouter([
             {path: 'booking/checkout', element: <ProtectedRoute><CheckoutPage/></ProtectedRoute>},
             {path: 'history', element: <ProtectedRoute><BookingHistoryPage/></ProtectedRoute>},
             {path: 'bookings/:bookingId', element: <ProtectedRoute><BookingDetailPage/></ProtectedRoute>},
-            {path: 'reviews', element: <ProtectedRoute><MyReviewsPage /></ProtectedRoute>},
+            {path: 'reviews', element: <ProtectedRoute><MyReviewsPage/></ProtectedRoute>},
             {path: 'payment/vnpay-callback', element: <PaymentCallbackPage/>},
         ],
     },
     {
         path: '/',
-        element: <Navigate to="/user" replace />,
+        element: <Navigate to="/user" replace/>,
     },
     // ===== AUTH LAYOUT RIÊNG (nếu muốn layout khác cho auth) =====
     {
