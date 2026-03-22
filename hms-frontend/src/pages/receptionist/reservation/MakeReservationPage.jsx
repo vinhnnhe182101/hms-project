@@ -1,12 +1,12 @@
 // pages/staff/MakeReservationPage.jsx
 
 import {Box, Stack, Title} from "@mantine/core";
-import {ActionButton} from "../../components/receptionist/make-reservation/ActionButton.jsx";
-import {BookingSummary} from "../../components/receptionist/make-reservation/BookingSummary.jsx";
-import {CustomerInfo} from "../../components/receptionist/make-reservation/CustomerInfo.jsx";
-import {DateTimeSection} from "../../components/receptionist/make-reservation/DateTimeSection.jsx";
-import {RoomClassAllocation} from "../../components/receptionist/make-reservation/RoomClassAllocation.jsx";
-import {MakeReservationAreaProvider} from "../../hooks/common/area/make-reservation-area-provider.jsx";
+import {ActionButton} from "../../../components/receptionist/make-reservation/ActionButton.jsx";
+import {BookingSummary} from "../../../components/receptionist/make-reservation/BookingSummary.jsx";
+import {CustomerInfo} from "../../../components/receptionist/make-reservation/CustomerInfo.jsx";
+import {DateTimeSection} from "../../../components/receptionist/make-reservation/DateTimeSection.jsx";
+import {RoomClassAllocation} from "../../../components/receptionist/make-reservation/RoomClassAllocation.jsx";
+import {MakeReservationAreaProvider} from "../../../hooks/common/area/make-reservation-area-provider.jsx";
 
 export const MakeReservationPage = () => {
     return (

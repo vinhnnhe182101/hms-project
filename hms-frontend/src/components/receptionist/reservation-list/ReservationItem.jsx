@@ -5,6 +5,7 @@ import {IconEye} from "@tabler/icons-react";
 import {RESERVATION_STATUS_MAP} from "../../../constants/reservation.jsx";
 import {useNavigate} from "react-router-dom";
 import {formatUtils} from "../../../utils/formatUtils.js";
+import {RECEPTIONIST_MAP_ROUTES} from "../../../constants/receptionist.jsx";
 
 /**
  * Component để hiển thị một dòng thông tin đặt phòng trong bảng danh sách đặt phòng.
@@ -17,7 +18,7 @@ export const ReservationItem = ({reservation}) => {
     const statusCfg = RESERVATION_STATUS_MAP[reservation.status] ?? {color: "gray", label: reservation.status};
 
     const viewHandler = () => {
-        navigate(`/staff/reservations/${reservation.bookingId}`);
+        navigate(RECEPTIONIST_MAP_ROUTES.RESERVATION_DETAIL.path);
     }
 
     return (

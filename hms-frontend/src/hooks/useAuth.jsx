@@ -138,6 +138,7 @@ export const AuthProvider = ({children}) => {
     };
 
     const getDashboardPath = (targetUser) => {
+        console.log(targetUser);
         if (!targetUser) {
             console.log("getDashboardPath: No user provided, returning /");
             return "/";
@@ -155,7 +156,7 @@ export const AuthProvider = ({children}) => {
                 return "/housekeeping";
             case "RECEPTIONIST":
                 console.log("getDashboardPath: Redirecting to /receptionist");
-                return "/staff";
+                return "/receptionist";
             case "STAFF":
                 console.log("getDashboardPath: Redirecting to /staff");
                 return "/staff";
@@ -170,7 +171,7 @@ export const AuthProvider = ({children}) => {
 
     const value = {
         user,
-        loading,
+        isLoading: loading,
         isAuthenticated: !!user,
         login,
         register,

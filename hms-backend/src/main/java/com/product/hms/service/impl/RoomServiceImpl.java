@@ -1,25 +1,9 @@
 package com.product.hms.service.impl;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.product.hms.converters.RoomClassMapper;
 import com.product.hms.dto.request.CreateRoomRequest;
-import com.product.hms.dto.request.RoomSearchFilter;
-import com.product.hms.dto.response.AvailableRoomResponse;
-import com.product.hms.dto.response.RoomClassAvailabilityResponse;
-import com.product.hms.dto.response.RoomClassAvailableRoomsResponse;
-import com.product.hms.dto.response.RoomMatrixResponse;
-import com.product.hms.dto.response.RoomResponse;
+import com.product.hms.dto.request.RoomSearchRequest;
+import com.product.hms.dto.response.*;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomEntity;
 import com.product.hms.exception.BadRequestException;
@@ -32,21 +16,21 @@ import com.product.hms.service.RoomService;
 import com.product.hms.utils.specification.SpecificationUtils;
 import com.product.hms.utils.specification.search.SearchCriteria;
 import com.product.hms.utils.specification.sort.SortCriteria;
-import org.springframework.dao.DataIntegrityViolationException;
-import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.*;
-import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.CONTAINS;
+import static com.product.hms.utils.specification.search.SearchCriteria.ComparisonOperator.EQUALS;
+import static com.product.hms.utils.specification.sort.SortCriteria.SortDirection.ASC;
 
 /**
  * Implementation of RoomService
@@ -183,7 +167,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public List<RoomClassAvailableRoomsResponse> getAvailableRoomsForAssignment(Timestamp checkInDate,
-            Timestamp checkOutDate) {
+                                                                                Timestamp checkOutDate) {
         validateDateRange(checkInDate, checkOutDate);
 
         List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsForPeriod(
@@ -219,9 +203,9 @@ public class RoomServiceImpl implements RoomService {
         RoomClassEntity roomClass = validateAndGetRoomClass(roomClassId);
 
         return roomRepository.findAvailableRoomsForPeriodByRoomClassId(
-                checkInDate,
-                checkOutDate,
-                roomClass.getId())
+                        checkInDate,
+                        checkOutDate,
+                        roomClass.getId())
                 .stream()
                 .map(room -> new AvailableRoomResponse(room.getId(), room.getRoomNumber()))
                 .toList();
@@ -341,9 +325,9 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Page<RoomResponse> search(RoomSearchFilter filter, Pageable pageable) {
+    public Page<RoomResponse> search(RoomSearchRequest filter, Pageable pageable) {
         List<SearchCriteria> searchCriteria = new ArrayList<>();
-        searchCriteria.add(new SearchCriteria("roomNumber", LIKE, filter.roomNumber()));
+        searchCriteria.add(new SearchCriteria("roomNumber", CONTAINS, filter.roomNumber()));
         searchCriteria.add(new SearchCriteria("roomClassEntity.id", EQUALS, filter.roomClassId()));
         searchCriteria.add(new SearchCriteria("status", EQUALS, filter.status()));
         searchCriteria.add(new SearchCriteria("isActive", EQUALS, true));

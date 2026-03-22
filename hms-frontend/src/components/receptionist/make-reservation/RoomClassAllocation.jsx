@@ -1,7 +1,7 @@
 import {ActionIcon, Badge, Button, Group, NumberInput, Select, Stack, Table, Text} from "@mantine/core";
 import {IconAlertCircle, IconPlus, IconTrash} from "@tabler/icons-react";
 import {useEffect, useMemo, useState} from "react";
-import {roomApi} from "../../../apis/receptionist/roomApi";
+import {roomClassApi} from "../../../apis/receptionist/roomClassApi.js";
 import {
     getDefaultRoomClassQuantity,
     useMakeReservationArea,
@@ -12,7 +12,7 @@ import {formatUtils} from "../../../utils/formatUtils";
 import {SectionCard} from "../../common/SectionCard";
 
 export const RoomClassAllocation = () => {
-    const {state: reservationRequest, setState: setReservationRequest} = useMakeReservationArea();
+    const {state: reservationRequest, setState: setReservationRequest, setIsLoading} = useMakeReservationArea();
     const {updateField} = useObjectState(reservationRequest, setReservationRequest);
     const [roomClassAvailabilityResponses, setRoomClassAvailabilityResponses] = useState([]);
 
@@ -42,11 +42,13 @@ export const RoomClassAllocation = () => {
                 setRoomClassAvailabilityResponses([]);
                 return;
             }
-            const response = await roomApi.getAvailableRooms(
+
+            setIsLoading(true);
+            setRoomClassAvailabilityResponses(await roomClassApi.getAvailableRooms(
                     reservationRequest.checkInDate,
                     reservationRequest.checkOutDate,
-            );
-            setRoomClassAvailabilityResponses(response);
+            ));
+            setIsLoading(false);
         })();
     }, [reservationRequest.checkInDate, reservationRequest.checkOutDate]);
 

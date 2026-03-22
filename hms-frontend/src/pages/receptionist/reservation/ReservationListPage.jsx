@@ -1,11 +1,11 @@
-import {ReservationProvider} from "../../hooks/common/list/reservation-list-provider.jsx";
+import {ReservationProvider} from "../../../hooks/common/list/reservation-list-provider.jsx";
 import {Box, Button, Group, Title} from "@mantine/core";
 import {IconPlus} from "@tabler/icons-react";
-import {ReservationSearch} from "../../components/receptionist/reservation-list/ReservationSearch.jsx";
-import {ReservationTable} from "../../components/receptionist/reservation-list/ReservationTable.jsx";
-import {ReservationPagination} from "../../components/receptionist/reservation-list/ReservationPagination.jsx";
+import {ReservationSearch} from "../../../components/receptionist/reservation-list/ReservationSearch.jsx";
+import {ReservationTable} from "../../../components/receptionist/reservation-list/ReservationTable.jsx";
+import {ReservationPagination} from "../../../components/receptionist/reservation-list/ReservationPagination.jsx";
 import {useNavigate} from "react-router-dom";
-import {RECEPTIONIST_MAP_ROUTES} from "../../constants/receptionist.jsx";
+import {RECEPTIONIST_MAP_ROUTES} from "../../../constants/receptionist.jsx";
 
 export const ReservationListPage = () => {
 
