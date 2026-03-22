@@ -4,8 +4,8 @@
 import {Center, Paper, Table, Text} from "@mantine/core";
 import {useEffect} from "react";
 import {ReservationItem} from "./ReservationItem.jsx";
-import {reservationApi} from "../../../apis/staff/reservationApi.js";
-import { useReservationList } from "../../../hooks/common/list/reservation-list-provider.jsx";
+import {reservationApi} from "../../../apis/receptionist/reservationApi.js";
+import {useReservationList} from "../../../hooks/common/list/reservation-list-provider.jsx";
 
 export const ReservationTable = () => {
     const {page: reservationPageResponse, setPage, searchParams} = useReservationList();

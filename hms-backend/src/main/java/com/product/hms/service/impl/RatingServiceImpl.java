@@ -1,7 +1,7 @@
 package com.product.hms.service.impl;
 
-import com.product.hms.dto.response.RatingSummaryResponse;
 import com.product.hms.dto.response.RatingResponse;
+import com.product.hms.dto.response.RatingSummaryResponse;
 import com.product.hms.entity.RatingEntity;
 import com.product.hms.repository.RatingRepository;
 import com.product.hms.service.RatingService;
@@ -27,13 +27,13 @@ public class RatingServiceImpl implements RatingService {
     public Page<RatingSummaryResponse> getRatingsByRoomClass(Long roomClassId, Integer ratingFilter, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<RatingEntity> pageData;
-        
+
         if (ratingFilter != null) {
             pageData = ratingRepository.findPublicRatingsByRoomClassIdAndRating(roomClassId, ratingFilter, pageable);
         } else {
             pageData = ratingRepository.findPublicRatingsByRoomClassId(roomClassId, pageable);
         }
-        
+
         Double averageRating = ratingRepository.getAverageRatingByRoomClassId(roomClassId);
         Long totalReviews = ratingRepository.countPublicRatingsByRoomClassId(roomClassId);
         Map<Integer, Long> distribution = getRatingDistribution(roomClassId);

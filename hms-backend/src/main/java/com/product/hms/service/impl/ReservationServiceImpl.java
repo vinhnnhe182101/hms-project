@@ -311,13 +311,100 @@ public class ReservationServiceImpl implements ReservationService {
         long nights = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
         if (nights <= 0) nights = 1;
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        // BƯỚC 1: Thu thập phòng khả dụng và thiết lập mảng phân bổ
+        int totalRequestedRooms = request.getRooms() != null ? request.getRooms().stream().mapToInt(BookingRequestDTO.RoomBookingRequest::getQuantity).sum() : 0;
+        if (request.getGuests() < totalRequestedRooms && request.getGuests() > 0) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST, "Số lượng khách tối thiểu phải bằng số phòng đã chọn.");
+        }
+
+        List<RoomClassEntity> roomClasses = new ArrayList<>();
+        List<RoomEntity> assignedRooms = new ArrayList<>();
+        List<BigDecimal> pricesPerNight = new ArrayList<>();
+        List<Integer> peoplePerRoom = new ArrayList<>();
+
         if (request.getRooms() != null) {
-            for (BookingRequestDTO.RoomBookingRequest r : request.getRooms()) {
-                BigDecimal pricePerNight = r.getPricePerNight() != null ? r.getPricePerNight() : BigDecimal.ZERO;
-                BigDecimal roomTotal = pricePerNight.multiply(BigDecimal.valueOf(nights)).multiply(BigDecimal.valueOf(r.getQuantity()));
-                totalAmount = totalAmount.add(roomTotal);
+            for (BookingRequestDTO.RoomBookingRequest roomReq : request.getRooms()) {
+                RoomClassEntity roomClass = roomClassRepository.findById(roomReq.getId())
+                        .orElseThrow(() -> new RuntimeException("Room Class not found: " + roomReq.getId()));
+
+                List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsByClass(
+                        roomReq.getId(),
+                        Timestamp.from(checkInInstant),
+                        Timestamp.from(checkOutInstant),
+                        List.of(ReservationStatus.PENDING_DEPOSIT, ReservationStatus.CONFIRMED, ReservationStatus.IN_HOUSE)
+                );
+
+                if (availableRooms.size() < roomReq.getQuantity()) {
+                    throw new RuntimeException("Không đủ phòng trống cho loại phòng: " + roomClass.getName());
+                }
+
+                Collections.shuffle(availableRooms);
+                BigDecimal roomPricePerNight = roomReq.getPricePerNight() != null ? roomReq.getPricePerNight() : roomClass.getBasePrice();
+
+                for (int i = 0; i < roomReq.getQuantity(); i++) {
+                    roomClasses.add(roomClass);
+                    assignedRooms.add(availableRooms.get(i));
+                    pricesPerNight.add(roomPricePerNight);
+                    peoplePerRoom.add(0);
+                }
             }
+        }
+
+        // BƯỚC 2: Thuật toán phân bổ người vào phòng
+        int remainingGuests = request.getGuests();
+        int totalRooms = peoplePerRoom.size();
+
+        // 2.1. Phân mỗi phòng 1 người trước
+        for (int i = 0; i < totalRooms; i++) {
+            if (remainingGuests > 0) {
+                peoplePerRoom.set(i, 1);
+                remainingGuests--;
+            }
+        }
+
+        // 2.2. Phân tiếp cho đủ standard_capacity
+        for (int i = 0; i < totalRooms; i++) {
+            RoomClassEntity rc = roomClasses.get(i);
+            int current = peoplePerRoom.get(i);
+            int spaceToStandard = rc.getStandardCapacity() - current;
+            if (spaceToStandard > 0 && remainingGuests > 0) {
+                int add = Math.min(spaceToStandard, remainingGuests);
+                peoplePerRoom.set(i, current + add);
+                remainingGuests -= add;
+            }
+        }
+
+        // 2.3. Phân tiếp cho đến max_capacity
+        for (int i = 0; i < totalRooms; i++) {
+            RoomClassEntity rc = roomClasses.get(i);
+            int current = peoplePerRoom.get(i);
+            int spaceToMax = rc.getMaxCapacity() - current;
+            if (spaceToMax > 0 && remainingGuests > 0) {
+                int add = Math.min(spaceToMax, remainingGuests);
+                peoplePerRoom.set(i, current + add);
+                remainingGuests -= add;
+            }
+        }
+
+        // BƯỚC 3: Tính toán tổng tiền (có xét phụ thu)
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<BigDecimal> finalRoomCharges = new ArrayList<>();
+        List<BigDecimal> finalPricePerNights = new ArrayList<>();
+
+        for (int i = 0; i < totalRooms; i++) {
+            RoomClassEntity rc = roomClasses.get(i);
+            int count = peoplePerRoom.get(i);
+            BigDecimal basePrice = pricesPerNight.get(i);
+
+            int extraPeople = Math.max(0, count - rc.getStandardCapacity());
+            BigDecimal extraFeePerNight = rc.getExtraPersonFee() != null ? rc.getExtraPersonFee() : BigDecimal.ZERO;
+            
+            BigDecimal finalPricePerNight = basePrice.add(extraFeePerNight.multiply(BigDecimal.valueOf(extraPeople)));
+            BigDecimal roomTotalCharge = finalPricePerNight.multiply(BigDecimal.valueOf(nights));
+            
+            finalPricePerNights.add(finalPricePerNight);
+            finalRoomCharges.add(roomTotalCharge);
+            totalAmount = totalAmount.add(roomTotalCharge);
         }
 
         BigDecimal depositAmount = totalAmount.multiply(Reservation.DEPOSIT_PERCENTAGE)
@@ -339,42 +426,21 @@ public class ReservationServiceImpl implements ReservationService {
 
         Long firstFolioId = null;
 
-        for (BookingRequestDTO.RoomBookingRequest roomReq : request.getRooms()) {
-            RoomClassEntity roomClass = roomClassRepository.findById(roomReq.getId())
-                    .orElseThrow(() -> new RuntimeException("Room Class not found: " + roomReq.getId()));
+        // BƯỚC 4: Tạo ReservationRoomEntity và Folio
+        for (int i = 0; i < totalRooms; i++) {
+            ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
+            reservationRoomEntity.setReservationEntity(savedReservation);
+            reservationRoomEntity.setRoomClassEntity(roomClasses.get(i));
+            reservationRoomEntity.setRoomEntity(assignedRooms.get(i));
+            reservationRoomEntity.setPriceAtBooking(finalPricePerNights.get(i));
+            reservationRoomEntity.setNumberOfPeople(peoplePerRoom.get(i));
+            reservationRoomEntity.setStatus(ReservationRoomStatus.ASSIGNED);
+            reservationRoomEntity.setIsActive(true);
+            ReservationRoomEntity savedRoom = reservationRoomRepository.save(reservationRoomEntity);
 
-            List<RoomEntity> availableRooms = roomRepository.findAvailableRoomsByClass(
-                    roomReq.getId(),
-                    Timestamp.from(checkInInstant),
-                    Timestamp.from(checkOutInstant),
-                    List.of(ReservationStatus.PENDING_DEPOSIT, ReservationStatus.CONFIRMED, ReservationStatus.IN_HOUSE)
-            );
-
-            if (availableRooms.size() < roomReq.getQuantity()) {
-                throw new RuntimeException("Không đủ phòng trống cho loại phòng: " + roomClass.getName());
-            }
-
-            Collections.shuffle(availableRooms);
-
-            BigDecimal roomPricePerNight = roomReq.getPricePerNight() != null ? roomReq.getPricePerNight() : roomClass.getBasePrice();
-            BigDecimal roomTotalCharge = roomPricePerNight.multiply(BigDecimal.valueOf(nights));
-
-            for (int i = 0; i < roomReq.getQuantity(); i++) {
-                ReservationRoomEntity reservationRoomEntity = new ReservationRoomEntity();
-                reservationRoomEntity.setReservationEntity(savedReservation);
-                reservationRoomEntity.setRoomClassEntity(roomClass);
-                reservationRoomEntity.setRoomEntity(availableRooms.get(i));
-                reservationRoomEntity.setPriceAtBooking(roomPricePerNight);
-                reservationRoomEntity.setNumberOfPeople(1);
-                reservationRoomEntity.setStatus(ReservationRoomStatus.ASSIGNED);
-                reservationRoomEntity.setIsActive(true);
-                ReservationRoomEntity savedRoom = reservationRoomRepository.save(reservationRoomEntity);
-
-                // Create folio with the full room charge and 20% deposit already accounted for
-                FolioEntity createdFolio = folioService.createFolioForBooking(savedRoom, roomTotalCharge);
-                if (firstFolioId == null) {
-                    firstFolioId = createdFolio.getId();
-                }
+            FolioEntity createdFolio = folioService.createFolioForBooking(savedRoom, finalRoomCharges.get(i));
+            if (firstFolioId == null) {
+                firstFolioId = createdFolio.getId();
             }
         }
 
@@ -463,7 +529,7 @@ public class ReservationServiceImpl implements ReservationService {
                                               BigDecimal depositAmount) {
         ReservationEntity reservation = new ReservationEntity();
         reservation.setCode(RandomUtils.generateReservationCode("RS"));
-        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservation.setStatus(ReservationStatus.PENDING_DEPOSIT);
         reservation.setCreatedAt(Timestamp.from(Instant.now()));
         reservation.setIsActive(true);
         updateReservationFields(reservation, request, customer, depositAmount);

@@ -1,49 +1,50 @@
-import { BedDouble, CalendarDays, CreditCard, LogIn, LogOut, Users } from "lucide-react";
-import { ReservationListPage } from "../pages/staff/ReservationListPage.jsx";
+import {BedDouble, CalendarDays, CreditCard, LogIn, LogOut, Users} from "lucide-react";
+import {ReservationListPage} from "../pages/receptionist/ReservationListPage.jsx";
+import {MakeReservationPage} from "../pages/receptionist/MakeReservationPage.jsx";
 
 /** @type {Object.<string, RouteItemType>} */
-const STAFF_MAP_ROUTES = {
+const RECEPTIONIST_MAP_ROUTES = {
     RESERVATIONS: {
-        path: "/staff/reservations",
+        path: "/receptionist/reservations",
         label: "Reservation",
         icon: CalendarDays,
-        element: <ReservationListPage />,
+        element: <ReservationListPage/>,
         inNavbar: true,
     },
     MAKE_RESERVATION: {
-        path: "/staff/reservations/make",
-        element: <div> Tạo đặt phòng</div>,
+        path: "/receptionist/reservations/make",
+        element: <MakeReservationPage/>,
     },
     ROOMS: {
-        path: "/staff/rooms",
+        path: "/receptionist/rooms",
         label: "Room",
         icon: BedDouble,
         element: <div>Danh sách phòng</div>,
         inNavbar: true,
     },
     OCCUPIED_ROOMS: {
-        path: "/staff/occupied-rooms",
+        path: "/receptionist/occupied-rooms",
         label: "Occupied Room",
         icon: Users,
         element: <div>Danh sách phòng ở</div>,
         inNavbar: true,
     },
     CHECK_IN: {
-        path: "/staff/check-in",
+        path: "/receptionist/check-in",
         label: "Check-in",
         icon: LogIn,
         element: <div>Danh sách check-in</div>,
         inNavbar: true,
     },
     CHECK_OUT: {
-        path: "/staff/check-out",
+        path: "/receptionist/check-out",
         label: "Check-out",
         icon: LogOut,
         element: <div>Danh sách check-out</div>,
         inNavbar: true,
     },
     PAYMENT: {
-        path: "/staff/payment",
+        path: "/receptionist/payment",
         label: "Payment",
         icon: CreditCard,
         element: <div>Danh sách payment</div>,
@@ -54,8 +55,8 @@ const STAFF_MAP_ROUTES = {
 /**
  * @type {RouteItemType[]}
  */
-const STAFF_ROUTES = Object.values(STAFF_MAP_ROUTES);
+const RECEPTIONIST_ROUTES = Object.values(RECEPTIONIST_MAP_ROUTES);
 
-const STAFF_NAVBAR_ITEMS = STAFF_ROUTES.filter((item) => item.inNavbar);
+const RECEPTIONIST_NAVBAR_ITEMS = RECEPTIONIST_ROUTES.filter((item) => item.inNavbar);
 
-export { STAFF_MAP_ROUTES, STAFF_ROUTES, STAFF_NAVBAR_ITEMS };
+export {RECEPTIONIST_MAP_ROUTES, RECEPTIONIST_ROUTES, RECEPTIONIST_NAVBAR_ITEMS};

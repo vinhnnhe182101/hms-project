@@ -518,40 +518,6 @@ export default function RoomDetailPage() {
                                             />
                                         </Box>
                                     )}
-
-                                    {/* Write Review */}
-                                    <Card padding="lg" radius="md" withBorder mt={30}>
-                                        <Title order={4} mb={20} style={{ fontSize: '18px', fontWeight: 600 }}>
-                                            Write a review
-                                        </Title>
-                                        <Stack gap="md">
-                                            <Box>
-                                                <Text mb="xs" fw={500} style={{ fontSize: '15px' }}>Your rating</Text>
-                                                <Rating size="lg" color="yellow" defaultValue={0} />
-                                            </Box>
-
-                                            <Textarea
-                                                label="Content"
-                                                placeholder="Share your experience..."
-                                                minRows={4}
-                                                styles={{
-                                                    label: { fontSize: '15px', fontWeight: 500, marginBottom: '8px' },
-                                                    input: { fontSize: '15px' }
-                                                }}
-                                            />
-                                            <Button
-                                                color="blue"
-                                                size="md"
-                                                style={{
-                                                    fontSize: '16px',
-                                                    padding: '10px 32px',
-                                                    fontWeight: 500
-                                                }}
-                                            >
-                                                Submit Review
-                                            </Button>
-                                        </Stack>
-                                    </Card>
                                 </Box>
                             </Tabs.Panel>
                         </Tabs>

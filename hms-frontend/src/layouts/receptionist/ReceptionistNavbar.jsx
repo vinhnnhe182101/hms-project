@@ -1,13 +1,13 @@
-import {STAFF_NAVBAR_ITEMS} from "../../constants/staff.jsx";
+import {RECEPTIONIST_NAVBAR_ITEMS} from "../../constants/receptionist.jsx";
 import {AppShell} from "@mantine/core";
-import {useStaffLayout} from "../../hooks/staff/layout/use-staff-layout.jsx";
+import {useReceptionistLayout} from "../../hooks/receptionist/layout/use-receptionist-layout.jsx";
 import {NavLink} from "react-router-dom";
 
-export const StaffNavbar = () => {
-    const {isMobileOpen, toggle} = useStaffLayout();
+export const ReceptionistNavbar = () => {
+    const {isMobileOpen, toggle} = useReceptionistLayout();
     return (
             <AppShell.Navbar p="md">
-                {STAFF_NAVBAR_ITEMS.map((item) => {
+                {RECEPTIONIST_NAVBAR_ITEMS.map((item) => {
                     const Icon = item.icon;
                     return (
                             <NavLink
