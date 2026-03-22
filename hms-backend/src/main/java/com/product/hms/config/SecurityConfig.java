@@ -64,7 +64,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(java.util.List.of("http://localhost:*"));
-        configuration.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -86,16 +86,19 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/v1/auth/**",
-                                "/api/v1/home/**",
-                                "/api/v1/payment/vnpay-ipn",
-                                "/oauth2/**",
-                                "/login/oauth2/**"
-                        ).permitAll()
+                                .requestMatchers(
+                                        "/api/auth/**",
+                                        "/api/v1/auth/**",
+                                        "/api/v1/home/**",
+                                        "/api/v1/payment/vnpay-ipn",
+                                        "/oauth2/**",
+                                        "/login/oauth2/**",
+                                        "/v3/api-docs/**",    // Đường dẫn lấy file JSON/YAML của OpenAPI
+                                        "/swagger-ui/**",     // Tài nguyên giao diện (JS, CSS)
+                                        "/swagger-ui.html"   // Trang giao diện chính
+                                ).permitAll()
 //                        .requestMatchers("/api/housekeeping/**").hasAuthority("HOUSEKEEPING")
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
