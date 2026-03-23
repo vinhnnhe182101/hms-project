@@ -36,6 +36,9 @@ export const ListRoomOccupantPage = ({onNavigate}) => {
     );
 
     const [page, setPage] = useState(1);
+    /**
+     *  @type {[RoomResponse[], React.Dispatch<React.SetStateAction<RoomResponse[]>>]}
+     */
     const [data, setData] = useState([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -73,6 +76,7 @@ export const ListRoomOccupantPage = ({onNavigate}) => {
             };
 
             const res = await roomApi.getRooms(params);
+            console.log(res);
             setData(res.content ?? []);
             setTotal(res.totalElements ?? 0);
         } catch (err) {
@@ -161,28 +165,64 @@ export const ListRoomOccupantPage = ({onNavigate}) => {
                         <Table.Tbody>
                             {data.length > 0 ? data.map((r) => (
                                     <Table.Tr key={r.id}>
-                                        <Table.Td><Text fw={700} size="sm" c="teal">{r.roomNumber}</Text></Table.Td>
-                                        <Table.Td><Text size="sm">{r.roomClass?.className || "N/A"}</Text></Table.Td>
-                                        <Table.Td><Text fw={600}
-                                                        size="sm">{r.currentReservation?.bookingCode || "N/A"}</Text></Table.Td>
+                                        {/* 1. Room Number */}
                                         <Table.Td>
-                                            <Text size="sm">{r.currentReservation?.customer?.fullName || "No Guest"}</Text>
-                                            <Text size="xs"
-                                                  c="dimmed">{r.currentReservation?.customer?.phoneNumber}</Text>
+                                            <Text fw={700} size="sm" c="teal">{r.roomNumber}</Text>
                                         </Table.Td>
+
+                                        {/* 2. Room Class */}
                                         <Table.Td>
-                                            <Text size="xs"
-                                                  fw={500}>In: {r.currentReservation?.checkInDate?.slice(0, 10)}</Text>
-                                            <Text size="xs"
-                                                  c="dimmed">Out: {r.currentReservation?.checkOutDate?.slice(0, 10)}</Text>
+                                            <Text size="sm">{r.roomClassName || "N/A"}</Text>
                                         </Table.Td>
+
+                                        {/* 3. Booking Code - Gọi trực tiếp từ r */}
                                         <Table.Td>
-                                            <Badge color="teal" variant="light" size="sm" radius="xl">Occupied</Badge>
+                                            <Text fw={600} size="sm">
+                                                {r.bookingCode || "N/A"}
+                                            </Text>
                                         </Table.Td>
+
+                                        {/* 4. Guest Info - Gọi trực tiếp guestFullName và guestPhoneNumber */}
+                                        <Table.Td>
+                                            <Box>
+                                                <Text size="sm">{r.guestFullName || "No Guest"}</Text>
+                                                <Text size="xs" c="dimmed">{r.guestPhoneNumber || ""}</Text>
+                                            </Box>
+                                        </Table.Td>
+
+                                        {/* 5. Stay Dates - Gọi trực tiếp checkInDate và checkOutDate */}
+                                        <Table.Td>
+                                            <Box>
+                                                <Text size="xs" fw={500}>
+                                                    In: {r.checkInDate || "---"}
+                                                </Text>
+                                                <Text size="xs" c="dimmed">
+                                                    Out: {r.checkOutDate || "---"}
+                                                </Text>
+                                            </Box>
+                                        </Table.Td>
+
+                                        {/* 6. Status */}
+                                        <Table.Td>
+                                            <Badge
+                                                    color={r.status === 'OCCUPIED' ? "teal" : "gray"}
+                                                    variant="light"
+                                                    size="sm"
+                                                    radius="xl"
+                                            >
+                                                {r.status || "Occupied"}
+                                            </Badge>
+                                        </Table.Td>
+
+                                        {/* 7. Action */}
                                         <Table.Td>
                                             <Tooltip label="View detail">
-                                                <ActionIcon variant="subtle" color="gray" size="sm"
-                                                            onClick={() => onNavigate?.("occupant-detail", r)}>
+                                                <ActionIcon
+                                                        variant="subtle"
+                                                        color="gray"
+                                                        size="sm"
+                                                        onClick={() => onNavigate?.("occupant-detail", r)}
+                                                >
                                                     <IconEye size={15}/>
                                                 </ActionIcon>
                                             </Tooltip>

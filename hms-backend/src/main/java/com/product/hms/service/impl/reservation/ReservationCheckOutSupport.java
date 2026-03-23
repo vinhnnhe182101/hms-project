@@ -33,7 +33,7 @@ public final class ReservationCheckOutSupport {
             return BigDecimal.ZERO;
         }
 
-        Instant actualCheckOut = allocation.getActualCheckOut();
+        Instant actualCheckOut = allocation.getActualCheckOut().toInstant();
         Instant expected = expectedCheckOut.toInstant();
 
         // If checked out on time or earlier, no fee
