@@ -13,6 +13,7 @@ import com.product.hms.exception.NotFoundException;
 import com.product.hms.repository.ReservationRoomRepository;
 import com.product.hms.repository.RoomRepository;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -103,7 +104,7 @@ public final class ReservationCheckInSupport {
 
             reservationRoomEntity.setRoomEntity(room);
             reservationRoomEntity.setStatus(ReservationRoomStatus.CHECKED_IN);
-            reservationRoomEntity.setActualCheckIn(Instant.now());
+            reservationRoomEntity.setActualCheckIn(new Timestamp(Instant.now().toEpochMilli()));
 
             room.setStatus(RoomStatus.OCCUPIED);
             usedRoomIds.add(room.getId());

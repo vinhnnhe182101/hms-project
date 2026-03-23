@@ -399,10 +399,10 @@ public class ReservationServiceImpl implements ReservationService {
 
             int extraPeople = Math.max(0, count - rc.getStandardCapacity());
             BigDecimal extraFeePerNight = rc.getExtraPersonFee() != null ? rc.getExtraPersonFee() : BigDecimal.ZERO;
-            
+
             BigDecimal finalPricePerNight = basePrice.add(extraFeePerNight.multiply(BigDecimal.valueOf(extraPeople)));
             BigDecimal roomTotalCharge = finalPricePerNight.multiply(BigDecimal.valueOf(nights));
-            
+
             finalPricePerNights.add(finalPricePerNight);
             finalRoomCharges.add(roomTotalCharge);
             totalAmount = totalAmount.add(roomTotalCharge);
@@ -479,7 +479,7 @@ public class ReservationServiceImpl implements ReservationService {
             return BigDecimal.ZERO;
         }
 
-        Instant actualCheckIn = reservationRoomEntity.getActualCheckIn();
+        Instant actualCheckIn = reservationRoomEntity.getActualCheckIn().toInstant();
         Instant expected = expectedCheckIn.toInstant();
         if (!actualCheckIn.isBefore(expected)) {
             return BigDecimal.ZERO;

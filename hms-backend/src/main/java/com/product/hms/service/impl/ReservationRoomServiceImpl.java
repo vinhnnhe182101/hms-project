@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 
@@ -108,7 +109,7 @@ public class ReservationRoomServiceImpl implements ReservationRoomService {
         ReservationRoomValidationSupport.validateReservationInHouseForCheckOut(reservation);
         ReservationRoomValidationSupport.validateReservationRoomCheckedInForCheckOut(reservationRoom);
         ReservationRoomValidationSupport.validateNoPendingServicesForCheckOut(reservationRoom, serviceBookingRepository);
-        reservationRoom.setActualCheckOut(Instant.now());
+        reservationRoom.setActualCheckOut(new Timestamp(Instant.now().toEpochMilli()));
         BigDecimal lateCheckOutFee = ReservationCheckOutSupport.calculateLateCheckOutFee(
                 reservationRoom,
                 reservation.getExpectedCheckOut()

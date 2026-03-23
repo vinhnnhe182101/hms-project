@@ -9,7 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -61,10 +61,10 @@ public class ReservationRoomEntity {
     private Integer numberOfPeople;
 
     @Column(name = "actual_check_out")
-    private Instant actualCheckOut;
+    private Timestamp actualCheckOut;
 
     @Column(name = "actual_check_in")
-    private Instant actualCheckIn;
+    private Timestamp actualCheckIn;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)

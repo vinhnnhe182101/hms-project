@@ -1,5 +1,10 @@
+-- =========================================================
+-- HMS DB - DML Data Generation Script (50-100 records)
+-- =========================================================
+
 USE `hms_db`;
 
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -30,161 +35,370 @@ TRUNCATE TABLE `room`;
 TRUNCATE TABLE `room_class`;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- 1) ROOM CLASS
-INSERT INTO `room_class` (`id`, `name`, `base_price`, `standard_capacity`, `max_capacity`, `extra_person_fee`,
-                          `is_active`)
-VALUES (1, 'Standard', 800000.00, 2, 3, 150000.00, 1),
-       (2, 'Deluxe', 1200000.00, 2, 4, 200000.00, 1),
-       (3, 'Suite', 2500000.00, 2, 5, 300000.00, 1);
+-- 1. ROOM CLASS (3 bản ghi)
+INSERT INTO `room_class` (`id`, `name`, `base_price`, `standard_capacity`, `max_capacity`, `extra_person_fee`)
+VALUES (1, 'Standard', 800000, 2, 3, 150000),
+       (2, 'Deluxe', 1200000, 2, 4, 200000),
+       (3, 'Suite', 2500000, 2, 5, 300000);
 
--- 2) ROOM
-INSERT INTO `room` (`id`, `room_number`, `room_class_id`, `status`, `description`, `is_active`)
-VALUES (1, '101', 1, 'AVAILABLE', 'Standard room - floor 1', 1),
-       (2, '102', 1, 'AVAILABLE', 'Standard room - floor 1', 1),
-       (3, '201', 2, 'AVAILABLE', 'Deluxe room - floor 2', 1),
-       (4, '202', 2, 'MAINTENANCE', 'Deluxe room - maintenance', 1),
-       (5, '301', 3, 'AVAILABLE', 'Suite - floor 3', 1);
+-- 2. ROOM (Tạo 60 phòng: 101-120, 201-220, 301-320)
+INSERT INTO `room` (`room_number`, `room_class_id`, `status`, `is_active`)
+SELECT CONCAT(floor, LPAD(num, 2, '0')),
+       floor, -- floor 1=Std, 2=Dlx, 3=Suite
+       'AVAILABLE',
+       1
+FROM (SELECT 1 AS floor UNION SELECT 2 UNION SELECT 3) f
+         CROSS JOIN (SELECT a.n + b.n * 10 AS num
+                     FROM (SELECT 1 n
+                           UNION
+                           SELECT 2
+                           UNION
+                           SELECT 3
+                           UNION
+                           SELECT 4
+                           UNION
+                           SELECT 5
+                           UNION
+                           SELECT 6
+                           UNION
+                           SELECT 7
+                           UNION
+                           SELECT 8
+                           UNION
+                           SELECT 9
+                           UNION
+                           SELECT 10) a,
+                          (SELECT 0 n UNION SELECT 1) b) n
+WHERE num <= 20;
 
--- 3) USER
-INSERT INTO `user` (`id`, `email`, `password`, `role`, `provider`, `provider_id`, `is_active`)
-VALUES (1, 'admin@hotel.local', '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'ADMIN', 'local', NULL,
-        1),
-       (2, 'reception@hotel.local', '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'STAFF', 'local',
-        NULL, 1),
-       (3, 'housekeeper@hotel.local', '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'STAFF', 'local',
-        NULL, 1),
-       (4, 'john.customer@gmail.com', NULL, 'CUSTOMER', 'google', 'google-oauth2|john123', 1),
-       (5, 'anna.customer@hotel.local', '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'CUSTOMER',
-        'local', NULL, 1);
+-- 3. USER (Tạo 110 bản ghi: 10 Staff/Admin + 100 Customer)
+-- Password mặc định: password123
+INSERT INTO `user` (`id`, `email`, `password`, `role`, `is_active`)
+VALUES (1, 'admin@hms.com', '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'ADMIN', 1);
 
--- 4) STAFF
-INSERT INTO `staff` (`id`, `user_id`, `department`, `full_name`, `phone_number`, `status`, `is_active`)
-VALUES (1, 2, 'RECEPTIONIST', 'Nguyễn Lễ', '0901000001', 'ACTIVE', 1),
-       (2, 3, 'HOUSEKEEPING', 'Trần My', '0901000002', 'ACTIVE', 1),
-       (3, 1, 'MANAGEMENT', 'Phạm Admin', '0901000003', 'ACTIVE', 1);
+INSERT INTO `user` (`email`, `password`, `role`)
+SELECT CONCAT('staff', n, '@hms.com'), '$2a$12$xVAEx8P3Riu5jTn.n5Rk2uadkWFKuMsxiXkX4mzyUyLXP5Tf8TjHG', 'STAFF'
+FROM (SELECT @row := @row + 1 AS n
+      FROM (SELECT 0
+            UNION
+            SELECT 1
+            UNION
+            SELECT 2
+            UNION
+            SELECT 3
+            UNION
+            SELECT 4
+            UNION
+            SELECT 5
+            UNION
+            SELECT 6
+            UNION
+            SELECT 7
+            UNION
+            SELECT 8
+            UNION
+            SELECT 9) a,
+           (SELECT @row := 1) r) t;
 
--- 5) CUSTOMER
-INSERT INTO `customer` (`id`, `full_name`, `phone_number`, `identity_card`, `email`, `type`, `guardian_id`, `user_id`,
-                        `is_active`)
-VALUES (1, 'John Nguyen', '0902000001', '012345678901', 'john.customer@gmail.com', 'ADULT', NULL, 4, 1),
-       (2, 'Anna Tran', '0902000002', '012345678902', 'anna.customer@hotel.local', 'ADULT', NULL, 5, 1),
-       (3, 'Be Nguyen', '0902000003', NULL, NULL, 'CHILD', 1, NULL, 1),
-       (4, 'Guest Friend', '0902000004', '012345678904', NULL, 'ADULT', NULL, NULL, 1);
+INSERT INTO `user` (`email`, `password`, `role`)
+SELECT CONCAT('guest', n, '@gmail.com'), NULL, 'CUSTOMER'
+FROM (SELECT @row2 := @row2 + 1 AS n
+      FROM (SELECT 0
+            UNION
+            SELECT 1
+            UNION
+            SELECT 2
+            UNION
+            SELECT 3
+            UNION
+            SELECT 4
+            UNION
+            SELECT 5
+            UNION
+            SELECT 6
+            UNION
+            SELECT 7
+            UNION
+            SELECT 8
+            UNION
+            SELECT 9) a,
+           (SELECT 0
+            UNION
+            SELECT 1
+            UNION
+            SELECT 2
+            UNION
+            SELECT 3
+            UNION
+            SELECT 4
+            UNION
+            SELECT 5
+            UNION
+            SELECT 6
+            UNION
+            SELECT 7
+            UNION
+            SELECT 8
+            UNION
+            SELECT 9) b,
+           (SELECT @row2 := 0) r) t;
 
--- 6) RESERVATION
-INSERT INTO `reservation` (`id`, `code`, `customer_id`, `expected_check_in`, `expected_check_out`, `status`,
-                           `total_deposit`, `number_of_members`, `note`, `created_at`, `is_active`)
-VALUES (1, 'RSV-20260301-0001', 1, '2026-03-10 14:00:00', '2026-03-12 12:00:00', 'PENDING_DEPOSIT', 500000.00, 3,
-        'Gia đình đi du lịch', '2026-03-01 10:00:00', 1),
-       (2, 'RSV-20260301-0002', 2, '2026-03-15 14:00:00', '2026-03-16 12:00:00', 'PENDING_DEPOSIT', 0.00, 1, NULL,
-        '2026-03-01 11:00:00', 1);
+-- 4. STAFF (10 bản ghi)
+INSERT INTO `staff` (`user_id`, `department`, `full_name`, `phone_number`, `status`)
+SELECT id,
+       IF(id % 2 = 0, 'RECEPTIONIST', 'HOUSEKEEPING'),
+       CONCAT('NV Nguyen ', id),
+       CONCAT('0912', LPAD(id, 6, '0')),
+       'ACTIVE'
+FROM `user`
+WHERE `role` = 'STAFF';
 
--- 7) RESERVATION ROOM
-INSERT INTO `reservation_room` (`id`, `reservation_id`, `room_class_id`, `room_id`, `status`, `number_of_people`,
-                                `price_at_booking`, `is_active`)
-VALUES (1, 1, 2, 3, 'ASSIGNED', 3, 1200000.00, 1),
-       (2, 2, 1, 1, 'ASSIGNED', 1, 800000.00, 1);
+-- 5. CUSTOMER (100 bản ghi)
+INSERT INTO `customer` (`full_name`, `phone_number`, `identity_card`, `email`, `type`, `user_id`)
+SELECT CONCAT('Khách Hàng ', id),
+       CONCAT('0908', LPAD(id, 6, '0')),
+       CONCAT('0790', LPAD(id, 8, '0')),
+       email,
+       'ADULT',
+       id
+FROM `user`
+WHERE `role` = 'CUSTOMER';
 
--- 8) ROOM OCCUPANT
-INSERT INTO `room_occupant` (`id`, `reservation_room_id`, `customer_id`, `role`, `is_active`)
-VALUES (1, 1, 1, 'PRIMARY', 1),
-       (2, 1, 3, 'CHILD', 1),
-       (3, 1, 4, 'GUEST', 1),
-       (4, 2, 2, 'PRIMARY', 1);
+-- 6. RESERVATION (80 bản ghi)
+INSERT INTO `reservation` (`code`, `customer_id`, `expected_check_in`, `expected_check_out`, `status`, `total_deposit`,
+                           `created_at`)
+SELECT CONCAT('RSV-', 202603, LPAD(n, 4, '0')),
+       (SELECT id FROM `customer` ORDER BY RAND() LIMIT 1),
+       DATE_ADD('2026-03-01', INTERVAL n DAY),
+       DATE_ADD('2026-03-01', INTERVAL n + 2 DAY),
+       IF(n < 40, 'FINISHED', 'CONFIRMED'),
+       IF(n % 2 = 0, 500000, 0),
+       DATE_SUB(NOW(), INTERVAL n HOUR)
+FROM (SELECT @r3 := @r3 + 1 AS n
+      FROM (SELECT 0
+            UNION
+            SELECT 1
+            UNION
+            SELECT 2
+            UNION
+            SELECT 3
+            UNION
+            SELECT 4
+            UNION
+            SELECT 5
+            UNION
+            SELECT 6
+            UNION
+            SELECT 7
+            UNION
+            SELECT 8
+            UNION
+            SELECT 9) a,
+           (SELECT 0
+            UNION
+            SELECT 1
+            UNION
+            SELECT 2
+            UNION
+            SELECT 3
+            UNION
+            SELECT 4
+            UNION
+            SELECT 5
+            UNION
+            SELECT 6
+            UNION
+            SELECT 7) b,
+           (SELECT @r3 := 0) r) t;
 
--- 9) SERVICE CATALOG
-INSERT INTO `service` (`id`, `name`, `service_category`, `price`, `is_active`)
-VALUES (1, 'Breakfast Buffet', 'F&B', 200000.00, 1),
-       (2, 'Minibar - Soft Drink', 'Minibar', 50000.00, 1),
-       (3, 'Aroma Massage 60min', 'Spa', 700000.00, 1);
+-- 7. RESERVATION_ROOM (1:1 với Reservation để đơn giản hóa mẫu)
+INSERT INTO `reservation_room` (`reservation_id`, `room_class_id`, `room_id`, `status`, `price_at_booking`)
+SELECT id,
+       (id % 3) + 1,
+       (SELECT id FROM `room` WHERE room_class_id = (id % 3) + 1 LIMIT 1 OFFSET 2), -- Offset để tránh trùng lặp đơn giản
+       IF(id < 40, 'CHECKED_OUT', 'PENDING'),
+       IF((id % 3) + 1 = 1, 800000, IF((id % 3) + 1 = 2, 1200000, 2500000))
+FROM `reservation`;
 
--- 10) SERVICE BOOKING
-INSERT INTO `service_booking` (`id`, `reservation_room_id`, `service_id`, `quantity`, `status`, `price_at_booking`,
-                               `is_active`)
-VALUES (1, 1, 1, 3, 'PENDING', 200000.00, 1),
-       (2, 1, 3, 1, 'PENDING', 700000.00, 1),
-       (3, 2, 2, 2, 'PENDING', 50000.00, 1);
+-- 9. SERVICE (10 bản ghi)
+INSERT INTO `service` (`name`, `service_category`, `price`)
+VALUES ('Buffet sáng', 'F&B', 200000),
+       ('Coca Cola', 'Minibar', 40000),
+       ('Giặt ủi', 'General', 60000),
+       ('Massage body', 'Spa', 500000),
+       ('Đưa đón sân bay', 'Transport', 400000),
+       ('Mì ly', 'Minibar', 30000),
+       ('Rượu vang', 'Minibar', 1200000),
+       ('Hơi nước', 'Spa', 150000),
+       ('Thuê xe máy', 'Transport', 150000),
+       ('Trà đào', 'F&B', 45000);
 
--- 11) FOLIO
-INSERT INTO `folio` (`id`, `reservation_room_id`, `total_charges`, `total_paid`, `balance`, `status`, `is_active`)
-VALUES (1, 1, 0.00, 0.00, 0.00, 'OPEN', 1),
-       (2, 2, 0.00, 0.00, 0.00, 'OPEN', 1);
+-- 10. SERVICE BOOKING (100 bản ghi ngẫu nhiên)
+INSERT INTO `service_booking` (`reservation_room_id`, `service_id`, `quantity`, `status`, `price_at_booking`)
+SELECT (SELECT id FROM `reservation_room` ORDER BY RAND() LIMIT 1),
+       (SELECT id FROM `service` ORDER BY RAND() LIMIT 1),
+       (t.n % 3) + 1,
+       'FINISHED',
+       0 -- Sẽ update sau
+FROM (SELECT @r4 := @r4 + 1 AS n
+      FROM (SELECT 0 - 9) a,
+           (SELECT 0 - 9) b,
+           (SELECT @r4 := 0) r) t;
 
--- 12) FOLIO ITEM
-INSERT INTO `folio_item` (`id`, `folio_id`, `type`, `service_booking_id`, `description`, `quantity`, `total_price`,
-                          `status`, `is_active`)
-VALUES (1, 1, 'ROOM_CHARGE', NULL, 'Room charge (Deluxe) - 2 nights', 2, 2400000.00, 'UNPAID', 1),
-       (2, 1, 'SERVICE_CHARGE', 1, 'Breakfast Buffet', 3, 600000.00, 'UNPAID', 1),
-       (3, 1, 'SERVICE_CHARGE', 2, 'Aroma Massage 60min', 1, 700000.00, 'UNPAID', 1),
-       (4, 2, 'ROOM_CHARGE', NULL, 'Room charge (Standard) - 1 night', 1, 800000.00, 'UNPAID', 1),
-       (5, 2, 'SERVICE_CHARGE', 3, 'Minibar - Soft Drink', 2, 100000.00, 'UNPAID', 1);
+UPDATE `service_booking` sb JOIN `service` s ON sb.service_id = s.id
+SET sb.price_at_booking = s.price;
 
--- Update folio totals
+-- 11. FOLIO (Mỗi booking có 1 folio)
+INSERT INTO `folio` (`reservation_room_id`, `total_charges`, `total_paid`, `balance`, `status`)
+SELECT id, 0, 0, 0, IF(status = 'CHECKED_OUT', 'SETTLED', 'OPEN')
+FROM `reservation_room`;
+
+-- 12. FOLIO ITEM (Tiền phòng + Tiền dịch vụ)
+-- Chèn tiền phòng
+INSERT INTO `folio_item` (`folio_id`, `type`, `description`, `quantity`, `total_price`, `status`)
+SELECT f.id, 'ROOM_CHARGE', 'Tiền phòng', 2, rr.price_at_booking * 2, IF(f.status = 'SETTLED', 'PAID', 'UNPAID')
+FROM `folio` f
+         JOIN `reservation_room` rr ON f.reservation_room_id = rr.id;
+
+-- Chèn tiền dịch vụ từ service_booking
+INSERT INTO `folio_item` (`folio_id`, `type`, `service_booking_id`, `description`, `quantity`, `total_price`, `status`)
+SELECT f.id,
+       'SERVICE_CHARGE',
+       sb.id,
+       s.name,
+       sb.quantity,
+       sb.price_at_booking * sb.quantity,
+       IF(f.status = 'SETTLED', 'PAID', 'UNPAID')
+FROM `service_booking` sb
+         JOIN `reservation_room` rr ON sb.reservation_room_id = rr.id
+         JOIN `folio` f ON f.reservation_room_id = rr.id
+         JOIN `service` s ON sb.service_id = s.id;
+
+-- Cập nhật tổng tiền Folio
 UPDATE `folio` f
-SET f.`total_charges` = (SELECT IFNULL(SUM(fi.`total_price`), 0) FROM `folio_item` fi WHERE fi.`folio_id` = f.`id`),
-    f.`balance`       = f.`total_charges` - f.`total_paid`
-WHERE f.`id` IN (1, 2);
+SET f.total_charges = (SELECT SUM(total_price) FROM `folio_item` WHERE folio_id = f.id),
+    f.total_paid    = IF(status = 'SETTLED', (SELECT SUM(total_price) FROM `folio_item` WHERE folio_id = f.id), 0),
+    f.balance       = f.total_charges - f.total_paid;
 
--- 13) PAYMENT TRANSACTION
-INSERT INTO `payment_transaction` (`id`, `folio_id`, `code`, `transaction_reference`, `payment_method`, `amount`,
-                                   `type`, `status`, `created_at`, `handled_by`, `is_active`)
-VALUES (1, 1, 'PAY-20260301-0001', 'VNPAY-REF-AAA001', 'VNPAY', 500000.00, 'DEPOSIT', 'SUCCESS', '2026-03-01 10:05:00',
-        1, 1),
-       (2, 1, 'PAY-20260312-0001', 'CASH-REC-0001', 'CASH', 3200000.00, 'PAYMENT', 'SUCCESS', '2026-03-12 11:00:00', 1,
-        1);
+-- 13. RATING (50 bản ghi)
+INSERT INTO `rating` (`reservation_id`, `customer_id`, `rating`, `comment`)
+SELECT r.id,
+       r.customer_id,
+       (r.id % 2) + 4,
+       'Dịch vụ rất tốt, tôi sẽ quay lại!'
+FROM `reservation` r
+WHERE r.status = 'FINISHED'
+LIMIT 50;
 
--- 14) PAYMENT ALLOCATION
-INSERT INTO `payment_allocation` (`id`, `payment_transaction_id`, `folio_item_id`, `amount_applied`, `is_active`)
-VALUES (1, 1, 1, 500000.00, 1),
-       (2, 2, 1, 1900000.00, 1),
-       (3, 2, 2, 600000.00, 1),
-       (4, 2, 3, 700000.00, 1);
+-- 14. ASSET & ROOM ASSET
+INSERT INTO `asset_category` (`id`, `name`)
+VALUES (1, 'Điện tử'),
+       (2, 'Nội thất');
+INSERT INTO `asset` (`id`, `category_id`, `name`, `total_quantity`, `available_quantity`, `price`)
+VALUES (1, 1, 'Smart TV 43', 100, 60, 7000000),
+       (2, 2, 'Giường King', 50, 40, 15000000);
 
--- Sync status and totals
-UPDATE `folio_item` fi
-    JOIN (SELECT `folio_item_id`, SUM(`amount_applied`) AS applied
-          FROM `payment_allocation`
-          GROUP BY `folio_item_id`) x ON x.`folio_item_id` = fi.`id`
-SET fi.`status` = IF(x.applied >= fi.`total_price`, 'PAID', fi.`status`);
-
-UPDATE `folio` f
-    JOIN (SELECT pt.`folio_id` AS folio_id, SUM(pa.`amount_applied`) AS paid
-          FROM `payment_allocation` pa
-                   JOIN `payment_transaction` pt ON pt.`id` = pa.`payment_transaction_id`
-          GROUP BY pt.`folio_id`) x ON x.folio_id = f.`id`
-SET f.`total_paid` = x.paid,
-    f.`balance`    = f.`total_charges` - x.paid;
-
--- 15) ASSETS
-INSERT INTO `asset_category` (`id`, `name`, `description`, `is_active`)
-VALUES (1, 'Electronics', 'TV, hair dryer, etc.', 1),
-       (2, 'Furniture', 'Bed, chair, table, etc.', 1),
-       (3, 'Linen', 'Towels, sheets, etc.', 1);
-
-INSERT INTO `asset` (`id`, `category_id`, `name`, `total_quantity`, `available_quantity`, `price`, `is_active`)
-VALUES (1, 1, 'TV 42 inch', 10, 8, 6000000.00, 1),
-       (2, 1, 'Hair Dryer', 30, 25, 500000.00, 1),
-       (3, 3, 'Bath Towel', 200, 180, 120000.00, 1);
-
-INSERT INTO `room_asset` (`id`, `room_id`, `asset_id`, `quantity`, `status`, `is_active`)
-VALUES (1, 1, 1, 1, 'Good', 1),
-       (2, 1, 2, 1, 'Good', 1),
-       (3, 3, 1, 1, 'Good', 1),
-       (4, 3, 2, 1, 'Good', 1);
-
--- 16) DAMAGE & REFUND
-INSERT INTO `damage_report` (`id`, `room_id`, `reported_by_staff_id`, `reservation_id`, `quantity`, `penalty_amount`,
-                             `status`, `is_active`)
-VALUES (1, 3, 2, 1, 1, 120000.00, 'OPEN', 1);
-
-INSERT INTO `refund_request` (`id`, `payment_transaction_id`, `amount`, `reason`, `status`, `requested_by`,
-                              `created_at`, `is_active`)
-VALUES (1, 1, 200000.00, 'Khách đổi lịch, hoàn cọc một phần', 'PENDING', 1, '2026-03-02 09:00:00', 1);
-
--- 17) HOUSEKEEPING (Fixed assignee_id to 2)
-INSERT INTO `housekeeping_task` (`room_id`, `assignee_id`, `task_type`, `status`, `assigned_at`, `is_active`)
-VALUES (1, 2, 'CLEANING', 'SCHEDULED', NOW(), 1),
-       (2, 2, 'CLEANING', 'IN_PROGRESS', NOW(), 1),
-       (3, 2, 'INSPECTION', 'SCHEDULED', NOW(), 1);
+INSERT INTO `room_asset` (`room_id`, `asset_id`, `quantity`, `status`)
+SELECT id, 1, 1, 'Good'
+FROM `room`
+LIMIT 50;
 
 COMMIT;
+SET AUTOCOMMIT = 1;
+
+-- Kiểm tra số lượng
+SELECT 'room' as table_name, COUNT(*)
+FROM room
+UNION
+SELECT 'user', COUNT(*)
+FROM user
+UNION
+SELECT 'customer', COUNT(*)
+FROM customer
+UNION
+SELECT 'reservation', COUNT(*)
+FROM reservation
+UNION
+SELECT 'folio_item', COUNT(*)
+FROM folio_item;
+
+USE `hms_db`;
+
+START TRANSACTION;
+
+-- =========================================================
+-- CẬP NHẬT CÁC CASE ĐANG Ở (IN-HOUSE / OCCUPIED)
+-- =========================================================
+
+-- 1. Cập nhật trạng thái Reservation sang 'IN_HOUSE' cho các ID từ 41 đến 65
+UPDATE `reservation`
+SET `status`             = 'IN_HOUSE',
+    `expected_check_in`  = DATE_SUB(NOW(), INTERVAL 1 DAY),
+    `expected_check_out` = DATE_ADD(NOW(), INTERVAL 1 DAY)
+WHERE `id` BETWEEN 41 AND 65;
+
+-- 2. Cập nhật Reservation_Room tương ứng sang 'CHECKED_IN'
+-- Đồng thời gán ngày check-in thực tế
+UPDATE `reservation_room`
+SET `status`          = 'CHECKED_IN',
+    `actual_check_in` = DATE_SUB(NOW(), INTERVAL 1 DAY)
+WHERE `reservation_id` BETWEEN 41 AND 65;
+
+-- 3. Cập nhật trạng thái phòng (ROOM) sang 'OCCUPIED' 
+-- dựa trên các phòng đang được khách check-in
+UPDATE `room` r
+    JOIN `reservation_room` rr ON r.`id` = rr.`room_id`
+SET r.`status` = 'OCCUPIED'
+WHERE rr.`status` = 'CHECKED_IN';
+
+-- 4. Tạo dữ liệu người ở thực tế (ROOM_OCCUPANT) cho các case đang ở
+-- Giả sử mỗi phòng đang ở có ít nhất 1 khách chính
+INSERT INTO `room_occupant` (`reservation_room_id`, `customer_id`, `role`)
+SELECT rr.id,
+       res.customer_id,
+       'PRIMARY'
+FROM `reservation_room` rr
+         JOIN `reservation` res ON rr.reservation_id = res.id
+WHERE rr.status = 'CHECKED_IN';
+
+-- 5. Cập nhật một số phòng sang trạng thái khác để dữ liệu đa dạng
+-- Một số phòng vừa trả khách xong chưa dọn (DIRTY)
+UPDATE `room`
+SET `status` = 'DIRTY'
+WHERE `id` IN (5, 10, 15, 20);
+
+-- Một số phòng đang bảo trì (MAINTENANCE)
+UPDATE `room`
+SET `status` = 'MAINTENANCE'
+WHERE `id` IN (25, 30);
+
+-- 6. Tạo Task dọn phòng cho các phòng DIRTY
+INSERT INTO `housekeeping_task` (`room_id`, `assignee_id`, `task_type`, `status`, `assigned_at`)
+SELECT id,
+       (SELECT id FROM `staff` WHERE department = 'HOUSEKEEPING' LIMIT 1),
+       'CLEANING',
+       'SCHEDULED',
+       NOW()
+FROM `room`
+WHERE `status` = 'DIRTY';
+
+-- 7. Cập nhật Folio cho khách đang ở (Balance thường sẽ > 0 vì chưa thanh toán hết)
+UPDATE `folio` f
+    JOIN `reservation_room` rr ON f.reservation_room_id = rr.id
+SET f.status     = 'OPEN',
+    f.total_paid = (f.total_charges * 0.3), -- Khách mới cọc hoặc trả trước 1 phần
+    f.balance    = f.total_charges - (f.total_charges * 0.3)
+WHERE rr.status = 'CHECKED_IN';
+
+COMMIT;
+
+-- =========================================================
+-- KIỂM TRA TRẠNG THÁI SAU KHI CẬP NHẬT
+-- =========================================================
+SELECT 'Trạng thái phòng' as info, status, COUNT(*)
+FROM room
+GROUP BY status
+UNION
+SELECT 'Trạng thái đặt phòng', status, COUNT(*)
+FROM reservation
+GROUP BY status;

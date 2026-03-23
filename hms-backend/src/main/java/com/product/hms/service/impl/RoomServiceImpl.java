@@ -4,6 +4,7 @@ import com.product.hms.converters.RoomClassMapper;
 import com.product.hms.dto.request.CreateRoomRequest;
 import com.product.hms.dto.request.RoomSearchRequest;
 import com.product.hms.dto.response.*;
+import com.product.hms.entity.ReservationEntity;
 import com.product.hms.entity.RoomClassEntity;
 import com.product.hms.entity.RoomEntity;
 import com.product.hms.exception.BadRequestException;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -340,13 +342,48 @@ public class RoomServiceImpl implements RoomService {
     }
 
     private RoomResponse toResponse(RoomEntity entity) {
+        var reservationRoomEntity = entity.getReservationRoomEntities().stream()
+                .findFirst()
+                .orElse(null);
+        ReservationEntity reservationEntity = null;
+        if (reservationRoomEntity != null) {
+            reservationEntity = reservationRoomEntity.getReservationEntity();
+        }
+        LocalDate checkInDate = null;
+        LocalDate checkOutDate = null;
+        if (reservationRoomEntity != null && reservationRoomEntity.getActualCheckIn() != null) {
+            checkInDate = reservationRoomEntity.getActualCheckIn().toLocalDateTime().toLocalDate();
+        } else if (reservationEntity != null && reservationEntity.getExpectedCheckIn() != null) {
+            checkInDate = reservationEntity.getExpectedCheckIn().toLocalDateTime().toLocalDate();
+        }
+        if (reservationRoomEntity != null && reservationRoomEntity.getActualCheckOut() != null) {
+            checkOutDate = reservationRoomEntity.getActualCheckOut().toLocalDateTime().toLocalDate();
+        } else if (reservationEntity != null && reservationEntity.getExpectedCheckOut() != null) {
+            checkInDate = reservationEntity.getExpectedCheckOut().toLocalDateTime().toLocalDate();
+        }
+
+        String reservationCode = "";
+        String fullName = "";
+        String phoneNumber = "";
+        if (reservationEntity != null) {
+            reservationCode = reservationEntity.getCode();
+            fullName = reservationEntity.getCustomerEntity().getFullName();
+            phoneNumber = reservationEntity.getCustomerEntity().getPhoneNumber();
+        }
+
         return new RoomResponse(
                 entity.getId(),
                 entity.getRoomNumber(),
                 entity.getRoomClassEntity() != null ? entity.getRoomClassEntity().getId() : null,
                 entity.getRoomClassEntity() != null ? entity.getRoomClassEntity().getName() : null,
                 entity.getStatus(),
-                entity.getIsActive());
+                entity.getIsActive(),
+                reservationCode,
+                fullName,
+                phoneNumber,
+                checkInDate,
+                checkOutDate
+        );
     }
 
     /**
